@@ -68,7 +68,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     }
     loadAll();
   }, []);
-/*karan*/ 
   useEffect(() => {
     fetchProducts(selectedCategory);
   }, [selectedCategory]);
