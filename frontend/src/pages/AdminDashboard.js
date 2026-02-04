@@ -68,7 +68,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     }
     loadAll();
   }, []);
-  //Dre
+  //Drejiygu
 
   useEffect(() => {
     fetchProducts(selectedCategory);
