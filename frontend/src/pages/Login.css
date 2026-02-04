@@ -1,0 +1,101 @@
+.login-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    min-height: 80vh;
+}
+
+/* Role Selector Toggle */
+.role-selector-container {
+    margin-bottom: 2rem;
+}
+
+.role-selector-container label {
+    display: block;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--secondary);
+    margin-bottom: 0.8rem;
+}
+
+.role-buttons {
+    display: flex;
+    background: var(--bg-main);
+    padding: 5px;
+    border-radius: 12px;
+    gap: 5px;
+}
+
+.role-buttons button {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    background: transparent;
+    color: var(--secondary);
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.role-buttons button.active {
+    background: var(--card-bg);
+    color: var(--primary);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Form Styles */
+.login-card {
+    max-width: 420px; /* Slimmer for login */
+}
+
+.auth-footer-links {
+    margin-top: 2rem;
+    text-align: center;
+    border-top: 1px solid rgba(163, 174, 208, 0.1);
+    padding-top: 1.5rem;
+}
+
+.auth-footer-links p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.register-options {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.register-options button {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.register-options button:hover {
+    text-decoration: underline;
+}
+
+.divider {
+    color: rgba(163, 174, 208, 0.3);
+}
+
+/* Dark mode specific for inputs */
+.dark-mode .role-buttons {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.error-text {
+  color: #e53935;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}

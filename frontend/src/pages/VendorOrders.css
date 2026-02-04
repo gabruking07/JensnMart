@@ -1,0 +1,33 @@
+.order-card {
+  margin-bottom: 16px;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.status.placed { color: #2563eb; }
+.status.completed { color: #16a34a; }
+.status.cancelled { color: #dc2626; }
+
+.order-product-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.order-product-row img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-weight: bold;
+}

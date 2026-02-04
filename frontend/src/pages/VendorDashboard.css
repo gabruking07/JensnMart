@@ -1,0 +1,351 @@
+.vendor-root {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+}
+
+.vendor-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Status Banner */
+.status-banner {
+    padding: 1rem;
+    text-align: center;
+    background: #FFF9E6;
+    color: #856404;
+    border-bottom: 1px solid #FFEEBA;
+    font-size: 0.9rem;
+}
+
+.dark-mode .status-banner.warning {
+    background: #2D2200;
+    color: #FFD333;
+    border-color: #4D3D00;
+}
+
+/* Header Section */
+.vendor-content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+}
+
+.vendor-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.cart-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary);
+    color: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(67, 24, 255, 0.2);
+    transition: 0.3s;
+}
+
+.cart-shortcut:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.vendor-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+  gap: 15px; 
+  padding: 15px;
+  justify-items: center; 
+}
+
+.vendor-product-card {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+  gap: 20px;
+  padding: auto;
+    overflow: hidden;
+    border: 2px solid rgba(163, 174, 208, 0.1);
+}
+
+.v-card-img {
+  position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.v-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.stock-label {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    backdrop-filter: blur(4px);
+}
+
+.stock-label.in {
+    background: rgba(5, 205, 153, 0.9);
+    color: white;
+}
+
+.stock-label.out {
+    background: rgba(238, 93, 80, 0.9);
+    color: white;
+}
+
+.v-card-body {
+    padding: 0.1 rem;
+}
+
+.v-price {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin: 0.5rem 0 1rem 0;
+}
+
+/* Qty and Add Row */
+.v-purchase-zone {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.v-qty-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-main);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.v-qty-selector button {
+    width: 35px;
+    height: 35px;
+    border: none;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.v-add-btn {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.v-add-btn:disabled {
+    background: var(--secondary);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Footer Section */
+.vendor-footer-actions {
+    margin-top: 4rem;
+    text-align: center;
+    padding-bottom: 2rem;
+}
+
+.logout-btn-outline {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    padding: 0.8rem 2.5rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.logout-btn-outline:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Container for the whole filter row */
+.filter-row-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--card-light);
+  padding: 15px 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  flex-wrap: nowrap; /* Forces everything on one line */
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Makes search bar take up extra space if needed */
+.search-grow {
+  flex-grow: 1;
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Standard Inputs */
+.filter-select, .filter-input {
+  padding: 10px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.filter-select:focus, .filter-input:focus {
+  border-color: var(--primary);
+}
+
+/* Price Slider Pill */
+.price-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f1f5f9;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-color);
+  min-width: 320px;
+}
+
+.price-val {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.slider-track-box {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.dual-range-input {
+  position: absolute;
+  width: 100%;
+  appearance: none;
+  background: none;
+  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
+  outline: none;
+  margin: 0;
+}
+
+.dual-range-input::-webkit-slider-thumb {
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: white;
+  border: 5px solid var(--primary);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 2px 4px rgba(0,0,0,1);
+}
+
+/* Dark Mode Support */
+.dark-mode .filter-row-container {
+  background: var(--card-dark);
+  border-color: #334155;
+}
+
+.dark-mode .price-pill-row {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark-mode .filter-select, .dark-mode .filter-input {
+  background: #0f172a;
+  color: white;
+  border-color: #334155;
+}
+
+/* Container for the single row filters */
+.filter-row-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+}
+
+/* Specific fix for Dual Sliders in Dark Mode */
+body.dark .dual-range-input {
+  background: transparent !important; /* Overrides the solid #020617 from index.css */
+  border: none !important;           /* Removes the border that might block clicks */
+  pointer-events: none;               /* Allows clicks to pass through the invisible bar */
+}
+
+.dual-range-input {
+  position: absolute;
+  width: 100%;
+  appearance: none;
+  background: none;
+  top: 50%;
+  transform: translateY(-50%);
+  outline: none;
+  margin: 0;
+}
+
+/* Re-enable pointer events ONLY for the handles (dots) */
+.dual-range-input::-webkit-slider-thumb {
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #2563eb;
+  cursor: pointer;
+  pointer-events: auto; /* This handle is now the only clickable part */
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}

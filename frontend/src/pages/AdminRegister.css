@@ -1,0 +1,152 @@
+/* Inherits variables from the main theme */
+.auth-page-root {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.auth-card {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 500px;
+    padding: 2.5rem;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-header h2 {
+    font-size: 1.8rem;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: var(--secondary);
+    font-size: 0.95rem;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-form label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+}
+
+.auth-form input, 
+.auth-form select {
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(163, 174, 208, 0.3);
+    background: transparent;
+    color: var(--text-main);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+/* Buttons */
+.btn-auth-primary {
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    box-shadow: 0 4px 14px rgba(67, 24, 255, 0.3);
+    transition: all 0.2s;
+}
+
+.btn-auth-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 24, 255, 0.4);
+}
+
+.btn-auth-secondary {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    margin-top: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-auth-secondary:hover {
+    text-decoration: underline;
+}
+
+/* Dark Mode Specific Tweaks */
+.dark-mode .auth-card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .auth-form input {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* For VendorRegister.css */
+
+.approval-notice {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(163, 174, 208, 0.05);
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+    text-align: center;
+}
+
+.approval-notice small {
+    color: var(--secondary);
+    font-weight: 500;
+}
+
+/* Ensure form-row handles smaller screens on mobile */
+@media (max-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.error-text {
+  color: #e53935;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}

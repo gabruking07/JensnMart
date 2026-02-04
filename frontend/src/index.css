@@ -1,0 +1,203 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f6f8;
+  color: #333;
+}
+
+button {
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  background: #fff;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #f0f0f0;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+input {
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* ================= DARK MODE ================= */
+body.dark {
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+/* CARDS */
+body.dark .product-card,
+body.dark .vendor-card,
+body.dark .cart-item,
+body.dark .modal {
+  background: #1e293b;
+  color: #e5e7eb;
+  box-shadow: none;
+}
+
+/* BUTTONS */
+body.dark button {
+  background: #1e293b;
+  color: #e5e7eb;
+  border: 1px solid #334155;
+}
+
+body.dark button:hover {
+  background: #334155;
+}
+
+/* INPUTS */
+body.dark input {
+  background: #020617;
+  color: #e5e7eb;
+  border: 1px solid #334155;
+}
+
+/* HEADERS */
+body.dark h1,
+body.dark h2,
+body.dark h3 {
+  color: #f8fafc;
+}
+
+/* STATS / INFO BOX */
+body.dark .admin-stats {
+  background: #020617;
+  border-left: 4px solid #38bdf8;
+}
+
+/* DELETE BUTTON */
+body.dark .delete-btn {
+  background: #7f1d1d;
+}
+
+body.dark .delete-btn:hover {
+  background: #991b1b;
+}
+
+/* ===== GLOBAL PAGE HEADER ===== */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+  font-size: 18px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #ccc;
+}
+
+body.dark .theme-toggle {
+  border-color: #475569;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.theme-toggle {
+  font-size: 18px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #ccc;
+}
+
+body.dark .theme-toggle {
+  border-color: #475569;
+}
+
+.modal {
+  background: #ffffff;
+  color: #000;
+}
+
+body.dark .modal {
+  background: #1e293b;
+  color: #e5e7eb;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* ===== GLOBAL ADMIN CARD STYLE ===== */
+.admin-card,
+.order-card,
+.product-card,
+.vendor-card,
+.analytics-card,
+.add-product-card {
+  background: var(--admin-card-bg);
+  color: var(--admin-text);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.admin-card:hover,
+.order-card:hover,
+.product-card:hover,
+.vendor-card:hover,
+.analytics-card:hover,
+.add-product-card:hover {
+  background: var(--admin-card-hover);
+  transform: translateY(-2px);
+}
+
+.product-card {
+  background: var(--admin-card-bg) !important;
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border);
+}
+
+.product-card h4,
+.product-card p {
+  color: var(--admin-text);
+}
+
+.vendor-card {
+  background: var(--admin-card-bg);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border);
+  margin-bottom: 16px;
+}
+
+.analytics-card {
+  background: var(--admin-card-bg);
+  border-left: 4px solid #38bdf8;
+  color: var(--admin-text);
+}
