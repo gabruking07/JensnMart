@@ -73,7 +73,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     fetchProducts(selectedCategory);
   }, [selectedCategory]);
 
-  /* ===================== LOAD ALL ===================== */
+  /* ===================== LOAD ALL jhvgujvhg ===================== */
   const loadAll = async () => {
     try {
       const tasks = [fetchOrders(), fetchCategories(), fetchProducts()];
