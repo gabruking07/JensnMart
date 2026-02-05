@@ -35,6 +35,14 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   const [confirmAction, setConfirmAction] = useState(null);
   const [pendingStatusChange, setPendingStatusChange] = useState(null);
 
+  // Vendor 
+  const [vendorEmail, setVendorEmail] = useState("");
+  const [vendorPassword, setVendorPassword] = useState("");
+  const [newVendorEmail, setNewVendorEmail] = useState("");
+  const [newVendorPassword, setNewVendorPassword] = useState("");
+  const [editVendorId, setEditVendorId] = useState(null);
+  const [editVendorEmail, setEditVendorEmail] = useState("");
+
   // Inventory edit
   const [editPriceId, setEditPriceId] = useState(null);
   const [newPrice, setNewPrice] = useState("");
@@ -95,7 +103,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   /* ===================== API CALLS ===================== */
 
   const fetchVendors = async () => {
-    const res = await api.get("/admin/vendors");
+    const res = await api.get("/api/vendor/vendors");
     setVendors(res.data || []);
   };
 
@@ -117,7 +125,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   };
 
   const fetchPendingAdmins = async () => {
-    const res = await api.get("/admin/pending-admins");
+    const res = await api.get("/api/admin/pending-admins");
     setPendingAdmins(res.data || []);
   };
 
@@ -154,13 +162,72 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   /* ===================== ACTIONS ===================== */
 
+  const createVendor = async () => {
+    if (!vendorEmail || !vendorPassword) {
+      toast.error("Enter email & password");
+      return;
+    }
+
+    try {
+      const res = await api.post("/api/admin/create-vendor", {
+        email: vendorEmail,
+        password: vendorPassword
+      });
+
+      toast.success("Vendor created");
+
+      setVendors(prev => [...prev, res.data]); // optimistic update
+
+      setVendorEmail("");
+      setVendorPassword("");
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Create failed");
+    }
+  };
+
+  const addVendor = async () => {
+    if (!newVendorEmail || !newVendorPassword) {
+      toast.error("Enter email & password");
+      return;
+    }
+
+    try {
+      await api.post("/api/admin/create-vendor", {
+        email: newVendorEmail,
+        password: newVendorPassword
+      });
+
+      toast.success("Vendor created");
+      setNewVendorEmail("");
+      setNewVendorPassword("");
+      fetchVendors();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Create failed");
+    }
+  };
+
+  const updateVendor = async (id) => {
+    try {
+      await api.put(`/api/admin/vendor/${id}`, {
+        email: editVendorEmail
+      });
+
+      toast.success("Vendor updated");
+      setEditVendorId(null);
+      fetchVendors();
+    } catch {
+      toast.error("Update failed");
+    }
+  };
+
   const approveUser = async (id) => {
-    await api.put(`/admin/approve-admin/${id}`);
+    await api.put(`/api/admin/approve-admin/${id}`);
     fetchPendingAdmins();
   };
 
   const rejectUser = async (id) => {
-    await api.delete(`/admin/reject-user/${id}`);
+    await api.delete(`/api/admin/reject-user/${id}`);
     fetchPendingAdmins();
   };
 
@@ -175,66 +242,66 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   };
 
   const updatePrice = async () => {
-  const product = products.find(p => p._id === editPriceId);
-  if (!product) return;
+    const product = products.find(p => p._id === editPriceId);
+    if (!product) return;
 
-  if (Number(newPrice) === product.price) {
-    toast("Price unchanged", { icon: "ℹ️" });
-    return;
-  }
+    if (Number(newPrice) === product.price) {
+      toast("Price unchanged", { icon: "ℹ️" });
+      return;
+    }
 
-  try {
-    await api.put(`/products/${editPriceId}`, {
-      price: Number(newPrice)
-    });
+    try {
+      await api.put(`/products/${editPriceId}`, {
+        price: Number(newPrice)
+      });
 
-    setProducts(prev =>
-      prev.map(p =>
-        p._id === editPriceId
-          ? { ...p, price: Number(newPrice) }
-          : p
-      )
-    );
+      setProducts(prev =>
+        prev.map(p =>
+          p._id === editPriceId
+            ? { ...p, price: Number(newPrice) }
+            : p
+        )
+      );
 
-    toast.success("Price updated");
+      toast.success("Price updated");
 
-    setEditPriceId(null);
-    setNewPrice("");
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Price update failed");
-  }
-};
+      setEditPriceId(null);
+      setNewPrice("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Price update failed");
+    }
+  };
 
   const updateStockValue = async (id) => {
-  const product = products.find(p => p._id === id);
-  if (!product) return;
+    const product = products.find(p => p._id === id);
+    if (!product) return;
 
-  if (Number(newStock) === product.stock) {
-    toast("Stock unchanged", { icon: "ℹ️" });
-    return;
-  }
+    if (Number(newStock) === product.stock) {
+      toast("Stock unchanged", { icon: "ℹ️" });
+      return;
+    }
 
-  try {
-    await api.put(`/products/${id}`, {
-      stock: Number(newStock)
-    });
+    try {
+      await api.put(`/products/${id}`, {
+        stock: Number(newStock)
+      });
 
-    setProducts(prev =>
-      prev.map(p =>
-        p._id === id
-          ? { ...p, stock: Number(newStock) }
-          : p
-      )
-    );
+      setProducts(prev =>
+        prev.map(p =>
+          p._id === id
+            ? { ...p, stock: Number(newStock) }
+            : p
+        )
+      );
 
-    toast.success("Stock updated");
+      toast.success("Stock updated");
 
-    setEditStockId(null);
-    setNewStock("");
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Stock update failed");
-  }
-};
+      setEditStockId(null);
+      setNewStock("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Stock update failed");
+    }
+  };
 
   const deleteProduct = (id) => {
     setConfirmAction(() => async () => {
@@ -421,7 +488,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         <button onClick={() => setActiveTab("products")}>📦 Inventory</button>
         <button onClick={() => setActiveTab("vendors")}>🏪 Vendors</button>
         {role === "admin" && (
-          <button onClick={() => setActiveTab("approvals")}>✅ Approvals</button>
+          <button onClick={() => setActiveTab("Admins")}> Admins</button>
         )}
         <button onClick={() => setActiveTab("orders")}>🧾 Orders</button>
         <button onClick={() => setActiveTab("add")}>➕ Add Product</button>
@@ -602,8 +669,49 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
             </>
           )}
 
-          {/* ===================== APPROVALS ===================== */}
-          {activeTab === "approvals" && role === "admin" && (
+          {/* ===================== VENDORS TAB ===================== */}
+          {activeTab === "vendors" && (
+            <div className="form-container">
+              <h3>Create Vendor</h3>
+
+              <input
+                placeholder="Vendor Email"
+                value={vendorEmail}
+                onChange={(e) => setVendorEmail(e.target.value)}
+              />
+
+              <input
+                placeholder="Password"
+                value={vendorPassword}
+                onChange={(e) => setVendorPassword(e.target.value)}
+              />
+
+              <button onClick={createVendor}>Create Vendor</button>
+
+              <h3 style={{ marginTop: 30 }}>All Vendors</h3>
+
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {vendors.map(v => (
+                    <tr key={v._id}>
+                      <td>{v.email}</td>
+                      <td>{v.approved ? "Active" : "Pending"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* ===================== ADMINS APPROVALS ===================== */}
+          {activeTab === "admin" && role === "admin" && (
             <div className="vendor-list">
 
               {/* ADMIN / MANAGER APPROVALS */}
@@ -636,34 +744,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   </table>
                 </>
               )}
-
-              {/* VENDOR APPROVALS */}
-              <h3 style={{ marginTop: 30 }}>Vendor Approvals</h3>
-
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {vendors.map(v => (
-                    <tr key={v._id}>
-                      <td>{v.email}</td>
-                      <td>{v.approved ? "Active" : "Pending"}</td>
-                      <td>
-                        {!v.approved && (
-                          <button onClick={() => approveVendor(v._id)}>Approve</button>
-                        )}
-                        <button onClick={() => rejectVendor(v._id)}>Reject</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
             </div>
           )}
 

@@ -13,13 +13,68 @@ const roleOnly = require("../middleware/adminOnly");
 ===================================================== */
 
 /* GET ALL VENDORS (ADMIN ONLY) */
-router.get(
-  "/vendors",
+router.get("/vendors", authMiddleware, roleOnly("admin","manager"), async (req,res)=>{
+  const vendors = await Vendor.find().sort({createdAt:-1});
+  res.json(vendors);
+});
+
+
+/* =====================================================
+   CREATE NEW VENDOR (ADMIN ONLY)
+===================================================== */
+router.post(
+  "/create-vendor",
   authMiddleware,
-  roleOnly(["admin", "manager"]),
+  roleOnly("admin"),
   async (req, res) => {
-    const vendors = await Vendor.find();
-    res.json(vendors);
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email & password required" });
+      }
+
+      const exists = await Vendor.findOne({ email });
+      if (exists) {
+        return res.status(400).json({ message: "Vendor already exists" });
+      }
+
+      const vendor = await Vendor.create({
+        email,
+        password,
+        role: "vendor",
+        approved: true
+      });
+
+      res.json(vendor);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Vendor creation failed" });
+    }
+  }
+);
+
+/* =====================================================
+   UPDATE VENDOR
+===================================================== */
+router.put(
+  "/vendor/:id",
+  authMiddleware,
+  roleOnly("admin"),
+  async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      const vendor = await Vendor.findByIdAndUpdate(
+        req.params.id,
+        { email },
+        { new: true }
+      );
+
+      res.json(vendor);
+    } catch {
+      res.status(500).json({ message: "Update failed" });
+    }
   }
 );
 

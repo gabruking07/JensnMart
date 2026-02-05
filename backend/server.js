@@ -31,7 +31,7 @@ app.use("/api/vendor", vendorRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/categories", categoryRoutes); // ✅ MUST BE HERE
+app.use("/api/categories", categoryRoutes);
 
 /* ================= DB ================= */
 mongoose
