@@ -5,7 +5,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 /* ================= CREATE CATEGORY ================= */
 /* ADMIN + MANAGER */
-const roleOnly = require("../middleware/roleOnly");
+const roleOnly = require("../middleware/adminOnly");
 router.post(
   "/",
   authMiddleware,

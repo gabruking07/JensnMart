@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const bcrypt = require("bcryptjs");
 
 const Product = require("../models/Product");
 const Vendor = require("../models/Vendor");
@@ -8,16 +9,11 @@ const Admin = require("../models/Admin");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly");
 
-/* =====================================================
-   VENDORS
-===================================================== */
-
 /* GET ALL VENDORS (ADMIN ONLY) */
 router.get("/vendors", authMiddleware, roleOnly("admin","manager"), async (req,res)=>{
   const vendors = await Vendor.find().sort({createdAt:-1});
   res.json(vendors);
 });
-
 
 /* =====================================================
    CREATE NEW VENDOR (ADMIN ONLY)
@@ -39,20 +35,25 @@ router.post(
         return res.status(400).json({ message: "Vendor already exists" });
       }
 
+      const hashed = await bcrypt.hash(password, 10);
+
       const vendor = await Vendor.create({
+        name: email.split("@")[0], // auto name
         email,
-        password,
+        password: hashed,
+        phone: "0000000000", // temp
         role: "vendor",
-        approved: true
+        approved: false
       });
 
       res.json(vendor);
     } catch (err) {
-      console.error(err);
+      console.error("CREATE VENDOR ERROR:", err);
       res.status(500).json({ message: "Vendor creation failed" });
     }
   }
 );
+
 
 /* =====================================================
    UPDATE VENDOR
@@ -204,37 +205,6 @@ router.put(
       }
 
       res.json({ message: "Price updated", price: product.price });
-    } catch (err) {
-      console.error("UPDATE PRICE ERROR:", err);
-      res.status(500).json({ message: "Failed to update price" });
-    }
-  }
-);
-
-/* ================= UPDATE PRICE ================= */
-router.put(
-  "/update-price/:id",
-  authMiddleware,
-  roleOnly("admin", "manager"),
-  async (req, res) => {
-    try {
-      const rawPrice = req.body.price;
-      const price = Number(rawPrice);
-
-      if (Number.isNaN(price) || price < 0) {
-        return res.status(400).json({ message: "Invalid price value" });
-      }
-
-      const product = await Product.findById(req.params.id);
-
-      if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-
-      product.price = price;
-      await product.save();
-
-      res.json({ message: "Price updated", price });
     } catch (err) {
       console.error("UPDATE PRICE ERROR:", err);
       res.status(500).json({ message: "Failed to update price" });

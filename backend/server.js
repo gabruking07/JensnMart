@@ -12,6 +12,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const vendorRoutes = require("./routes/vendorRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
+const subCategoryRoutes = require("./routes/subcategoryRoutes");
 const app = express();
 
 /* ================= MIDDLEWARE ================= */
@@ -32,6 +33,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/subcategories", subCategoryRoutes);
 
 /* ================= DB ================= */
 mongoose

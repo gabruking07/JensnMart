@@ -38,10 +38,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   // Vendor 
   const [vendorEmail, setVendorEmail] = useState("");
   const [vendorPassword, setVendorPassword] = useState("");
-  const [newVendorEmail, setNewVendorEmail] = useState("");
-  const [newVendorPassword, setNewVendorPassword] = useState("");
-  const [editVendorId, setEditVendorId] = useState(null);
-  const [editVendorEmail, setEditVendorEmail] = useState("");
 
   // Inventory edit
   const [editPriceId, setEditPriceId] = useState(null);
@@ -67,6 +63,12 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   // Category edit
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState("");
+  const [subcategories, setSubcategories] = useState([]);
+  const [subcategoryId, setSubcategoryId] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [editSubcategoryProductId, setEditSubcategoryProductId] = useState(null);
+  const [newSubName, setNewSubName] = useState("");
+  const [parentCategoryId, setParentCategoryId] = useState("");
 
   /* ===================== AUTH ===================== */
   useEffect(() => {
@@ -84,7 +86,12 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   /* ===================== LOAD ALL ===================== */
   const loadAll = async () => {
     try {
-      const tasks = [fetchOrders(), fetchCategories(), fetchProducts()];
+      const tasks = [
+        fetchOrders(),
+        fetchCategories(),
+        fetchProducts(),
+        fetchSubcategories()   // IMPORTANT
+      ];
 
       if (role === "admin") {
         tasks.push(fetchVendors(), fetchCommission(), fetchPendingAdmins());
@@ -103,7 +110,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   /* ===================== API CALLS ===================== */
 
   const fetchVendors = async () => {
-    const res = await api.get("/api/vendor/vendors");
+    const res = await api.get("/admin/vendors");
     setVendors(res.data || []);
   };
 
@@ -124,8 +131,17 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     setCategories(res.data || []);
   };
 
+  const fetchSubcategories = async () => {
+    try {
+      const res = await api.get("/subcategories");
+      setSubcategories(res.data || []);
+    } catch (err) {
+      console.error("Subcategory fetch error:", err.response?.data || err);
+    }
+  };
+
   const fetchPendingAdmins = async () => {
-    const res = await api.get("/api/admin/pending-admins");
+    const res = await api.get("/admin/pending-admins");
     setPendingAdmins(res.data || []);
   };
 
@@ -136,9 +152,17 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   /* ===================== DERIVED ===================== */
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter((p) => {
+    const matchSearch = p.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchSub =
+      !selectedSubcategory ||
+      p.subcategory?._id === selectedSubcategory;
+
+    return matchSearch && matchSub;
+  });
 
   const completedOrders = orders.filter((o) => o.status === "Completed");
 
@@ -164,61 +188,35 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   const createVendor = async () => {
     if (!vendorEmail || !vendorPassword) {
-      toast.error("Enter email & password");
+      alert("Enter email & password");
       return;
     }
 
     try {
-      const res = await api.post("/api/admin/create-vendor", {
+      await api.post("/admin/create-vendor", {
         email: vendorEmail,
-        password: vendorPassword
+        password: vendorPassword,
       });
-
-      toast.success("Vendor created");
-
-      setVendors(prev => [...prev, res.data]); // optimistic update
 
       setVendorEmail("");
       setVendorPassword("");
+      fetchVendors();
     } catch (err) {
-      console.log(err);
-      toast.error(err.response?.data?.message || "Create failed");
+      console.error(err);
+      alert("Vendor not created");
     }
   };
 
-  const addVendor = async () => {
-    if (!newVendorEmail || !newVendorPassword) {
-      toast.error("Enter email & password");
-      return;
-    }
-
-    try {
-      await api.post("/api/admin/create-vendor", {
-        email: newVendorEmail,
-        password: newVendorPassword
-      });
-
-      toast.success("Vendor created");
-      setNewVendorEmail("");
-      setNewVendorPassword("");
-      fetchVendors();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Create failed");
-    }
+  const approveVendor = async (id) => {
+    await api.put(`/admin/approve/${id}`);
+    fetchVendors();
   };
 
-  const updateVendor = async (id) => {
-    try {
-      await api.put(`/api/admin/vendor/${id}`, {
-        email: editVendorEmail
-      });
+  const rejectVendor = async (id) => {
+    if (!window.confirm("Remove this vendor?")) return;
 
-      toast.success("Vendor updated");
-      setEditVendorId(null);
-      fetchVendors();
-    } catch {
-      toast.error("Update failed");
-    }
+    await api.delete(`/admin/reject-vendor/${id}`);
+    fetchVendors();
   };
 
   const approveUser = async (id) => {
@@ -229,16 +227,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   const rejectUser = async (id) => {
     await api.delete(`/api/admin/reject-user/${id}`);
     fetchPendingAdmins();
-  };
-
-  const approveVendor = async (id) => {
-    await api.put(`/admin/approve/${id}`);
-    fetchVendors();
-  };
-
-  const rejectVendor = async (id) => {
-    await api.delete(`/admin/reject-vendor/${id}`);
-    fetchVendors();
   };
 
   const updatePrice = async () => {
@@ -342,6 +330,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     formData.append("price", price);
     formData.append("stock", stock);
     formData.append("category", categoryId);
+    formData.append("subcategory", subcategoryId);
     formData.append("image", image);
 
     await api.post("/products", formData);
@@ -350,6 +339,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     setStock(0);
     setImage(null);
     setCategoryId("");
+    setSubcategoryId("");
     fetchProducts();
     setActiveTab("products");
   };
@@ -418,6 +408,37 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     }
   };
 
+  const addSubcategory = async () => {
+    if (!newSubName || !parentCategoryId) {
+      toast.error("Select category & name");
+      return;
+    }
+
+    try {
+      await api.post("/subcategories", {
+        name: newSubName,
+        category: parentCategoryId
+      });
+
+      toast.success("Subcategory added");
+      setNewSubName("");
+      fetchSubcategories();
+
+    } catch {
+      toast.error("Failed");
+    }
+  };
+
+  const deleteSubcategory = async (id) => {
+    try {
+      await api.delete(`/subcategories/${id}`);
+      toast.success("Deleted");
+      fetchSubcategories();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
   const updateProductCategory = async (productId, newCategoryId) => {
     const categoryObj = categories.find(c => c._id === newCategoryId);
 
@@ -442,6 +463,30 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     }
   };
 
+  const updateProductSubcategory = async (productId, newSubId) => {
+    const subObj = subcategories.find(s => s._id === newSubId);
+
+    try {
+      await api.put(`/products/${productId}`, {
+        subcategory: newSubId
+      });
+
+      toast.success("Subcategory updated");
+
+      setProducts(prev =>
+        prev.map(p =>
+          p._id === productId
+            ? { ...p, subcategory: subObj }
+            : p
+        )
+      );
+
+      setEditSubcategoryProductId(null);
+    } catch (err) {
+      toast.error("Update failed");
+    }
+  };
+
   const getCategoryColor = (key = "") => {
     let hash = 0;
     for (let i = 0; i < key.length; i++) {
@@ -451,6 +496,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     return `hsl(${hue}, 70%, 85%)`;
   };
 
+
   const getCategoryTextColor = (name = "") => {
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
@@ -459,6 +505,25 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
     const hue = Math.abs(hash) % 360;
     return `hsl(${hue}, 60%, 30%)`;
+  };
+
+  // 🔵 Subcategory color
+  const getSubcategoryColor = (key = "") => {
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = (Math.abs(hash) + 120) % 360; // shift color
+    return `hsl(${hue}, 80%, 92%)`;
+  };
+
+  const getSubcategoryTextColor = (key = "") => {
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = (Math.abs(hash) + 120) % 360;
+    return `hsl(${hue}, 60%, 35%)`;
   };
 
   const logout = () => {
@@ -510,6 +575,8 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
             <>
               {/* FILTER BAR */}
               <div className="filter-header">
+
+                {/* For Category */}
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
@@ -520,6 +587,21 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                       {c.name}
                     </option>
                   ))}
+                </select>
+
+                {/* For Sub Category */}
+                <select
+                  value={selectedSubcategory}
+                  onChange={(e) => setSelectedSubcategory(e.target.value)}
+                >
+                  <option value="">All Subcategories</option>
+                  {subcategories
+                    .filter(sc => !selectedCategory || sc.category._id === selectedCategory)
+                    .map(sc => (
+                      <option key={sc._id} value={sc._id}>
+                        {sc.name}
+                      </option>
+                    ))}
                 </select>
 
                 <input
@@ -539,46 +621,102 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                     />
 
                     <h5 className="product-name">{p.name}</h5>
+                    {/* ================= CATEGORY + SUBCATEGORY PREMIUM ================= */}
 
-                    {/* CATEGORY */}
-                    {editCategoryProductId === p._id ? (
-                      <select
-                        className="category-select"
-                        value={
-                          typeof p.category === "object"
-                            ? p.category._id
-                            : p.category || ""
-                        }
-                        autoFocus
-                        onChange={(e) => {
-                          updateProductCategory(p._id, e.target.value);
-                        }}
-                        onBlur={() => setEditCategoryProductId(null)}
-                      >
-                        <option value="">Select category</option>
-                        {categories.map((c) => (
-                          <option key={c._id} value={c._id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span
-                        className="category-pill"
-                        style={{
-                          backgroundColor: getCategoryColor(
-                            typeof p.category === "object" ? p.category._id : p.category
-                          ),
-                          color: getCategoryTextColor(
-                            typeof p.category === "object" ? p.category._id : p.category
-                          ),
-                          cursor: "pointer"
-                        }}
-                        onClick={() => setEditCategoryProductId(p._id)}
-                      >
-                        {getCategoryName(p)}
-                      </span>
-                    )}
+                    <div className="category-block">
+
+                      {/* ---------- CATEGORY ---------- */}
+                      {editCategoryProductId === p._id ? (
+                        <select
+                          className="category-select"
+                          value={
+                            typeof p.category === "object"
+                              ? p.category?._id
+                              : p.category || ""
+                          }
+                          autoFocus
+                          onChange={(e) => {
+                            updateProductCategory(p._id, e.target.value);
+                          }}
+                          onBlur={() => setEditCategoryProductId(null)}
+                        >
+                          <option value="">Select category</option>
+                          {categories.map((c) => (
+                            <option key={c._id} value={c._id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span
+                          className="category-pill premium"
+                          style={{
+                            backgroundColor: getCategoryColor(
+                              typeof p.category === "object" ? p.category?._id : p.category
+                            ),
+                            color: getCategoryTextColor(
+                              typeof p.category === "object" ? p.category?._id : p.category
+                            )
+                          }}
+                          onClick={() => setEditCategoryProductId(p._id)}
+                        >
+                          {getCategoryName(p)}
+                        </span>
+                      )}
+
+                      {/* ---------- SUBCATEGORY ---------- */}
+                      {editSubcategoryProductId === p._id ? (
+                        <select
+                          className="subcategory-select"
+                          value={
+                            typeof p.subcategory === "object"
+                              ? p.subcategory?._id
+                              : p.subcategory || ""
+                          }
+                          autoFocus
+                          onChange={(e) => {
+                            updateProductSubcategory(p._id, e.target.value);
+                          }}
+                          onBlur={() => setEditSubcategoryProductId(null)}
+                        >
+                          <option value="">Select subcategory</option>
+
+                          {subcategories
+                            .filter((s) =>
+                              (typeof p.category === "object"
+                                ? p.category?._id
+                                : p.category) ===
+                              (typeof s.category === "object"
+                                ? s.category?._id
+                                : s.category)
+                            )
+                            .map((s) => (
+                              <option key={s._id} value={s._id}>
+                                {s.name}
+                              </option>
+                            ))}
+                        </select>
+                      ) : (
+                        <span
+                          className="subcategory-pill premium"
+                          onClick={() => setEditSubcategoryProductId(p._id)}
+                          style={{
+                            backgroundColor: getSubcategoryColor(
+                              typeof p.subcategory === "object"
+                                ? p.subcategory?._id
+                                : p.subcategory || "none"
+                            ),
+                            color: getSubcategoryTextColor(
+                              typeof p.subcategory === "object"
+                                ? p.subcategory?._id
+                                : p.subcategory || "none"
+                            )
+                          }}
+                        >
+                          {p.subcategory?.name || "No Subcategory"}
+                        </span>
+                      )}
+                    </div>
 
                     {/* PRICE EDIT */}
                     {editPriceId === p._id ? (
@@ -671,42 +809,66 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
           {/* ===================== VENDORS TAB ===================== */}
           {activeTab === "vendors" && (
-            <div className="form-container">
-              <h3>Create Vendor</h3>
+            <div className="vendor-page">
 
-              <input
-                placeholder="Vendor Email"
-                value={vendorEmail}
-                onChange={(e) => setVendorEmail(e.target.value)}
-              />
+              {/* -------- CREATE CARD -------- */}
+              <div className="vendor-create-card">
+                <h2>Create Vendor</h2>
+                <input
+                  className="input-modern"
+                  placeholder="Vendor Email"
+                  value={vendorEmail}
+                  onChange={(e) => setVendorEmail(e.target.value)} />
 
-              <input
-                placeholder="Password"
-                value={vendorPassword}
-                onChange={(e) => setVendorPassword(e.target.value)}
-              />
+                <input
+                  className="input-modern"
+                  placeholder="Password"
+                  value={vendorPassword}
+                  onChange={(e) => setVendorPassword(e.target.value)} />
 
-              <button onClick={createVendor}>Create Vendor</button>
+                <button className="btn-primary" onClick={createVendor}>
+                  Create Vendor
+                </button>
+              </div>
 
-              <h3 style={{ marginTop: 30 }}>All Vendors</h3>
+              {/* -------- LIST CARD -------- */}
+              <div className="vendor-list-card">
+                <h2>Vendors</h2>
 
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
+                {vendors.map((v) => (
+                  <div key={v._id} className="vendor-row">
 
-                <tbody>
-                  {vendors.map(v => (
-                    <tr key={v._id}>
-                      <td>{v.email}</td>
-                      <td>{v.approved ? "Active" : "Pending"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    <div className="vendor-left">
+                      <div className="vendor-avatar">
+                        {v.email.charAt(0).toUpperCase()}
+                      </div>
+
+                      <div>
+                        <div className="vendor-email">{v.email}</div>
+                        <div className={`vendor-status ${v.approved ? "active" : "pending"}`}>
+                          {v.approved ? "Active" : "Pending Approval"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="vendor-actions">
+                      {!v.approved && (
+                        <button
+                          className="btn-approve"
+                          onClick={() => approveVendor(v._id)}>
+                          Approve
+                        </button>
+                      )}
+
+                      <button
+                        className="btn-remove"
+                        onClick={() => rejectVendor(v._id)}>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -718,7 +880,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
               {pendingAdmins.length > 0 && (
                 <>
                   <h3>Pending Admin / Manager Approvals</h3>
-
                   <table className="admin-table">
                     <thead>
                       <tr>
@@ -822,6 +983,19 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   <option key={c._id} value={c._id}>{c.name}</option>
                 ))}
               </select>
+              <select
+                value={subcategoryId}
+                onChange={(e) => setSubcategoryId(e.target.value)}
+              >
+                <option value="">Select Subcategory</option>
+                {subcategories
+                  .filter(sc => sc.category._id === categoryId)
+                  .map(sc => (
+                    <option key={sc._id} value={sc._id}>
+                      {sc.name}
+                    </option>
+                  ))}
+              </select>
               <input type="file" onChange={(e) => setImage(e.target.files[0])} />
               <button onClick={addProduct}>Publish</button>
             </div>
@@ -840,81 +1014,139 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
               />
               <button onClick={addCategory}>Add Category</button>
 
-              {/* CATEGORY LIST */}
-              {categories.map((c) => {
-                const hasProducts = categoryHasProducts(c._id);
+              {/* ---------------- SUBCATEGORY CREATE ---------------- */}
+              <hr style={{ margin: "25px 0" }} />
 
-                return (
-                  <div key={c._id} className="category-row">
+              <h4>Create Subcategory</h4>
 
-                    {/* Enter and Escape button works */}
-                    {editCategoryId === c._id ? (
-                      <input
-                        className="category-edit-input"
-                        value={editCategoryName}
-                        autoFocus
-                        onChange={(e) => setEditCategoryName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && editCategoryName.trim() !== c.name) {
-                            updateCategory(c._id);
-                          }
-                          if (e.key === "Escape") {
-                            setEditCategoryId(null);
-                            setEditCategoryName("");
-                          }
-                        }}
-                      />
-                    ) : (
-                      <span className="category-name">{c.name}</span>
-                    )}
+              <select
+                value={parentCategoryId}
+                onChange={(e) => setParentCategoryId(e.target.value)}
+              >
+                <option value="">Select Category</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
 
-                    {/* ACTIONS */}
-                    <div className="category-actions">
+              <input
+                placeholder="Subcategory name"
+                value={newSubName}
+                onChange={(e) => setNewSubName(e.target.value)}
+              />
 
+              <button onClick={addSubcategory}>Add Subcategory</button>
+
+              {/* ---------------- CATEGORY LIST ---------------- */}
+              <div style={{ marginTop: 25 }}>
+                {categories.map((c) => {
+                  const hasProducts = categoryHasProducts(c._id);
+
+                  return (
+                    <div key={c._id} className="category-row">
+
+                      {/* CATEGORY NAME */}
                       {editCategoryId === c._id ? (
-                        <>
-                          <button
-                            className="btn-save-sm"
-                            disabled={editCategoryName.trim() === c.name}
-                            onClick={() => updateCategory(c._id)}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn-cancel-sm"
-                            onClick={() => setEditCategoryId(null)}
-                          >
-                            Cancel
-                          </button>
-                        </>
+                        <input
+                          className="category-edit-input"
+                          value={editCategoryName}
+                          autoFocus
+                          onChange={(e) => setEditCategoryName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && editCategoryName.trim() !== c.name) {
+                              updateCategory(c._id);
+                            }
+                            if (e.key === "Escape") {
+                              setEditCategoryId(null);
+                              setEditCategoryName("");
+                            }
+                          }}
+                        />
                       ) : (
-                        <>
-                          <button
-                            className="btn-icon-sm"
-                            title="Edit category"
-                            onClick={() => {
-                              setEditCategoryId(c._id);
-                              setEditCategoryName(c.name);
-                            }}
-                          >
-                            ✏️
-                          </button>
-
-                          <button
-                            className="category-delete-btn"
-                            disabled={hasProducts}
-                            title={hasProducts ? "Category has products" : "Delete"}
-                            onClick={() => deleteCategory(c._id)}
-                          >
-                            Delete
-                          </button>
-                        </>
+                        <span className="category-name">{c.name}</span>
                       )}
 
+                      {/* ACTIONS */}
+                      <div className="category-actions">
+                        {editCategoryId === c._id ? (
+                          <>
+                            <button
+                              className="btn-save-sm"
+                              disabled={editCategoryName.trim() === c.name}
+                              onClick={() => updateCategory(c._id)}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="btn-cancel-sm"
+                              onClick={() => setEditCategoryId(null)}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="btn-icon-sm"
+                              title="Edit category"
+                              onClick={() => {
+                                setEditCategoryId(c._id);
+                                setEditCategoryName(c.name);
+                              }}
+                            >
+                              ✏️
+                            </button>
+
+                            <button
+                              className="category-delete-btn"
+                              disabled={hasProducts}
+                              title={hasProducts ? "Category has products" : "Delete"}
+                              onClick={() => deleteCategory(c._id)}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      {/* SUBCATEGORY PILLS */}
+                      <div style={{ marginLeft: 10, marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {subcategories
+                          .filter((sc) => sc.category._id === c._id)
+                          .map((sc) => (
+                            <div
+                              key={sc._id}
+                              style={{
+                                background: "#b7e4d7",
+                                color: "#0f3d3e",
+                                padding: "6px 14px",
+                                borderRadius: 20,
+                                fontSize: 13,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6
+                              }}
+                            >
+                              {sc.name}
+
+                              <span
+                                style={{
+                                  cursor: "pointer",
+                                  fontWeight: "bold"
+                                }}
+                                onClick={() => deleteSubcategory(sc._id)}
+                              >
+                                ×
+                              </span>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -959,6 +1191,3 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     </div>
   );
 }
-
-//Add sub category
-//Admin can CRUD Admins and Vendor

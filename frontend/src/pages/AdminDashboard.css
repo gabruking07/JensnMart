@@ -689,3 +689,151 @@ body {
   padding: 5px;
   font-size: 13px;
 }
+
+/* PREMIUM CATEGORY BLOCK */
+.category-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+/* CATEGORY PILL */
+.category-pill.premium {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+  transition: 0.2s;
+}
+
+.category-pill.premium:hover {
+  transform: scale(1.03);
+}
+
+/* SUBCATEGORY PILL */
+.subcategory-pill.premium {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  width: fit-content;
+  opacity: 0.95;
+  transition: 0.2s;
+}
+
+.subcategory-pill.premium:hover {
+  transform: scale(1.03);
+}
+
+/* SELECT STYLES */
+.category-select,
+.subcategory-select {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.vendor-page {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 25px;
+}
+
+/* CREATE CARD */
+.vendor-create-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.input-modern {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.btn-primary {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg,#6366f1,#8b5cf6);
+  color: white;
+  font-weight: 600;
+}
+
+.vendor-page {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.vendor-create-card,
+.vendor-list-card {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.vendor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.vendor-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vendor-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.vendor-status.active {
+  color: #16a34a;
+  font-size: 13px;
+}
+
+.vendor-status.pending {
+  color: #f59e0b;
+  font-size: 13px;
+}
+
+.btn-approve {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  margin-right: 8px;
+}
+
+.btn-remove {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+}

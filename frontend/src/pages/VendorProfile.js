@@ -20,7 +20,7 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
       const res = await api.get("/vendor/profile");
       setVendor(res.data);
       setName(res.data.name);
-      setPhone(res.data.Phone);
+      setPhone(res.data.phone);
     } catch (err) {
       console.error("Failed to load profile", err);
     }
