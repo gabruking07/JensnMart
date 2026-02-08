@@ -1,17 +1,26 @@
-export default function Header({ title, darkMode, setDarkMode }) {
+export default function Header({ title }) {
   return (
-    <div className="page-header">
-      <h1>{title}</h1>
+    <div
+      style={{
+        position: "relative",
+        height: "70px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderBottom: "5px solid #eee"
+      }}>
 
-      {setDarkMode && (
-        <button
-          className="theme-toggle"
-          onClick={() => setDarkMode(!darkMode)}
-          title="Toggle theme"
-        >
-          {darkMode ? "☀" : "🌙"}
-        </button>
-      )}
+      <h1
+        style={{
+          position: "absolute",
+          left: "50%",
+          transform: "translateX(-50%)",
+          fontSize: "42px",
+          fontWeight: "700",
+          margin: 0
+        }}>
+        {title}
+      </h1>
     </div>
   );
 }

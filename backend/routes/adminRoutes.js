@@ -54,7 +54,6 @@ router.post(
   }
 );
 
-
 /* =====================================================
    UPDATE VENDOR
 ===================================================== */
@@ -117,8 +116,65 @@ router.delete(
 );
 
 /* =====================================================
-   ADMIN / MANAGER APPROVALS
+   ADMIN / MANAGER 
 ===================================================== */
+
+// ================= CREATE ADMIN =================
+router.post(
+  "/create-admin",
+  authMiddleware,
+  roleOnly("admin"),
+  async (req, res) => {
+    try {
+      const { name, email, password, role, phone } = req.body;
+
+      if (!email || !password || !phone) {
+        return res.status(400).json({ message: "All fields required" });
+      }
+
+      // email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+
+      // phone 10 digits
+      if (!/^\d{10}$/.test(phone)) {
+        return res.status(400).json({ message: "Phone must be 10 digits" });
+      }
+
+      // password length
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 chars" });
+      }
+
+      // duplicate check
+      const exists = await Admin.findOne({ email });
+      if (exists) {
+        return res.status(400).json({ message: "Admin already exists" });
+      }
+
+      // ================= CREATE =================
+
+      const hash = await bcrypt.hash(password, 10);
+
+      const newAdmin = await Admin.create({
+        name: name || "Admin",
+        email: email.toLowerCase(),
+        password: hash,
+        role: role || "manager",
+        phone,
+        approved: false
+      });
+
+      res.json(newAdmin);
+
+    } catch (err) {
+      console.error("CREATE ADMIN ERROR:", err);
+      res.status(500).json({ message: "Server error creating admin" });
+    }
+  }
+);
 
 /* GET PENDING ADMINS & MANAGERS (ADMIN ONLY) */
 router.get(
@@ -166,16 +222,30 @@ router.put(
 );
 
 /* REJECT ADMIN / MANAGER (ADMIN ONLY) */
+/* ================= DELETE ADMIN ================= */
 router.delete(
-  "/reject-admin/:id",
+  "/remove-admin/:id",
   authMiddleware,
   roleOnly("admin"),
   async (req, res) => {
     try {
+      const admin = await Admin.findById(req.params.id);
+
+      if (!admin) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+
+      // Prevent deleting yourself
+      if (admin._id.toString() === req.user.id) {
+        return res.status(400).json({ message: "Cannot delete yourself" });
+      }
+
       await Admin.findByIdAndDelete(req.params.id);
-      res.json({ message: "User rejected and deleted" });
+
+      res.json({ message: "Admin removed" });
     } catch (err) {
-      res.status(500).json({ message: "Rejection failed" });
+      console.error("REMOVE ADMIN ERROR:", err);
+      res.status(500).json({ message: "Remove failed" });
     }
   }
 );

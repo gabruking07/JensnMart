@@ -5,10 +5,22 @@ import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 
 import "./AdminDashboard.css";
-
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ConfirmModal from "../components/ConfirmModal";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip
+} from "recharts";
 
 export default function AdminDashboard({ darkMode, setDarkMode }) {
   const navigate = useNavigate();
@@ -39,12 +51,21 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   const [vendorEmail, setVendorEmail] = useState("");
   const [vendorPassword, setVendorPassword] = useState("");
 
+  //Admin 
+  const [newAdminName, setNewAdminName] = useState("");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPhone, setNewAdminPhone] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminRole, setNewAdminRole] = useState("manager");
+
   // Inventory edit
   const [editPriceId, setEditPriceId] = useState(null);
   const [newPrice, setNewPrice] = useState("");
   const [editStockId, setEditStockId] = useState(null);
   const [newStock, setNewStock] = useState("");
   const [editCategoryProductId, setEditCategoryProductId] = useState(null);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [collapsedCats, setCollapsedCats] = useState({});
 
   // Add product
   const [pname, setPname] = useState("");
@@ -70,6 +91,9 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   const [newSubName, setNewSubName] = useState("");
   const [parentCategoryId, setParentCategoryId] = useState("");
 
+  //Reports
+  const [reportRange, setReportRange] = useState("month");
+
   /* ===================== AUTH ===================== */
   useEffect(() => {
     if (!["admin", "manager"].includes(role)) {
@@ -78,6 +102,18 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     }
     loadAll();
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== "reports") return;
+
+    const interval = setInterval(() => {
+      fetchOrders();
+      fetchVendors();
+      fetchProducts();
+    }, 10000); // refresh every 10s
+
+    return () => clearInterval(interval);
+  }, [activeTab]);
 
   useEffect(() => {
     fetchProducts(selectedCategory);
@@ -90,7 +126,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         fetchOrders(),
         fetchCategories(),
         fetchProducts(),
-        fetchSubcategories()   // IMPORTANT
+        fetchSubcategories()
       ];
 
       if (role === "admin") {
@@ -108,6 +144,27 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   };
 
   /* ===================== API CALLS ===================== */
+
+  const getTabTitle = (tab) => {
+    switch (tab) {
+      case "products":
+        return "Inventory";
+      case "vendors":
+        return "Vendors";
+      case "orders":
+        return "Orders";
+      case "add":
+        return "Add Product";
+      case "categories":
+        return "Categories";
+      case "reports":
+        return "Reports";
+      case "Admins":
+        return "Admins";
+      default:
+        return "Admin Dashboard";
+    }
+  };
 
   const fetchVendors = async () => {
     const res = await api.get("/admin/vendors");
@@ -152,6 +209,17 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   /* ===================== DERIVED ===================== */
 
+  const filteredCategories = categories.filter(c =>
+    c.name.toLowerCase().includes(categorySearch.toLowerCase())
+  );
+
+  const toggleCollapse = (id) => {
+    setCollapsedCats(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   const filteredProducts = products.filter((p) => {
     const matchSearch = p.name
       .toLowerCase()
@@ -171,17 +239,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     completedCount: completedOrders.length,
     cancelledCount: orders.filter((o) => o.status === "Cancelled").length,
     totalSales: completedOrders.reduce((sum, o) => sum + o.total, 0)
-  };
-
-  const categoryHasProducts = (categoryId) => {
-    // Case 1: backend sends productCount
-    const category = categories.find(c => c._id === categoryId);
-    if (category?.productCount !== undefined) {
-      return category.productCount > 0;
-    }
-
-    // Case 2: check in products list
-    return products.some(p => p.category === categoryId);
   };
 
   /* ===================== ACTIONS ===================== */
@@ -225,8 +282,52 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   };
 
   const rejectUser = async (id) => {
-    await api.delete(`/api/admin/reject-user/${id}`);
-    fetchPendingAdmins();
+    if (!window.confirm("Remove admin?")) return;
+
+    try {
+      await api.delete(`/admin/remove-admin/${id}`);
+      toast.success("Admin removed");
+      fetchPendingAdmins();
+    } catch (err) {
+      console.log(err.response?.data);
+      toast.error("Remove failed");
+    }
+  };
+
+  const createAdmin = async () => {
+    if (!newAdminEmail || !newAdminPassword || !newAdminPhone) {
+      toast.error("All fields required");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(newAdminPhone)) {
+      toast.error("Phone must be 10 digits");
+      return;
+    }
+
+    if (newAdminPassword.length < 6) {
+      toast.error("Password must be at least 6 chars");
+      return;
+    }
+
+    try {
+      await api.post("/admin/create-admin", {
+        name: newAdminName,
+        email: newAdminEmail,
+        password: newAdminPassword,
+        role: newAdminRole,
+        phone: newAdminPhone
+      });
+
+      toast.success("Admin created (pending)");
+      setNewAdminEmail("");
+      setNewAdminPassword("");
+      fetchPendingAdmins();
+
+    } catch (err) {
+      console.log(err.response?.data);
+      toast.error("Create failed");
+    }
   };
 
   const updatePrice = async () => {
@@ -526,6 +627,109 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     return `hsl(${hue}, 60%, 35%)`;
   };
 
+  function SalesChart({ orders }) {
+    const data = orders.map(o => ({
+      name: o._id.slice(-4),
+      sales: o.total
+    }));
+
+    return (
+      <div className="chart-card">
+        <h3>Sales</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={data}>
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="sales" fill="#6366f1" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  function OrderStatusChart({ orders }) {
+    const data = [
+      { name: "Completed", value: orders.filter(o => o.status === "Completed").length },
+      { name: "Cancelled", value: orders.filter(o => o.status === "Cancelled").length },
+      { name: "Placed", value: orders.filter(o => o.status === "Placed").length }
+    ];
+    const COLORS = ["#22c55e", "#ef4444", "#3b82f6"];
+
+    return (
+      <div className="chart-card">
+        <h3>Order Status</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie data={data} dataKey="value" outerRadius={90}>
+              {data.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  function VendorPerformance({ orders }) {
+    const vendorMap = {};
+
+    orders.forEach(o => {
+      const email = o.vendor?.email || "Unknown";
+      vendorMap[email] = (vendorMap[email] || 0) + o.total;
+    });
+
+    const data = Object.keys(vendorMap).map(v => ({
+      name: v,
+      sales: vendorMap[v]
+    }));
+
+    return (
+      <div className="chart-card">
+        <h3>Vendor Performance</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={data}>
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="sales" fill="#6366f1" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  function TopProducts({ orders }) {
+    const map = {};
+
+    orders.forEach(o => {
+      o.products.forEach(p => {
+        map[p.name] = (map[p.name] || 0) + p.qty;
+      });
+    });
+
+    const data = Object.keys(map).map(p => ({
+      name: p,
+      qty: map[p]
+    }));
+
+    return (
+      <div className="chart-card">
+        <h3>Top Products</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={data}>
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="qty" fill="#10b981" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
   const logout = () => {
     localStorage.clear();
     navigate("/");
@@ -553,11 +757,11 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         <button onClick={() => setActiveTab("products")}>📦 Inventory</button>
         <button onClick={() => setActiveTab("vendors")}>🏪 Vendors</button>
         {role === "admin" && (
-          <button onClick={() => setActiveTab("Admins")}> Admins</button>
+          <button onClick={() => setActiveTab("Admins")}>⚙️ Admins</button>
         )}
         <button onClick={() => setActiveTab("orders")}>🧾 Orders</button>
         <button onClick={() => setActiveTab("add")}>➕ Add Product</button>
-        <button onClick={() => setActiveTab("categories")}>🏷 Categories</button>
+        <button onClick={() => setActiveTab("categories")}>🏷️ Categories</button>
         <button onClick={() => setActiveTab("reports")}>📊 Reports</button>
 
         <button className="logout-btn-sidebar" onClick={logout}>
@@ -567,7 +771,11 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
       {/* ===================== MAIN ===================== */}
       <main className="admin-main">
-        <Header title="Admin Dashboard" darkMode={darkMode} setDarkMode={setDarkMode} />
+        <Header
+          title={getTabTitle(activeTab)}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+        />
 
         <div className="content-padding">
           {/* ===================== INVENTORY ===================== */}
@@ -872,41 +1080,101 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
             </div>
           )}
 
-          {/* ===================== ADMINS APPROVALS ===================== */}
-          {activeTab === "admin" && role === "admin" && (
-            <div className="vendor-list">
+          {/* ===================== ADMINS TAB ===================== */}
+          {activeTab === "Admins" && role === "admin" && (
+            <div className="vendor-page">
 
-              {/* ADMIN / MANAGER APPROVALS */}
-              {pendingAdmins.length > 0 && (
-                <>
-                  <h3>Pending Admin / Manager Approvals</h3>
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pendingAdmins.map(user => (
-                        <tr key={user._id}>
-                          <td>{user.name}</td>
-                          <td>{user.email}</td>
-                          <td>{user.role}</td>
-                          <td>
-                            <button onClick={() => approveUser(user._id)}>Approve</button>
-                            <button onClick={() => rejectUser(user._id)}>Reject</button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
+              {/* -------- CREATE ADMIN CARD -------- */}
+              <div className="vendor-create-card">
+                <h2>Create Admin / Manager</h2>
+
+                <input
+                  className="input-modern"
+                  placeholder="Name"
+                  value={newAdminName}
+                  onChange={(e) => setNewAdminName(e.target.value)}
+                />
+
+                <input
+                  className="input-modern"
+                  placeholder="Admin Email"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                />
+
+                <input
+                  className="input-modern"
+                  placeholder="Phone"
+                  value={newAdminPhone}
+                  onChange={(e) => setNewAdminPhone(e.target.value)}
+                />
+
+                <input
+                  className="input-modern"
+                  placeholder="Password"
+                  value={newAdminPassword}
+                  onChange={(e) => setNewAdminPassword(e.target.value)}
+                />
+
+                <select
+                  className="input-modern"
+                  value={newAdminRole}
+                  onChange={(e) => setNewAdminRole(e.target.value)}
+                >
+                  <option value="manager">Manager</option>
+                  <option value="admin">Admin</option>
+                </select>
+
+                <button className="btn-primary" onClick={createAdmin}>
+                  Create
+                </button>
+              </div>
+
+              {/* -------- PENDING APPROVALS -------- */}
+              <div className="vendor-list-card">
+                <h2>Pending Approvals</h2>
+
+                {pendingAdmins.length === 0 && (
+                  <p style={{ opacity: 0.6 }}>No pending admins</p>
+                )}
+
+                {pendingAdmins.map((u) => (
+                  <div key={u._id} className="vendor-row">
+
+                    <div className="vendor-left">
+                      <div className="vendor-avatar">
+                        {u.email.charAt(0).toUpperCase()}
+                      </div>
+
+                      <div>
+                        <div className="vendor-email">{u.email}</div>
+                        <div className="vendor-status pending">
+                          Pending Approval
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="vendor-actions">
+                      <button
+                        className="btn-approve"
+                        onClick={() => approveUser(u._id)}
+                      >
+                        Approve
+                      </button>
+
+                      <button
+                        className="btn-remove"
+                        onClick={() => rejectUser(u._id)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
 
           {/* ===================== ORDERS ===================== */}
           {activeTab === "orders" && (
@@ -1001,179 +1269,277 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
             </div>
           )}
 
-          {/* ===================== CATEGORIES ===================== */}
           {activeTab === "categories" && (
-            <div className="form-container">
-              <h3>Categories</h3>
+            <div className="cat-wrapper">
 
-              {/* ADD CATEGORY */}
-              <input
-                placeholder="New category"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-              />
-              <button onClick={addCategory}>Add Category</button>
+              {/* LEFT PANEL */}
+              <div className="cat-card">
+                <div className="cat-card-header">
+                  <h2>Categories</h2>
+                </div>
 
-              {/* ---------------- SUBCATEGORY CREATE ---------------- */}
-              <hr style={{ margin: "25px 0" }} />
+                {/* SEARCH */}
+                <input
+                  className="cat-search"
+                  placeholder="Search categories..."
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                />
 
-              <h4>Create Subcategory</h4>
+                {/* CREATE */}
+                <div className="cat-create-row">
+                  <input
+                    placeholder="New category"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                  />
+                  <button className="btn-add" onClick={addCategory}>
+                    Add
+                  </button>
+                </div>
 
-              <select
-                value={parentCategoryId}
-                onChange={(e) => setParentCategoryId(e.target.value)}
-              >
-                <option value="">Select Category</option>
-                {categories.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                {/* CATEGORY LIST */}
+                <div className="cat-list">
+                  {filteredCategories.map((c) => (
+                    <div key={c._id} className="cat-item">
 
-              <input
-                placeholder="Subcategory name"
-                value={newSubName}
-                onChange={(e) => setNewSubName(e.target.value)}
-              />
+                      <div className="cat-title-row">
 
-              <button onClick={addSubcategory}>Add Subcategory</button>
+                        <div className="cat-left-title">
+                          <span
+                            className="collapse-icon"
+                            onClick={() => toggleCollapse(c._id)}
+                          >
+                            {collapsedCats[c._id] ? "▶" : "▼"}
+                          </span>
 
-              {/* ---------------- CATEGORY LIST ---------------- */}
-              <div style={{ marginTop: 25 }}>
-                {categories.map((c) => {
-                  const hasProducts = categoryHasProducts(c._id);
-
-                  return (
-                    <div key={c._id} className="category-row">
-
-                      {/* CATEGORY NAME */}
-                      {editCategoryId === c._id ? (
-                        <input
-                          className="category-edit-input"
-                          value={editCategoryName}
-                          autoFocus
-                          onChange={(e) => setEditCategoryName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && editCategoryName.trim() !== c.name) {
-                              updateCategory(c._id);
-                            }
-                            if (e.key === "Escape") {
-                              setEditCategoryId(null);
-                              setEditCategoryName("");
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span className="category-name">{c.name}</span>
-                      )}
-
-                      {/* ACTIONS */}
-                      <div className="category-actions">
-                        {editCategoryId === c._id ? (
-                          <>
-                            <button
-                              className="btn-save-sm"
-                              disabled={editCategoryName.trim() === c.name}
-                              onClick={() => updateCategory(c._id)}
-                            >
-                              Save
-                            </button>
-                            <button
-                              className="btn-cancel-sm"
-                              onClick={() => setEditCategoryId(null)}
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              className="btn-icon-sm"
-                              title="Edit category"
+                          {editCategoryId === c._id ? (
+                            <input
+                              className="cat-inline-input"
+                              value={editCategoryName}
+                              onChange={(e) => setEditCategoryName(e.target.value)}
+                              onBlur={() => updateCategory(c._id)}
+                            />
+                          ) : (
+                            <span
+                              className="cat-name"
                               onClick={() => {
                                 setEditCategoryId(c._id);
                                 setEditCategoryName(c.name);
                               }}
                             >
-                              ✏️
-                            </button>
+                              {c.name}
+                            </span>
+                          )}
+                        </div>
 
-                            <button
-                              className="category-delete-btn"
-                              disabled={hasProducts}
-                              title={hasProducts ? "Category has products" : "Delete"}
-                              onClick={() => deleteCategory(c._id)}
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
+                        <button
+                          className="cat-delete-btn"
+                          onClick={() => deleteCategory(c._id)}
+                        >
+                          🗑
+                        </button>
                       </div>
 
-                      {/* SUBCATEGORY PILLS */}
-                      <div style={{ marginLeft: 10, marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {subcategories
-                          .filter((sc) => sc.category._id === c._id)
-                          .map((sc) => (
-                            <div
-                              key={sc._id}
-                              style={{
-                                background: "#b7e4d7",
-                                color: "#0f3d3e",
-                                padding: "6px 14px",
-                                borderRadius: 20,
-                                fontSize: 13,
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6
-                              }}
-                            >
-                              {sc.name}
-
-                              <span
-                                style={{
-                                  cursor: "pointer",
-                                  fontWeight: "bold"
-                                }}
-                                onClick={() => deleteSubcategory(sc._id)}
-                              >
-                                ×
-                              </span>
-                            </div>
-                          ))}
-                      </div>
+                      {/* SUBCATS */}
+                      {!collapsedCats[c._id] && (
+                        <div className="subcat-wrap">
+                          {subcategories
+                            .filter(sc => sc.category._id === c._id)
+                            .map(sc => (
+                              <div key={sc._id} className="sub-chip">
+                                {sc.name}
+                                <span onClick={() => deleteSubcategory(sc._id)}>×</span>
+                              </div>
+                            ))}
+                        </div>
+                      )}
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
+
+              {/* RIGHT PANEL */}
+              <div className="cat-card">
+                <div className="cat-card-header">
+                  <h2>Add Subcategory</h2>
+                </div>
+
+                <select
+                  className="input-modern"
+                  value={parentCategoryId}
+                  onChange={(e) => setParentCategoryId(e.target.value)}
+                >
+                  <option value="">Select category</option>
+                  {categories.map(c => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
+                  ))}
+                </select>
+
+                <input
+                  className="input-modern"
+                  placeholder="Subcategory name"
+                  value={newSubName}
+                  onChange={(e) => setNewSubName(e.target.value)}
+                />
+
+                <button className="btn-add full" onClick={addSubcategory}>
+                  Create
+                </button>
+              </div>
+
             </div>
           )}
 
           {/* ===================== REPORTS ===================== */}
           {activeTab === "reports" && (
-            <>
-              <section className="stats-grid">
-                <div className="stat-card"><h4>Total Vendors</h4><p>{vendors.length}</p></div>
-                <div className="stat-card"><h4>Total Orders</h4><p>{analytics.totalOrders}</p></div>
-                <div className="stat-card"><h4>Completed Orders</h4><p>{analytics.completedCount}</p></div>
-                <div className="stat-card"><h4>Cancelled Orders</h4><p>{analytics.cancelledCount}</p></div>
+            <div className="reports-page">
+
+              {/* FILTERS */}
+              <div className="report-filters">
+                <button className="filter-btn">Today</button>
+                <button className="filter-btn">Week</button>
+                <button className="filter-btn">Month</button>
+              </div>
+
+              {/* KPI ROW */}
+              <div className="report-top-row">
+                <div className="kpi-card">
+                  <p>Sales</p>
+                  <h2>₹{analytics.totalSales}</h2>
+                </div>
+
+                <div className="kpi-card">
+                  <p>Orders</p>
+                  <h2>{analytics.totalOrders}</h2>
+                </div>
+
+                <div className="kpi-card">
+                  <p>Completed</p>
+                  <h2>{analytics.completedCount}</h2>
+                </div>
+
+                <div className="kpi-card">
+                  <p>Cancelled</p>
+                  <h2>{analytics.cancelledCount}</h2>
+                </div>
+
                 {role === "admin" && (
-                  <div className="stat-card highlight-card">
-                    <h4>Commission</h4>
-                    <p>₹{commission.toFixed(2)}</p>
+                  <div className="kpi-card highlight">
+                    <p>Commission</p>
+                    <h2>₹{commission}</h2>
                   </div>
                 )}
-              </section>
-
-              <div className="report-summary-card">
-                <h3>Total Sales</h3>
-                <p>₹{analytics.totalSales}</p>
               </div>
-            </>
+
+              {/* CHART GRID */}
+              <div className="chart-grid">
+
+                {/* SALES CHART */}
+                <div className="chart-card">
+                  <h3>Sales Overview</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <LineChart data={[
+                      { name: "Mon", sales: 1200 },
+                      { name: "Tue", sales: 1800 },
+                      { name: "Wed", sales: 900 },
+                      { name: "Thu", sales: 2400 },
+                      { name: "Fri", sales: 3000 }
+                    ]}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+
+                      <Line
+                        type="monotone"
+                        dataKey="sales"
+                        stroke="#4f46e5"
+                        strokeWidth={3}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* ORDER STATUS */}
+                <div className="chart-card">
+                  <h3>Order Status</h3>
+
+                  <div className="pie-wrapper">
+
+                    <ResponsiveContainer width="60%" height={260}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: "Completed", value: analytics.completedCount },
+                            { name: "Cancelled", value: analytics.cancelledCount },
+                            {
+                              name: "Pending",
+                              value:
+                                analytics.totalOrders -
+                                analytics.completedCount -
+                                analytics.cancelledCount
+                            }
+                          ]}
+                          dataKey="value"
+                          outerRadius={90}
+                        >
+                          <Cell fill="#22c55e" />
+                          <Cell fill="#ef4444" />
+                          <Cell fill="#f59e0b" />
+                        </Pie>
+
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+
+                    {/* LEGEND */}
+                    <div className="custom-legend">
+                      <div><span className="dot green"></span> Completed</div>
+                      <div><span className="dot red"></span> Cancelled</div>
+                      <div><span className="dot yellow"></span> Pending</div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* VENDOR PERFORMANCE */}
+                <div className="chart-card">
+                  <h3>Vendor Performance</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={[
+                      { name: "Vendor A", sales: 4000 },
+                      { name: "Vendor B", sales: 2500 },
+                      { name: "Vendor C", sales: 3200 }
+                    ]}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="sales" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* TOP PRODUCTS */}
+                <div className="chart-card">
+                  <h3>Top Products</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={[
+                      { name: "Fan", qty: 12 },
+                      { name: "Headphones", qty: 8 },
+                      { name: "Detergent", qty: 15 }
+                    ]}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="qty" fill="#22c55e" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+              </div>
+            </div>
           )}
         </div>
-
         <Footer />
       </main>
 
@@ -1189,5 +1555,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         onConfirm={confirmAction}
       />
     </div>
+
   );
 }
