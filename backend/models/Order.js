@@ -2,14 +2,17 @@ const mongoose = require("mongoose");
 
 const OrderSchema = new mongoose.Schema(
   {
-    // Vendor who placed the order
+    orderNumber: {
+      type:Number,
+      unique:true
+    },
+
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
       required: true
     },
 
-    // Ordered products
    products: [
   {
     productId: {
@@ -19,11 +22,10 @@ const OrderSchema = new mongoose.Schema(
     name: String,
     price: Number,
     qty: Number,
-    image: String   // ✅ ADD THIS
+    image: String  
   }
 ],
 
-    // Order totals
     total: {
       type: Number,
       required: true

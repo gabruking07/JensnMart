@@ -26,6 +26,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   // Admin specific
   const [pendingAdmins, setPendingAdmins] = useState([]);
   const [commission, setCommission] = useState(0);
+  const token = localStorage.getItem("token");
 
   // UI state
   const [activeTab, setActiveTab] = useState("products");
@@ -71,8 +72,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   // Category management
   const [newCategory, setNewCategory] = useState("");
-
-  // Category edit
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState("");
   const [subcategories, setSubcategories] = useState([]);
@@ -82,8 +81,13 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   const [newSubName, setNewSubName] = useState("");
   const [parentCategoryId, setParentCategoryId] = useState("");
 
+  //Orders
+  const [statusFilter, setStatusFilter] = useState("all");
+
   //Reports
   const [reportRange, setReportRange] = useState("month");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
 
   /* ===================== AUTH ===================== */
   useEffect(() => {
@@ -105,6 +109,14 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
     return () => clearInterval(interval);
   }, [activeTab]);
+
+  useEffect(() => {
+    fetch("/api/admin/orders", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => setOrders(data));
+  }, []);
 
   useEffect(() => {
     fetchProducts(selectedCategory);
@@ -224,29 +236,39 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     return matchSearch && matchSub;
   });
 
- const now = new Date();
+  const now = new Date();
 
-const filteredReportOrders = orders.filter(o => {
-  const d = new Date(o.createdAt);
+  const filteredReportOrders = orders.filter(o => {
+    const d = new Date(o.createdAt);
 
-  if (reportRange === "today") {
-    return d.toDateString() === now.toDateString();
-  }
+    if (reportRange === "today") {
+      return d.toDateString() === now.toDateString();
+    }
 
-  if (reportRange === "week") {
-    const weekAgo = new Date(now);
-    weekAgo.setDate(now.getDate() - 7);
-    return d >= weekAgo;
-  }
+    if (reportRange === "week") {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(now.getDate() - 7);
+      return d >= weekAgo;
+    }
 
-  if (reportRange === "month") {
-    const monthAgo = new Date(now);
-    monthAgo.setMonth(now.getMonth() - 1);
-    return d >= monthAgo;
-  }
+    if (reportRange === "month") {
+      const monthAgo = new Date(now);
+      monthAgo.setMonth(now.getMonth() - 1);
+      return d >= monthAgo;
+    }
 
-  return true;
-});
+    if (reportRange === "year") {
+      const yearAgo = new Date(now);
+      yearAgo.setFullYear(now.getFullYear() - 1);
+      return d >= yearAgo;
+    }
+
+    if (reportRange === "custom" && customStart && customEnd) {
+      return d >= new Date(customStart) && d <= new Date(customEnd);
+    }
+
+    return true;
+  });
 
   const completedOrders = filteredReportOrders.filter(
     o => o.status === "Completed"
@@ -655,6 +677,15 @@ const filteredReportOrders = orders.filter(o => {
     return `hsl(${hue}, 60%, 30%)`;
   };
 
+  const placedCount = orders.filter(o => o.status === "Placed").length;
+  const completedCount = orders.filter(o => o.status === "Completed").length;
+  const cancelledCount = orders.filter(o => o.status === "Cancelled").length;
+
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter(o => o.status === statusFilter);
+
   // 🔵 Subcategory color
   const getSubcategoryColor = (key = "") => {
     let hash = 0;
@@ -674,108 +705,28 @@ const filteredReportOrders = orders.filter(o => {
     return `hsl(${hue}, 60%, 35%)`;
   };
 
-  function SalesChart({ orders }) {
-    const data = orders.map(o => ({
-      name: o._id.slice(-4),
-      sales: o.total
-    }));
+  const salesChartData = filteredReportOrders.map(o => ({
+    name: o._id.slice(-4),
+    sales: o.total
+  }));
 
-    return (
-      <div className="chart-card">
-        <h3>Sales</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={data}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="sales" fill="#6366f1" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    );
-  }
+  const vendorMap = {};
+  filteredReportOrders.forEach(o => {
+    const v = o.vendor?.email || "Unknown";
+    vendorMap[v] = (vendorMap[v] || 0) + o.total;
+  });
+  const vendorData = Object.keys(vendorMap).map(v => ({ name: v, sales: vendorMap[v] }));
 
-  function OrderStatusChart({ orders }) {
-    const data = [
-      { name: "Completed", value: orders.filter(o => o.status === "Completed").length },
-      { name: "Cancelled", value: orders.filter(o => o.status === "Cancelled").length },
-      { name: "Placed", value: orders.filter(o => o.status === "Placed").length }
-    ];
-    const COLORS = ["#22c55e", "#ef4444", "#3b82f6"];
-
-    return (
-      <div className="chart-card">
-        <h3>Order Status</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie data={data} dataKey="value" outerRadius={90}>
-              {data.map((_, i) => (
-                <Cell key={i} fill={COLORS[i % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-    );
-  }
-
-  function VendorPerformance({ orders }) {
-    const vendorMap = {};
-
-    orders.forEach(o => {
-      const email = o.vendor?.email || "Unknown";
-      vendorMap[email] = (vendorMap[email] || 0) + o.total;
+  const productMap = {};
+  filteredReportOrders.forEach(o => {
+    o.products.forEach(p => {
+      productMap[p.name] = (productMap[p.name] || 0) + p.qty;
     });
+  });
 
-    const data = Object.keys(vendorMap).map(v => ({
-      name: v,
-      sales: vendorMap[v]
-    }));
-
-    return (
-      <div className="chart-card">
-        <h3>Vendor Performance</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={data}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="sales" fill="#6366f1" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    );
-  }
-
-  function TopProducts({ orders }) {
-    const map = {};
-
-    orders.forEach(o => {
-      o.products.forEach(p => {
-        map[p.name] = (map[p.name] || 0) + p.qty;
-      });
-    });
-
-    const data = Object.keys(map).map(p => ({
-      name: p,
-      qty: map[p]
-    }));
-
-    return (
-      <div className="chart-card">
-        <h3>Top Products</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={data}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="qty" fill="#10b981" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    );
-  }
+  const topProductsData = Object.keys(productMap).map(p => ({
+    name: p, qty: productMap[p]
+  }));
 
   const logout = () => {
     localStorage.clear();
@@ -795,9 +746,9 @@ const filteredReportOrders = orders.filter(o => {
 
   /* ===================== UI ===================== */
   return (
-    <div className={`admin-dashboard-container ${darkMode ? "dark-mode" : ""}`}>
+    <div className={`admin-dashboard-container ${darkMode ? "dark-mode" : ""}`} >
       {/* ===================== SIDEBAR ===================== */}
-      <aside className="admin-sidebar">
+      < aside className="admin-sidebar" >
         <h3>Admin Panel</h3>
 
         <button onClick={() => setActiveTab("products")}>📦 Inventory</button>
@@ -813,10 +764,10 @@ const filteredReportOrders = orders.filter(o => {
         <button className="logout-btn-sidebar" onClick={logout}>
           🚪 Logout
         </button>
-      </aside>
+      </aside >
 
       {/* ===================== MAIN ===================== */}
-      <main className="admin-main">
+      < main className="admin-main" >
         <Header title={getTabTitle(activeTab)} />
 
         <div className="content-padding">
@@ -1291,12 +1242,46 @@ const filteredReportOrders = orders.filter(o => {
           {/* ===================== ORDERS ===================== */}
           {activeTab === "orders" && (
             <div className="orders-container">
-              {orders.map((o) => (
+              <div className="orders-stats">
+                <div className="stat-card">
+                  <p>Placed</p>
+                  <h2>{placedCount}</h2>
+                </div>
+
+                <div className="stat-card">
+                  <p>Completed</p>
+                  <h2>{completedCount}</h2>
+                </div>
+
+                <div className="stat-card">
+                  <p>Cancelled</p>
+                  <h2>{cancelledCount}</h2>
+                </div>
+
+                <div className="stat-card">
+                  <p>Comission</p>
+                  <h2>{commission}</h2>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Orders</option>
+                  <option value="Placed">Placed</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              {filteredOrders.map((o) => (
                 <div key={o._id} className="admin-card order-card-wide">
 
                   {/* HEADER */}
                   <div className="order-header">
-                    <span className="order-id">Order :#{o._id.slice(-6)}</span>
+                    <span className="order-id">Order :#{o.orderNumber}</span>
 
                     <span className={getStatusClass(o.status)}>
                       {o.status}
@@ -1337,7 +1322,7 @@ const filteredReportOrders = orders.filter(o => {
 
                     <div className="order-footer">
                       <p>Vendor: {o.vendor?.email}</p>
-                      <p>Order ID:#{o._id}</p>
+                      <p>Order ID:#{o.orderNumber}</p>
                       <p>Total: ₹{o.total}</p>
                       <button onClick={() => downloadInvoice(o)}>
                         Invoice PDF
@@ -1501,146 +1486,113 @@ const filteredReportOrders = orders.filter(o => {
           {/* ===================== REPORTS ===================== */}
           {activeTab === "reports" && (
             <div className="reports-page">
+
+              {/* FILTERS */}
               <div className="report-filters">
-                <button
-                  className={`filter-btn ${reportRange === "today" ? "active" : ""}`}
-                  onClick={() => setReportRange("today")}
-                >
-                  Today
-                </button>
+                <div className="range-tabs">
+                  {["today", "week", "month", "year"].map(r => (
+                    <button
+                      key={r}
+                      className={`range-btn ${reportRange === r ? "active" : ""}`}
+                      onClick={() => setReportRange(r)}
+                    >
+                      {r.charAt(0).toUpperCase() + r.slice(1)}
+                    </button>
+                  ))}
 
-                <button
-                  className={`filter-btn ${reportRange === "week" ? "active" : ""}`}
-                  onClick={() => setReportRange("week")}
-                >
-                  Week
-                </button>
-
-                <button
-                  className={`filter-btn ${reportRange === "month" ? "active" : ""}`}
-                  onClick={() => setReportRange("month")}
-                >
-                  Month
-                </button>
-              </div>
-
-              <div className="report-top-row">
-                <div className="kpi-card">
-                  <p>Sales</p>
-                  <h2>₹{analytics.totalSales}</h2>
+                  <button
+                    className={`range-btn ${reportRange === "custom" ? "active" : ""}`}
+                    onClick={() => setReportRange("custom")}
+                  >
+                    Custom
+                  </button>
                 </div>
 
-                <div className="kpi-card">
-                  <p>Orders</p>
-                  <h2>{analytics.totalOrders}</h2>
-                </div>
+                <h3>
+                  Showing: {reportRange.charAt(0).toUpperCase() + reportRange.slice(1)}
+                </h3>
 
-                <div className="kpi-card">
-                  <p>Completed</p>
-                  <h2>{analytics.completedCount}</h2>
-                </div>
-
-                <div className="kpi-card">
-                  <p>Cancelled</p>
-                  <h2>{analytics.cancelledCount}</h2>
-                </div>
-
-                {role === "admin" && (
-                  <div className="kpi-card highlight">
-                    <p>Commission</p>
-                    <h2>₹{commission}</h2>
+                {reportRange === "custom" && (
+                  <div className="custom-range">
+                    <input
+                      type="date"
+                      value={customStart}
+                      onChange={e => setCustomStart(e.target.value)}
+                    />
+                    <span>to</span>
+                    <input
+                      type="date"
+                      value={customEnd}
+                      onChange={e => setCustomEnd(e.target.value)}
+                    />
                   </div>
                 )}
               </div>
 
+              {/* KPI */}
+              <div className="report-top-row">
+                <div className="kpi-card"><p>Total Sales</p><h2>₹{analytics.totalSales}</h2></div>
+                <div className="kpi-card"><p>Orders</p><h2>{analytics.totalOrders}</h2></div>
+                <div className="kpi-card"><p>Completed</p><h2>{analytics.completedCount}</h2></div>
+                <div className="kpi-card"><p>Cancelled</p><h2>{analytics.cancelledCount}</h2></div>
+              </div>
+
+              {/* CHARTS */}
               <div className="chart-grid">
+                {/* SALES */}
                 <div className="chart-card">
                   <h3>Sales Overview</h3>
                   <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={[
-                      { name: "Mon", sales: 1200 },
-                      { name: "Tue", sales: 1800 },
-                      { name: "Wed", sales: 900 },
-                      { name: "Thu", sales: 2400 },
-                      { name: "Fri", sales: 3000 }
-                    ]}>
+                    <LineChart data={salesChartData}>
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-
-                      <Line
-                        type="monotone"
-                        dataKey="sales"
-                        stroke="#4f46e5"
-                        strokeWidth={3}
-                      />
+                      <Line type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={3} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
 
+                {/* STATUS */}
                 <div className="chart-card">
                   <h3>Order Status</h3>
-                  <div className="pie-wrapper">
-                    <ResponsiveContainer width="60%" height={260}>
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: "Completed", value: analytics.completedCount },
-                            { name: "Cancelled", value: analytics.cancelledCount },
-                            {
-                              name: "Pending",
-                              value:
-                                analytics.totalOrders -
-                                analytics.completedCount -
-                                analytics.cancelledCount
-                            }
-                          ]}
-                          dataKey="value"
-                          outerRadius={90}
-                        >
-                          <Cell fill="#22c55e" />
-                          <Cell fill="#ef4444" />
-                          <Cell fill="#f59e0b" />
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="custom-legend">
-                      <div><span className="dot green"></span> Completed</div>
-                      <div><span className="dot red"></span> Cancelled</div>
-                      <div><span className="dot yellow"></span> Pending</div>
-                    </div>
-                  </div>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <PieChart>
+                      <Pie data={[
+                        { name: "Completed", value: analytics.completedCount },
+                        { name: "Cancelled", value: analytics.cancelledCount },
+                        { name: "Pending", value: analytics.totalOrders - analytics.completedCount - analytics.cancelledCount }
+                      ]} dataKey="value" outerRadius={90}>
+                        <Cell fill="#22c55e" />
+                        <Cell fill="#ef4444" />
+                        <Cell fill="#f59e0b" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
 
+                {/* VENDOR */}
                 <div className="chart-card">
                   <h3>Vendor Performance</h3>
                   <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={[
-                      { name: "Vendor A", sales: 4000 },
-                      { name: "Vendor B", sales: 2500 },
-                      { name: "Vendor C", sales: 3200 }
-                    ]}>
+                    <BarChart data={vendorData}>
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-                      <Bar dataKey="sales" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="sales" fill="#6366f1" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
 
+                {/* TOP PRODUCTS */}
                 <div className="chart-card">
                   <h3>Top Products</h3>
                   <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={[
-                      { name: "Fan", qty: 12 },
-                      { name: "Headphones", qty: 8 },
-                      { name: "Detergent", qty: 15 }
-                    ]}>
+                    <BarChart data={topProductsData}>
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-                      <Bar dataKey="qty" fill="#22c55e" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="qty" fill="#22c55e" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1649,7 +1601,7 @@ const filteredReportOrders = orders.filter(o => {
           )}
         </div>
         <Footer />
-      </main>
+      </main >
 
       <ConfirmModal
         show={showConfirm}
@@ -1662,6 +1614,6 @@ const filteredReportOrders = orders.filter(o => {
         onCancel={() => setShowConfirm(false)}
         onConfirm={confirmAction}
       />
-    </div>
+    </div >
   );
 }

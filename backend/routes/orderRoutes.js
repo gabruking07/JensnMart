@@ -46,12 +46,17 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
 
     const total = product.price * qty;
     const adminCommission = total * 0.1;
-    const vendorEarning = total - adminCommission;
+
+    const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
+
+    const newNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
 
     const order = await Order.create({
+      orderNumber: newNumber,
       vendor: vendor._id,
       products: [
         {
+          orderNumber: newNumber,
           productId: product._id,
           name: product.name,
           price: product.price,
@@ -60,7 +65,6 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
       ],
       total,
       adminCommission,
-      vendorEarning,
       status: "Placed"
     });
 
@@ -119,6 +123,7 @@ router.post(
         total += product.price * item.quantity;
 
         products.push({
+          orderNumber: newNumber,
           productId: product._id,
           name: product.name,
           price: product.price,
@@ -127,15 +132,18 @@ router.post(
         });
       }
 
+      const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
+
+      const newNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
+
       const adminCommission = total * 0.1;
-      const vendorEarning = total - adminCommission;
 
       const order = await Order.create({
+        orderNumber: newNumber,
         vendor: req.user.id,
         products,
         total,
         adminCommission,
-        vendorEarning,
         status: "Placed"
       });
 
