@@ -118,6 +118,11 @@ router.delete(
 /* =====================================================
    ADMIN / MANAGER 
 ===================================================== */
+// GET ALL ADMINS
+router.get("/all-admins", async (req, res) => {
+  const admins = await Admin.find();
+  res.json(admins);
+});
 
 // ================= CREATE ADMIN =================
 router.post(
@@ -132,23 +137,19 @@ router.post(
         return res.status(400).json({ message: "All fields required" });
       }
 
-      // email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
       if (!emailRegex.test(email)) {
         return res.status(400).json({ message: "Invalid email format" });
       }
 
-      // phone 10 digits
       if (!/^\d{10}$/.test(phone)) {
         return res.status(400).json({ message: "Phone must be 10 digits" });
       }
 
-      // password length
       if (password.length < 6) {
         return res.status(400).json({ message: "Password must be at least 6 chars" });
       }
 
-      // duplicate check
       const exists = await Admin.findOne({ email });
       if (exists) {
         return res.status(400).json({ message: "Admin already exists" });

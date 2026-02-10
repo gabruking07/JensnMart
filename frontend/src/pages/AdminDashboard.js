@@ -8,19 +8,7 @@ import "./AdminDashboard.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ConfirmModal from "../components/ConfirmModal";
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip
-} from "recharts";
+import { ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
 export default function AdminDashboard({ darkMode, setDarkMode }) {
   const navigate = useNavigate();
@@ -29,6 +17,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   /* ===================== STATE ===================== */
 
   // Core data
+  const [admins, setAdmins] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -50,13 +39,15 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   // Vendor 
   const [vendorEmail, setVendorEmail] = useState("");
   const [vendorPassword, setVendorPassword] = useState("");
+  const [vendorSearch, setVendorSearch] = useState("");
 
-  //Admin 
+  //Admin
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPhone, setNewAdminPhone] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [newAdminRole, setNewAdminRole] = useState("manager");
+  const [adminSearch, setAdminSearch] = useState("");
 
   // Inventory edit
   const [editPriceId, setEditPriceId] = useState(null);
@@ -126,11 +117,17 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         fetchOrders(),
         fetchCategories(),
         fetchProducts(),
-        fetchSubcategories()
+        fetchSubcategories(),
+        fetchPendingAdmins()
       ];
 
       if (role === "admin") {
-        tasks.push(fetchVendors(), fetchCommission(), fetchPendingAdmins());
+        tasks.push(
+          fetchVendors(),
+          fetchCommission(),
+          fetchPendingAdmins(),
+          fetchAdmins()
+        );
       }
 
       if (role === "manager") {
@@ -159,8 +156,8 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         return "Categories";
       case "reports":
         return "Reports";
-      case "Admins":
-        return "Admins";
+      case "admins":
+        return "admins";
       default:
         return "Admin Dashboard";
     }
@@ -195,11 +192,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     } catch (err) {
       console.error("Subcategory fetch error:", err.response?.data || err);
     }
-  };
-
-  const fetchPendingAdmins = async () => {
-    const res = await api.get("/admin/pending-admins");
-    setPendingAdmins(res.data || []);
   };
 
   const fetchCommission = async () => {
@@ -242,6 +234,46 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   };
 
   /* ===================== ACTIONS ===================== */
+  const fetchAdmins = async () => {
+    try {
+      const res = await api.get("/admin/all-admins");
+      setAdmins(res.data || []);
+    } catch (err) {
+      console.log("Fetch admins error", err.response?.data);
+    }
+  };
+
+  const fetchPendingAdmins = async () => {
+    try {
+      const res = await api.get("/admin/pending-admins");
+      setPendingAdmins(res.data || []);
+    } catch (err) {
+      console.error("Pending admin fetch error", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "admins") {
+      fetchAdmins();
+      fetchPendingAdmins();
+    }
+  }, [activeTab]);
+
+  const approveAdmin = async (id) => {
+    await api.put(`/admin/approve-admin/${id}`);
+    fetchAdmins();
+    fetchPendingAdmins();
+  };
+
+  const removeAdmin = async (id) => {
+    await api.delete(`/admin/remove-admin/${id}`);
+    fetchAdmins();
+    fetchPendingAdmins();
+  };
+
+  const filteredAdmins = admins.filter(a =>
+    a.email.toLowerCase().includes(adminSearch.toLowerCase())
+  );
 
   const createVendor = async () => {
     if (!vendorEmail || !vendorPassword) {
@@ -269,29 +301,17 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     fetchVendors();
   };
 
+  const filteredVendors = vendors
+    .filter(v => v.approved)
+    .filter(v =>
+      v.email.toLowerCase().includes(vendorSearch.toLowerCase())
+    );
+
   const rejectVendor = async (id) => {
     if (!window.confirm("Remove this vendor?")) return;
 
     await api.delete(`/admin/reject-vendor/${id}`);
     fetchVendors();
-  };
-
-  const approveUser = async (id) => {
-    await api.put(`/api/admin/approve-admin/${id}`);
-    fetchPendingAdmins();
-  };
-
-  const rejectUser = async (id) => {
-    if (!window.confirm("Remove admin?")) return;
-
-    try {
-      await api.delete(`/admin/remove-admin/${id}`);
-      toast.success("Admin removed");
-      fetchPendingAdmins();
-    } catch (err) {
-      console.log(err.response?.data);
-      toast.error("Remove failed");
-    }
   };
 
   const createAdmin = async () => {
@@ -320,6 +340,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
       });
 
       toast.success("Admin created (pending)");
+      fetchAdmins();
       setNewAdminEmail("");
       setNewAdminPassword("");
       fetchPendingAdmins();
@@ -747,7 +768,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   }
 
   /* ===================== UI ===================== */
-
   return (
     <div className={`admin-dashboard-container ${darkMode ? "dark-mode" : ""}`}>
       {/* ===================== SIDEBAR ===================== */}
@@ -757,7 +777,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         <button onClick={() => setActiveTab("products")}>📦 Inventory</button>
         <button onClick={() => setActiveTab("vendors")}>🏪 Vendors</button>
         {role === "admin" && (
-          <button onClick={() => setActiveTab("Admins")}>⚙️ Admins</button>
+          <button onClick={() => setActiveTab("admins")}>⚙️ Admins</button>
         )}
         <button onClick={() => setActiveTab("orders")}>🧾 Orders</button>
         <button onClick={() => setActiveTab("add")}>➕ Add Product</button>
@@ -1015,163 +1035,240 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
             </>
           )}
 
-          {/* ===================== VENDORS TAB ===================== */}
+          {/* ===================== VENDORS ===================== */}
           {activeTab === "vendors" && (
-            <div className="vendor-page">
+            <div className="vendors-layout">
 
-              {/* -------- CREATE CARD -------- */}
-              <div className="vendor-create-card">
+              <div className="vendors-create">
                 <h2>Create Vendor</h2>
+
                 <input
                   className="input-modern"
                   placeholder="Vendor Email"
                   value={vendorEmail}
-                  onChange={(e) => setVendorEmail(e.target.value)} />
+                  onChange={(e) => setVendorEmail(e.target.value)}
+                />
 
                 <input
                   className="input-modern"
                   placeholder="Password"
                   value={vendorPassword}
-                  onChange={(e) => setVendorPassword(e.target.value)} />
+                  onChange={(e) => setVendorPassword(e.target.value)}
+                />
 
                 <button className="btn-primary" onClick={createVendor}>
                   Create Vendor
                 </button>
               </div>
 
-              {/* -------- LIST CARD -------- */}
-              <div className="vendor-list-card">
-                <h2>Vendors</h2>
+              <div className="vendors-approvals">
+                <h2>Pending Approvals</h2>
 
-                {vendors.map((v) => (
-                  <div key={v._id} className="vendor-row">
+                {vendors.filter(v => !v.approved).length === 0 && (
+                  <p>No pending vendors</p>
+                )}
 
-                    <div className="vendor-left">
-                      <div className="vendor-avatar">
-                        {v.email.charAt(0).toUpperCase()}
-                      </div>
+                {vendors
+                  .filter(v => !v.approved)
+                  .map(v => (
+                    <div key={v._id} className="vendor-row">
 
-                      <div>
-                        <div className="vendor-email">{v.email}</div>
-                        <div className={`vendor-status ${v.approved ? "active" : "pending"}`}>
-                          {v.approved ? "Active" : "Pending Approval"}
+                      <div className="vendor-left">
+                        <div className="vendor-avatar">
+                          {v.email.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div>
+                          <div className="vendor-email">{v.email}</div>
+                          <div className="vendor-status pending">
+                            Pending
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="vendor-actions">
-                      {!v.approved && (
+                      <div className="vendor-actions">
                         <button
                           className="btn-approve"
-                          onClick={() => approveVendor(v._id)}>
+                          onClick={() => approveVendor(v._id)}
+                        >
                           Approve
                         </button>
-                      )}
 
-                      <button
-                        className="btn-remove"
-                        onClick={() => rejectVendor(v._id)}>
-                        Remove
-                      </button>
+                        <button
+                          className="btn-remove"
+                          onClick={() => rejectVendor(v._id)}
+                        >
+                          Reject
+                        </button>
+                      </div>
+
                     </div>
-                  </div>
-                ))}
+                  ))}
+              </div>
+
+              <div className="vendors-all">
+                <div className="vendors-header">
+                  <h2>All Vendors</h2>
+
+                  <input
+                    className="vendor-search"
+                    placeholder="Search vendors..."
+                    value={vendorSearch}
+                    onChange={(e) => setVendorSearch(e.target.value)}
+                  />
+                </div>
+
+                <div className="vendors-table-wrapper">
+                  <table className="vendors-table">
+                    <thead>
+                      <tr>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {filteredVendors.map(v => (
+                        <tr key={v._id}>
+                          <td>{v.email}</td>
+
+                          <td>
+                            <span className={v.approved ? "status-active" : "status-pending"}>
+                              {v.approved ? "Active" : "Pending"}
+                            </span>
+                          </td>
+
+                          <td>
+                            {new Date(v.createdAt || Date.now()).toLocaleDateString()}
+                          </td>
+
+                          <td>
+                            {!v.approved && (
+                              <button
+                                className="btn-approve"
+                                onClick={() => approveVendor(v._id)}
+                              >
+                                Approve
+                              </button>
+                            )}
+
+                            <button
+                              className="btn-remove"
+                              onClick={() => rejectVendor(v._id)}
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
 
-          {/* ===================== ADMINS TAB ===================== */}
-          {activeTab === "Admins" && role === "admin" && (
-            <div className="vendor-page">
+          {/* ===================== ADMINS ===================== */}
+          {activeTab === "admins" && (
+            <div className="admin-page">
 
-              {/* -------- CREATE ADMIN CARD -------- */}
-              <div className="vendor-create-card">
-                <h2>Create Admin / Manager</h2>
+              {/* TOP */}
+              <div className="admin-top">
 
-                <input
-                  className="input-modern"
-                  placeholder="Name"
-                  value={newAdminName}
-                  onChange={(e) => setNewAdminName(e.target.value)}
-                />
+                {/* CREATE */}
+                <div className="admin-card">
+                  <h2>Create Admin / Manager</h2>
 
-                <input
-                  className="input-modern"
-                  placeholder="Admin Email"
-                  value={newAdminEmail}
-                  onChange={(e) => setNewAdminEmail(e.target.value)}
-                />
+                  <input placeholder="Name" value={newAdminName}
+                    onChange={(e) => setNewAdminName(e.target.value)} />
 
-                <input
-                  className="input-modern"
-                  placeholder="Phone"
-                  value={newAdminPhone}
-                  onChange={(e) => setNewAdminPhone(e.target.value)}
-                />
+                  <input placeholder="Email" value={newAdminEmail}
+                    onChange={(e) => setNewAdminEmail(e.target.value)} />
 
-                <input
-                  className="input-modern"
-                  placeholder="Password"
-                  value={newAdminPassword}
-                  onChange={(e) => setNewAdminPassword(e.target.value)}
-                />
+                  <input placeholder="Phone" value={newAdminPhone}
+                    onChange={(e) => setNewAdminPhone(e.target.value)} />
 
-                <select
-                  className="input-modern"
-                  value={newAdminRole}
-                  onChange={(e) => setNewAdminRole(e.target.value)}
-                >
-                  <option value="manager">Manager</option>
-                  <option value="admin">Admin</option>
-                </select>
+                  <input type="password" placeholder="Password"
+                    value={newAdminPassword}
+                    onChange={(e) => setNewAdminPassword(e.target.value)} />
 
-                <button className="btn-primary" onClick={createAdmin}>
-                  Create
-                </button>
-              </div>
+                  <select value={newAdminRole}
+                    onChange={(e) => setNewAdminRole(e.target.value)}>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                  </select>
 
-              {/* -------- PENDING APPROVALS -------- */}
-              <div className="vendor-list-card">
-                <h2>Pending Approvals</h2>
+                  <button className="btn-primary" onClick={createAdmin}>
+                    Create
+                  </button>
+                </div>
 
-                {pendingAdmins.length === 0 && (
-                  <p style={{ opacity: 0.6 }}>No pending admins</p>
-                )}
+                {/* PENDING RIGHT */}
+                <div className="admin-card">
+                  <h2>Pending Approvals</h2>
 
-                {pendingAdmins.map((u) => (
-                  <div key={u._id} className="vendor-row">
+                  {pendingAdmins.length === 0 && <p>No pending admins</p>}
 
-                    <div className="vendor-left">
-                      <div className="vendor-avatar">
-                        {u.email.charAt(0).toUpperCase()}
+                  {pendingAdmins.map(a => (
+                    <div key={a._id} className="admin-row">
+                      <div>
+                        <b>{a.email}</b>
+                        <div className="muted">Pending</div>
                       </div>
 
                       <div>
-                        <div className="vendor-email">{u.email}</div>
-                        <div className="vendor-status pending">
-                          Pending Approval
-                        </div>
+                        <button
+                          className="btn-approve"
+                          onClick={() => approveAdmin(a._id)}>
+                          Approve
+                        </button>
+
+                        <button
+                          className="btn-remove"
+                          onClick={() => removeAdmin(a._id)}>
+                          Remove
+                        </button>
                       </div>
                     </div>
-
-                    <div className="vendor-actions">
-                      <button
-                        className="btn-approve"
-                        onClick={() => approveUser(u._id)}
-                      >
-                        Approve
-                      </button>
-
-                      <button
-                        className="btn-remove"
-                        onClick={() => rejectUser(u._id)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
+
+              {/* ALL ADMINS TABLE */}
+              <div className="admin-card full">
+                <h2>All Admins</h2>
+
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Joined</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {admins.filter(a => a.approved).map(a => (
+                      <tr key={a._id}>
+                        <td>{a.email}</td>
+                        <td>{a.role}</td>
+                        <td>{new Date(a.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <button
+                            className="btn-remove"
+                            onClick={() => removeAdmin(a._id)}>
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
             </div>
           )}
 
@@ -1269,16 +1366,15 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
             </div>
           )}
 
+          {/* ===================== CATEGORIES ===================== */}
           {activeTab === "categories" && (
             <div className="cat-wrapper">
 
-              {/* LEFT PANEL */}
               <div className="cat-card">
                 <div className="cat-card-header">
                   <h2>Categories</h2>
                 </div>
 
-                {/* SEARCH */}
                 <input
                   className="cat-search"
                   placeholder="Search categories..."
@@ -1286,7 +1382,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   onChange={(e) => setCategorySearch(e.target.value)}
                 />
 
-                {/* CREATE */}
                 <div className="cat-create-row">
                   <input
                     placeholder="New category"
@@ -1298,7 +1393,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   </button>
                 </div>
 
-                {/* CATEGORY LIST */}
                 <div className="cat-list">
                   {filteredCategories.map((c) => (
                     <div key={c._id} className="cat-item">
@@ -1359,7 +1453,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                 </div>
               </div>
 
-              {/* RIGHT PANEL */}
               <div className="cat-card">
                 <div className="cat-card-header">
                   <h2>Add Subcategory</h2>
@@ -1387,7 +1480,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   Create
                 </button>
               </div>
-
             </div>
           )}
 
@@ -1555,6 +1647,5 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         onConfirm={confirmAction}
       />
     </div>
-
   );
 }
