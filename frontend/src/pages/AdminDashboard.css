@@ -16,12 +16,10 @@ body {
   width: 240px;
   background: linear-gradient(180deg, #0f172a, #020617);
   color: white;
-
   position: fixed;
   left: 0;
   top: 0;
   bottom: 0;
-
   padding: 20px 15px;
   display: flex;
   flex-direction: column;
@@ -34,7 +32,6 @@ body {
   padding-left: 10px;
 }
 
-/* buttons container */
 .admin-sidebar {
   width: 240px;
   background: linear-gradient(180deg, #0f172a, #020617);
@@ -64,7 +61,6 @@ body {
   margin-left: 240px;
   width: calc(100% - 240px);
   min-height: 100vh;
-
   display: flex;
   flex-direction: column;
 }
@@ -206,7 +202,7 @@ body {
   background:#fff;
   padding:22px;
   border-radius:14px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.05);
+  box-shadow:0 4px 16px rgba(1,1,1,5);
 }
 
 .admin-card.full{
@@ -329,7 +325,7 @@ body {
 .order-card-wide {
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(1,1,1,5);
   overflow: hidden;
 }
 
@@ -379,7 +375,6 @@ body {
   width:260px;
 }
 
-/* TABLE */
 .vendors-table-wrapper{
   overflow:auto;
 }
@@ -420,16 +415,16 @@ body {
 
 .vendors-create{
   background:#fff;
-  padding:22px;
-  border-radius:14px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.05);
+  padding:22px; 
+  border-radius:14px; 
+  box-shadow: 0 10px 20px rgba(1,1,1,5);
 }
 
 .vendors-approvals{
   background:#fff;
   padding:22px;
   border-radius:14px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(1,1,1,5);
 }
 
 .vendors-all{
@@ -437,7 +432,7 @@ body {
   background:#fff;
   padding:22px;
   border-radius:14px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(1,1,1,5);
 }
 
 .vendor-row{
@@ -1035,4 +1030,9 @@ body {
   padding:20px;
   border-radius:16px;
   box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+.filter-btn.active{
+  background:#6366f1;
+  color:white;
 }

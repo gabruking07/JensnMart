@@ -120,7 +120,9 @@ router.delete(
 ===================================================== */
 // GET ALL ADMINS
 router.get("/all-admins", async (req, res) => {
-  const admins = await Admin.find();
+  const admins = await Admin.find({
+    role: { $in: ["admin","manager"] }
+  });
   res.json(admins);
 });
 

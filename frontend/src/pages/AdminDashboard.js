@@ -157,7 +157,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
       case "reports":
         return "Reports";
       case "admins":
-        return "admins";
+        return "Admins";
       default:
         return "Admin Dashboard";
     }
@@ -224,12 +224,38 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     return matchSearch && matchSub;
   });
 
-  const completedOrders = orders.filter((o) => o.status === "Completed");
+ const now = new Date();
+
+const filteredReportOrders = orders.filter(o => {
+  const d = new Date(o.createdAt);
+
+  if (reportRange === "today") {
+    return d.toDateString() === now.toDateString();
+  }
+
+  if (reportRange === "week") {
+    const weekAgo = new Date(now);
+    weekAgo.setDate(now.getDate() - 7);
+    return d >= weekAgo;
+  }
+
+  if (reportRange === "month") {
+    const monthAgo = new Date(now);
+    monthAgo.setMonth(now.getMonth() - 1);
+    return d >= monthAgo;
+  }
+
+  return true;
+});
+
+  const completedOrders = filteredReportOrders.filter(
+    o => o.status === "Completed"
+  );
 
   const analytics = {
-    totalOrders: orders.length,
+    totalOrders: filteredReportOrders.length,
     completedCount: completedOrders.length,
-    cancelledCount: orders.filter((o) => o.status === "Cancelled").length,
+    cancelledCount: filteredReportOrders.filter(o => o.status === "Cancelled").length,
     totalSales: completedOrders.reduce((sum, o) => sum + o.total, 0)
   };
 
@@ -791,11 +817,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
       {/* ===================== MAIN ===================== */}
       <main className="admin-main">
-        <Header
-          title={getTabTitle(activeTab)}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-        />
+        <Header title={getTabTitle(activeTab)} />
 
         <div className="content-padding">
           {/* ===================== INVENTORY ===================== */}
@@ -1173,11 +1195,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
           {/* ===================== ADMINS ===================== */}
           {activeTab === "admins" && (
             <div className="admin-page">
-
-              {/* TOP */}
               <div className="admin-top">
-
-                {/* CREATE */}
                 <div className="admin-card">
                   <h2>Create Admin / Manager</h2>
 
@@ -1205,7 +1223,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   </button>
                 </div>
 
-                {/* PENDING RIGHT */}
                 <div className="admin-card">
                   <h2>Pending Approvals</h2>
 
@@ -1236,7 +1253,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                 </div>
               </div>
 
-              {/* ALL ADMINS TABLE */}
               <div className="admin-card full">
                 <h2>All Admins</h2>
 
@@ -1268,7 +1284,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   </tbody>
                 </table>
               </div>
-
             </div>
           )}
 
@@ -1486,15 +1501,29 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
           {/* ===================== REPORTS ===================== */}
           {activeTab === "reports" && (
             <div className="reports-page">
-
-              {/* FILTERS */}
               <div className="report-filters">
-                <button className="filter-btn">Today</button>
-                <button className="filter-btn">Week</button>
-                <button className="filter-btn">Month</button>
+                <button
+                  className={`filter-btn ${reportRange === "today" ? "active" : ""}`}
+                  onClick={() => setReportRange("today")}
+                >
+                  Today
+                </button>
+
+                <button
+                  className={`filter-btn ${reportRange === "week" ? "active" : ""}`}
+                  onClick={() => setReportRange("week")}
+                >
+                  Week
+                </button>
+
+                <button
+                  className={`filter-btn ${reportRange === "month" ? "active" : ""}`}
+                  onClick={() => setReportRange("month")}
+                >
+                  Month
+                </button>
               </div>
 
-              {/* KPI ROW */}
               <div className="report-top-row">
                 <div className="kpi-card">
                   <p>Sales</p>
@@ -1524,10 +1553,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                 )}
               </div>
 
-              {/* CHART GRID */}
               <div className="chart-grid">
-
-                {/* SALES CHART */}
                 <div className="chart-card">
                   <h3>Sales Overview</h3>
                   <ResponsiveContainer width="100%" height={260}>
@@ -1552,12 +1578,9 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   </ResponsiveContainer>
                 </div>
 
-                {/* ORDER STATUS */}
                 <div className="chart-card">
                   <h3>Order Status</h3>
-
                   <div className="pie-wrapper">
-
                     <ResponsiveContainer width="60%" height={260}>
                       <PieChart>
                         <Pie
@@ -1579,22 +1602,17 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                           <Cell fill="#ef4444" />
                           <Cell fill="#f59e0b" />
                         </Pie>
-
                         <Tooltip />
                       </PieChart>
                     </ResponsiveContainer>
-
-                    {/* LEGEND */}
                     <div className="custom-legend">
                       <div><span className="dot green"></span> Completed</div>
                       <div><span className="dot red"></span> Cancelled</div>
                       <div><span className="dot yellow"></span> Pending</div>
                     </div>
-
                   </div>
                 </div>
 
-                {/* VENDOR PERFORMANCE */}
                 <div className="chart-card">
                   <h3>Vendor Performance</h3>
                   <ResponsiveContainer width="100%" height={260}>
@@ -1611,7 +1629,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   </ResponsiveContainer>
                 </div>
 
-                {/* TOP PRODUCTS */}
                 <div className="chart-card">
                   <h3>Top Products</h3>
                   <ResponsiveContainer width="100%" height={260}>
@@ -1627,7 +1644,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-
               </div>
             </div>
           )}
