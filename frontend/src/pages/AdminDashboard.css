@@ -197,7 +197,6 @@ body {
   gap:24px;
 }
 
-/* cards */
 .admin-card{
   background:#fff;
   padding:22px;
@@ -209,7 +208,6 @@ body {
   width:100%;
 }
 
-/* inputs */
 .admin-card input,
 .admin-card select{
   width:100%;
@@ -277,13 +275,11 @@ body {
   border-radius:6px;
 }
 
-/* muted text */
 .muted{
   font-size:12px;
   color:#888;
 }
 
-/* BUTTONS */
 .btn-primary{
   width:100%;
   background:#6366f1;
@@ -313,6 +309,36 @@ body {
 /* ROLE BADGE */
 .muted{
   opacity:0.6;
+}
+
+/* =============================== SEARCH ADMINS ================================= */
+
+.admins-header-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.admin-search{
+  width:240px;
+  height:42px;
+  padding:0 14px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+  outline:none;
+  background:#fff;
+  transition:all .2s ease;
+}
+
+.admin-search:hover{
+  border-color:#6366f1;
+}
+
+.admin-search:focus{
+  border-color:#6366f1;
+  box-shadow:0 0 0 2px rgba(99,102,241,0.15);
 }
 
 /* ========================= ORDERS ======================== */
@@ -382,6 +408,79 @@ body {
   justify-content: space-between;
   font-weight: bold;
   margin-top: 10px;
+}
+
+/* ===============================
+   ORDER FILTER BAR
+================================= */
+
+.orders-filter-bar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:22px;
+  flex-wrap:wrap;
+  padding:14px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+  border:1px solid rgba(0,0,0,0.08);
+}
+
+.orders-filter-bar select,
+.orders-filter-bar input{
+  height:40px;
+  padding:0 12px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  font-size:14px;
+  outline:none;
+  background:#fff;
+  transition:all .2s ease;
+}
+
+.orders-filter-bar select:hover,
+.orders-filter-bar input:hover{
+  border-color:#6366f1;
+}
+
+.orders-filter-bar select:focus,
+.orders-filter-bar input:focus{
+  border-color:#6366f1;
+  box-shadow:0 0 0 2px rgba(99,102,241,0.15);
+}
+
+/* SEARCH INPUT WIDER */
+.order-search{
+  width: 120px; 
+}
+
+.date-input{
+  width:150px;
+}
+
+.status-select{
+  width:140px;
+}
+
+.vendor-select{
+  width:180px;
+}
+
+.filter-reset-btn{
+  height:40px;
+  padding:0 16px;
+  border:none;
+  border-radius:8px;
+  background:#ef4444;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.filter-reset-btn:hover{
+  background:#dc2626;
 }
 
 /* ========================= VENDOR ========================= */
@@ -1056,13 +1155,40 @@ body {
   box-shadow:0 6px 18px rgba(0,0,0,0.08);
 }
 
-.filter-btn.active{
-  background:#6366f1;
-  color:white;
+/* ========================= REPORT RANGE BUTTONS ========================= */
+
+.range-tabs{
+  display:inline-flex;
+  background:#f3f4f6;
+  border-radius:12px;
+  padding:4px;
+  gap:4px;
 }
 
-.report-range-title{
-  margin-bottom:10px;
-  opacity:.6;
-  font-weight:500;
+.range-btn{
+  padding:8px 18px;
+  border:none;
+  background:transparent;
+  border-radius:10px;
+  font-weight:600;
+  font-size:14px;
+  cursor:pointer;
+  color:#555;
+  transition:all .25s ease;
+}
+
+.range-btn:hover{
+  background:rgba(99,102,241,0.12);
+  color:#4f46e5;
+}
+
+.range-btn.active{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff;
+  box-shadow:0 4px 14px rgba(99,102,241,0.4);
+  transform:translateY(-1px);
+}
+
+.range-btn:active{
+  transform:scale(.96);
 }

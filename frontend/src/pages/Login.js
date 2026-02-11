@@ -35,7 +35,8 @@ export default function Login() {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
-
+      localStorage.setItem("approved", res.data.approved);
+      
       if (res.data.role === "admin" || res.data.role === "manager") {
         navigate("/admin");
       } else {

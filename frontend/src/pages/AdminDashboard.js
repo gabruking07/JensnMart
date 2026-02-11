@@ -8,7 +8,7 @@ import "./AdminDashboard.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ConfirmModal from "../components/ConfirmModal";
-import { ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
+import { Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -81,6 +81,10 @@ export default function AdminDashboard() {
   const [parentCategoryId, setParentCategoryId] = useState("");
 
   //Orders
+  const [orderSearch, setOrderSearch] = useState("");
+  const [vendorFilter, setVendorFilter] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
   //Reports
@@ -480,6 +484,31 @@ export default function AdminDashboard() {
     setShowConfirm(true);
   };
 
+  const filteredOrders = orders.filter(o => {
+
+    if (statusFilter !== "all" && o.status !== statusFilter) {
+      return false;
+    }
+
+    if (orderSearch && !String(o.orderNumber).includes(orderSearch)) {
+      return false;
+    }
+
+    if (vendorFilter && o.vendor?._id !== vendorFilter) {
+      return false;
+    }
+
+    if (startDate && new Date(o.createdAt) < new Date(startDate)) {
+      return false;
+    }
+
+    if (endDate && new Date(o.createdAt) > new Date(endDate)) {
+      return false;
+    }
+
+    return true;
+  });
+
   const downloadInvoice = (order) => {
     const doc = new jsPDF();
     doc.text("INVOICE", 14, 20);
@@ -676,14 +705,15 @@ export default function AdminDashboard() {
     return `hsl(${hue}, 60%, 30%)`;
   };
 
-  const placedCount = orders.filter(o => o.status === "Placed").length;
-  const completedCount = orders.filter(o => o.status === "Completed").length;
-  const cancelledCount = orders.filter(o => o.status === "Cancelled").length;
+  const placedCount = filteredReportOrders.filter(o => o.status === "Placed").length;
+  const completedCount = filteredReportOrders.filter(o => o.status === "Completed").length;
+  const cancelledCount = filteredReportOrders.filter(o => o.status === "Cancelled").length;
 
-  const filteredOrders =
-    statusFilter === "all"
-      ? orders
-      : orders.filter(o => o.status === statusFilter);
+  const orderStatusData = [
+    { name: "Placed", value: placedCount, color: "#f59e0b" },
+    { name: "Completed", value: completedCount, color: "#22c55e" },
+    { name: "Cancelled", value: cancelledCount, color: "#ef4444" }
+  ];
 
   const getSubcategoryColor = (key = "") => {
     let hash = 0;
@@ -703,9 +733,55 @@ export default function AdminDashboard() {
     return `hsl(${hue}, 60%, 35%)`;
   };
 
-  const salesChartData = filteredReportOrders.map(o => ({
-    name: o._id.slice(-4),
-    sales: o.total
+  const grouped = {};
+
+  filteredReportOrders.forEach(o => {
+    const d = new Date(o.createdAt).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short"
+    });
+
+    if (!grouped[d]) grouped[d] = 0;
+    grouped[d] += o.totalAmount;
+  });
+
+  const groupedSales = {};
+
+  filteredReportOrders.forEach(o => {
+    const d = new Date(o.createdAt);
+
+    let key = "";
+
+    if (reportRange === "today") {
+      key = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    else if (reportRange === "week") {
+      key = d.toLocaleDateString("en-IN", { weekday: "short" });
+      // Mon Tue Wed
+    }
+
+    else if (reportRange === "month") {
+      key = d.getDate() + " " + d.toLocaleString("en-IN", { month: "short" });
+      // 8 Feb
+    }
+
+    else if (reportRange === "year") {
+      key = d.toLocaleString("en-IN", { month: "short" });
+      // Jan Feb Mar
+    }
+
+    else {
+      key = d.toLocaleDateString("en-IN");
+    }
+
+    if (!groupedSales[key]) groupedSales[key] = 0;
+    groupedSales[key] += o.total;   // or totalAmount (your correct field)
+  });
+
+  const salesChartData = Object.keys(groupedSales).map(k => ({
+    name: k,
+    sales: groupedSales[k]
   }));
 
   const vendorMap = {};
@@ -744,7 +820,7 @@ export default function AdminDashboard() {
 
   /* ===================== UI ===================== */
   return (
-    <div className= "admin-dashboard-container" >
+    <div className="admin-dashboard-container" >
       {/* ===================== SIDEBAR ===================== */}
       < aside className="admin-sidebar" >
         <h3>Admin Panel</h3>
@@ -792,6 +868,7 @@ export default function AdminDashboard() {
                 <select
                   value={selectedSubcategory}
                   onChange={(e) => setSelectedSubcategory(e.target.value)}
+                  disabled={!selectedCategory}
                 >
                   <option value="">All Subcategories</option>
                   {subcategories
@@ -1203,7 +1280,16 @@ export default function AdminDashboard() {
               </div>
 
               <div className="admin-card full">
-                <h2>All Admins</h2>
+                <div className="admins-header-row">
+                  <h2>All Admins</h2>
+
+                  <input
+                    className="admin-search"
+                    placeholder="Search admins..."
+                    value={adminSearch}
+                    onChange={(e) => setAdminSearch(e.target.value)}
+                  />
+                </div>
 
                 <table className="admin-table">
                   <thead>
@@ -1216,20 +1302,25 @@ export default function AdminDashboard() {
                   </thead>
 
                   <tbody>
-                    {admins.filter(a => a.approved).map(a => (
-                      <tr key={a._id}>
-                        <td>{a.email}</td>
-                        <td>{a.role}</td>
-                        <td>{new Date(a.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          <button
-                            className="btn-remove"
-                            onClick={() => removeAdmin(a._id)}>
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {admins
+                      .filter(a => a.approved)
+                      .filter(a =>
+                        a.email.toLowerCase().includes(adminSearch.toLowerCase())
+                      )
+                      .map(a => (
+                        <tr key={a._id}>
+                          <td>{a.email}</td>
+                          <td>{a.role}</td>
+                          <td>{new Date(a.createdAt).toLocaleDateString()}</td>
+                          <td>
+                            <button
+                              className="btn-remove"
+                              onClick={() => removeAdmin(a._id)}>
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -1262,16 +1353,63 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: 20 }}>
+              <div className="orders-filter-bar">
+
                 <select
+                  className="status-select"
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={e => setStatusFilter(e.target.value)}
                 >
-                  <option value="all">All Orders</option>
+                  <option value="all">All Status</option>
                   <option value="Placed">Placed</option>
                   <option value="Completed">Completed</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
+
+                <input
+                  className="order-search"
+                  placeholder="Search Order #"
+                  value={orderSearch}
+                  onChange={e => setOrderSearch(e.target.value)}
+                />
+
+                <select
+                  className="vendor-select"
+                  value={vendorFilter}
+                  onChange={e => setVendorFilter(e.target.value)}
+                >
+                  <option value="">All Vendors</option>
+                  {vendors.map(v => (
+                    <option key={v._id} value={v._id}>{v.email}</option>
+                  ))}
+                </select>
+
+                <input
+                  className="date-input"
+                  type="date"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                />
+
+                <input
+                  className="date-input"
+                  type="date"
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                />
+
+                <button
+                  className="filter-reset-btn"
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setVendorFilter("");
+                    setOrderSearch("");
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                >
+                  Reset
+                </button>
               </div>
 
               {filteredOrders.map((o) => (
@@ -1554,17 +1692,25 @@ export default function AdminDashboard() {
                 <div className="chart-card">
                   <h3>Order Status</h3>
                   <ResponsiveContainer width="100%" height={260}>
-                    <PieChart>
-                      <Pie data={[
-                        { name: "Completed", value: analytics.completedCount },
-                        { name: "Cancelled", value: analytics.cancelledCount },
-                        { name: "Pending", value: analytics.totalOrders - analytics.completedCount - analytics.cancelledCount }
-                      ]} dataKey="value" outerRadius={90}>
-                        <Cell fill="#22c55e" />
-                        <Cell fill="#ef4444" />
-                        <Cell fill="#f59e0b" />
+                    <PieChart width={350} height={260}>
+                      <Pie
+                        data={orderStatusData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="45%"
+                        outerRadius={85}
+                      >
+                        {orderStatusData.map((entry, index) => (
+                          <Cell key={index} fill={entry.color} />
+                        ))}
                       </Pie>
                       <Tooltip />
+                      <Legend
+                        verticalAlign="bottom"
+                        align="center"
+                        iconType="circle"
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>

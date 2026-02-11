@@ -7,7 +7,13 @@ import "./VendorDashboard.css";
 
 export default function VendorDashboard() {
   const navigate = useNavigate();
-  const approved = localStorage.getItem("approved") === "true";
+  const [approved, setApproved] = useState(false);
+
+  useEffect(() => {
+    api.get("/vendor/profile").then(res => {
+      setApproved(res.data.approved);
+    });
+  }, []);
 
   const [products, setProducts] = useState([]);
   const [cartQty, setCartQty] = useState({});
@@ -102,7 +108,7 @@ export default function VendorDashboard() {
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
-    <div className= "vendor-root" >
+    <div className="vendor-root" >
       <Header title="Vendor Portal" />
 
       {!approved && (

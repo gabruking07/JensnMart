@@ -17,7 +17,7 @@ router.post("/register", async (req, res) => {
     }
 
     const exists = await Vendor.findOne({ email });
-    console.log("EXISTS CHECK:", exists); // 🔴 ADD THIS
+    console.log("EXISTS CHECK:", exists);
 
     if (exists) {
       return res.status(400).json({ message: "Vendor already exists" });
@@ -34,12 +34,12 @@ router.post("/register", async (req, res) => {
       approved: false
     });
 
-    console.log("VENDOR CREATED:", created); // 🔴 ADD THIS
+    console.log("VENDOR CREATED:", created); 
 
     res.json({ message: "Vendor registered successfully" });
 
   } catch (err) {
-    console.error("VENDOR REGISTER ERROR FULL:", err); // 🔴 IMPORTANT
+    console.error("VENDOR REGISTER ERROR FULL:", err); 
     res.status(500).json({ message: "Vendor registration failed" });
   }
 });
@@ -63,7 +63,7 @@ router.post("/login", async (req, res) => {
       {
         id: vendor._id,
         role: "vendor",
-        approved: vendor.approved   // 🔑 IMPORTANT
+        approved: vendor.approved  
       },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
