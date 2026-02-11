@@ -3,20 +3,20 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
-// hiii
+//Hiii
 import "./AdminDashboard.css";
-
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ConfirmModal from "../components/ConfirmModal";
+import { ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
-export default function AdminDashboard({ darkMode, setDarkMode }) {
+export default function AdminDashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
 
   /* ===================== STATE ===================== */
-
   // Core data
+  const [admins, setAdmins] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -25,6 +25,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   // Admin specific
   const [pendingAdmins, setPendingAdmins] = useState([]);
   const [commission, setCommission] = useState(0);
+  const token = localStorage.getItem("token");
 
   // UI state
   const [activeTab, setActiveTab] = useState("products");
@@ -35,12 +36,27 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   const [confirmAction, setConfirmAction] = useState(null);
   const [pendingStatusChange, setPendingStatusChange] = useState(null);
 
+  // Vendor 
+  const [vendorEmail, setVendorEmail] = useState("");
+  const [vendorPassword, setVendorPassword] = useState("");
+  const [vendorSearch, setVendorSearch] = useState("");
+
+  //Admin
+  const [newAdminName, setNewAdminName] = useState("");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPhone, setNewAdminPhone] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminRole, setNewAdminRole] = useState("manager");
+  const [adminSearch, setAdminSearch] = useState("");
+
   // Inventory edit
   const [editPriceId, setEditPriceId] = useState(null);
   const [newPrice, setNewPrice] = useState("");
   const [editStockId, setEditStockId] = useState(null);
   const [newStock, setNewStock] = useState("");
   const [editCategoryProductId, setEditCategoryProductId] = useState(null);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [collapsedCats, setCollapsedCats] = useState({});
 
   // Add product
   const [pname, setPname] = useState("");
@@ -55,10 +71,22 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   // Category management
   const [newCategory, setNewCategory] = useState("");
-
-  // Category edit
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState("");
+  const [subcategories, setSubcategories] = useState([]);
+  const [subcategoryId, setSubcategoryId] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [editSubcategoryProductId, setEditSubcategoryProductId] = useState(null);
+  const [newSubName, setNewSubName] = useState("");
+  const [parentCategoryId, setParentCategoryId] = useState("");
+
+  //Orders
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  //Reports
+  const [reportRange, setReportRange] = useState("month");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
 
   /* ===================== AUTH ===================== */
   useEffect(() => {
@@ -68,7 +96,27 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     }
     loadAll();
   }, []);
-  
+
+  useEffect(() => {
+    if (activeTab !== "reports") return;
+
+    const interval = setInterval(() => {
+      fetchOrders();
+      fetchVendors();
+      fetchProducts();
+    }, 10000); // refresh every 10s
+
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetch("/api/admin/orders", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => setOrders(data));
+  }, []);
+
   useEffect(() => {
     fetchProducts(selectedCategory);
   }, [selectedCategory]);
@@ -76,10 +124,21 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   /* ===================== LOAD ALL ===================== */
   const loadAll = async () => {
     try {
-      const tasks = [fetchOrders(), fetchCategories(), fetchProducts()];
+      const tasks = [
+        fetchOrders(),
+        fetchCategories(),
+        fetchProducts(),
+        fetchSubcategories(),
+        fetchPendingAdmins()
+      ];
 
       if (role === "admin") {
-        tasks.push(fetchVendors(), fetchCommission(), fetchPendingAdmins());
+        tasks.push(
+          fetchVendors(),
+          fetchCommission(),
+          fetchPendingAdmins(),
+          fetchAdmins()
+        );
       }
 
       if (role === "manager") {
@@ -93,6 +152,27 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   };
 
   /* ===================== API CALLS ===================== */
+
+  const getTabTitle = (tab) => {
+    switch (tab) {
+      case "products":
+        return "Inventory";
+      case "vendors":
+        return "Vendors";
+      case "orders":
+        return "Orders";
+      case "add":
+        return "Add Product";
+      case "categories":
+        return "Categories";
+      case "reports":
+        return "Reports";
+      case "admins":
+        return "Admins";
+      default:
+        return "Admin Dashboard";
+    }
+  };
 
   const fetchVendors = async () => {
     const res = await api.get("/admin/vendors");
@@ -116,9 +196,13 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     setCategories(res.data || []);
   };
 
-  const fetchPendingAdmins = async () => {
-    const res = await api.get("/admin/pending-admins");
-    setPendingAdmins(res.data || []);
+  const fetchSubcategories = async () => {
+    try {
+      const res = await api.get("/subcategories");
+      setSubcategories(res.data || []);
+    } catch (err) {
+      console.error("Subcategory fetch error:", err.response?.data || err);
+    }
   };
 
   const fetchCommission = async () => {
@@ -128,40 +212,135 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   /* ===================== DERIVED ===================== */
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCategories = categories.filter(c =>
+    c.name.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
-  const completedOrders = orders.filter((o) => o.status === "Completed");
+  const toggleCollapse = (id) => {
+    setCollapsedCats(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const filteredProducts = products.filter((p) => {
+    const matchSearch = p.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchSub =
+      !selectedSubcategory ||
+      p.subcategory?._id === selectedSubcategory;
+
+    return matchSearch && matchSub;
+  });
+
+  const now = new Date();
+
+  const filteredReportOrders = orders.filter(o => {
+    const d = new Date(o.createdAt);
+
+    if (reportRange === "today") {
+      return d.toDateString() === now.toDateString();
+    }
+
+    if (reportRange === "week") {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(now.getDate() - 7);
+      return d >= weekAgo;
+    }
+
+    if (reportRange === "month") {
+      const monthAgo = new Date(now);
+      monthAgo.setMonth(now.getMonth() - 1);
+      return d >= monthAgo;
+    }
+
+    if (reportRange === "year") {
+      const yearAgo = new Date(now);
+      yearAgo.setFullYear(now.getFullYear() - 1);
+      return d >= yearAgo;
+    }
+
+    if (reportRange === "custom" && customStart && customEnd) {
+      return d >= new Date(customStart) && d <= new Date(customEnd);
+    }
+
+    return true;
+  });
+
+  const completedOrders = filteredReportOrders.filter(
+    o => o.status === "Completed"
+  );
 
   const analytics = {
-    totalOrders: orders.length,
+    totalOrders: filteredReportOrders.length,
     completedCount: completedOrders.length,
-    cancelledCount: orders.filter((o) => o.status === "Cancelled").length,
+    cancelledCount: filteredReportOrders.filter(o => o.status === "Cancelled").length,
     totalSales: completedOrders.reduce((sum, o) => sum + o.total, 0)
   };
 
-  const categoryHasProducts = (categoryId) => {
-    // Case 1: backend sends productCount
-    const category = categories.find(c => c._id === categoryId);
-    if (category?.productCount !== undefined) {
-      return category.productCount > 0;
+  /* ===================== ACTIONS ===================== */
+  const fetchAdmins = async () => {
+    try {
+      const res = await api.get("/admin/all-admins");
+      setAdmins(res.data || []);
+    } catch (err) {
+      console.log("Fetch admins error", err.response?.data);
+    }
+  };
+
+  const fetchPendingAdmins = async () => {
+    try {
+      const res = await api.get("/admin/pending-admins");
+      setPendingAdmins(res.data || []);
+    } catch (err) {
+      console.error("Pending admin fetch error", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "admins") {
+      fetchAdmins();
+      fetchPendingAdmins();
+    }
+  }, [activeTab]);
+
+  const approveAdmin = async (id) => {
+    await api.put(`/admin/approve-admin/${id}`);
+    fetchAdmins();
+    fetchPendingAdmins();
+  };
+
+  const removeAdmin = async (id) => {
+    await api.delete(`/admin/remove-admin/${id}`);
+    fetchAdmins();
+    fetchPendingAdmins();
+  };
+
+  const filteredAdmins = admins.filter(a =>
+    a.email.toLowerCase().includes(adminSearch.toLowerCase())
+  );
+
+  const createVendor = async () => {
+    if (!vendorEmail || !vendorPassword) {
+      alert("Enter email & password");
+      return;
     }
 
-    // Case 2: check in products list
-    return products.some(p => p.category === categoryId);
-  };
+    try {
+      await api.post("/admin/create-vendor", {
+        email: vendorEmail,
+        password: vendorPassword,
+      });
 
-  /* ===================== ACTIONS ===================== */
-
-  const approveUser = async (id) => {
-    await api.put(`/admin/approve-admin/${id}`);
-    fetchPendingAdmins();
-  };
-
-  const rejectUser = async (id) => {
-    await api.delete(`/admin/reject-user/${id}`);
-    fetchPendingAdmins();
+      setVendorEmail("");
+      setVendorPassword("");
+      fetchVendors();
+    } catch (err) {
+      console.error(err);
+      alert("Vendor not created");
+    }
   };
 
   const approveVendor = async (id) => {
@@ -169,72 +348,117 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     fetchVendors();
   };
 
+  const filteredVendors = vendors
+    .filter(v => v.approved)
+    .filter(v =>
+      v.email.toLowerCase().includes(vendorSearch.toLowerCase())
+    );
+
   const rejectVendor = async (id) => {
+    if (!window.confirm("Remove this vendor?")) return;
+
     await api.delete(`/admin/reject-vendor/${id}`);
     fetchVendors();
   };
 
+  const createAdmin = async () => {
+    if (!newAdminEmail || !newAdminPassword || !newAdminPhone) {
+      toast.error("All fields required");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(newAdminPhone)) {
+      toast.error("Phone must be 10 digits");
+      return;
+    }
+
+    if (newAdminPassword.length < 6) {
+      toast.error("Password must be at least 6 chars");
+      return;
+    }
+
+    try {
+      await api.post("/admin/create-admin", {
+        name: newAdminName,
+        email: newAdminEmail,
+        password: newAdminPassword,
+        role: newAdminRole,
+        phone: newAdminPhone
+      });
+
+      toast.success("Admin created (pending)");
+      fetchAdmins();
+      setNewAdminEmail("");
+      setNewAdminPassword("");
+      fetchPendingAdmins();
+
+    } catch (err) {
+      console.log(err.response?.data);
+      toast.error("Create failed");
+    }
+  };
+
   const updatePrice = async () => {
-  const product = products.find(p => p._id === editPriceId);
-  if (!product) return;
+    const product = products.find(p => p._id === editPriceId);
+    if (!product) return;
 
-  if (Number(newPrice) === product.price) {
-    toast("Price unchanged", { icon: "ℹ️" });
-    return;
-  }
+    if (Number(newPrice) === product.price) {
+      toast("Price unchanged", { icon: "ℹ️" });
+      return;
+    }
 
-  try {
-    await api.put(`/products/${editPriceId}`, {
-      price: Number(newPrice)
-    });
+    try {
+      await api.put(`/products/${editPriceId}`, {
+        price: Number(newPrice)
+      });
 
-    setProducts(prev =>
-      prev.map(p =>
-        p._id === editPriceId
-          ? { ...p, price: Number(newPrice) }
-          : p
-      )
-    );
+      setProducts(prev =>
+        prev.map(p =>
+          p._id === editPriceId
+            ? { ...p, price: Number(newPrice) }
+            : p
+        )
+      );
 
-    toast.success("Price updated");
+      toast.success("Price updated");
 
-    setEditPriceId(null);
-    setNewPrice("");
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Price update failed");
-  }
-};
+      setEditPriceId(null);
+      setNewPrice("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Price update failed");
+    }
+  };
 
   const updateStockValue = async (id) => {
-  const product = products.find(p => p._id === id);
-  if (!product) return;
+    const product = products.find(p => p._id === id);
+    if (!product) return;
 
-  if (Number(newStock) === product.stock) {
-    toast("Stock unchanged", { icon: "ℹ️" });
-    return;
-  }
+    if (Number(newStock) === product.stock) {
+      toast("Stock unchanged", { icon: "ℹ️" });
+      return;
+    }
 
-  try {
-    await api.put(`/products/${id}`, {
-      stock: Number(newStock)
-    });
+    try {
+      await api.put(`/products/${id}`, {
+        stock: Number(newStock)
+      });
 
-    setProducts(prev =>
-      prev.map(p =>
-        p._id === id
-          ? { ...p, stock: Number(newStock) }
-          : p
-      )
-    );
+      setProducts(prev =>
+        prev.map(p =>
+          p._id === id
+            ? { ...p, stock: Number(newStock) }
+            : p
+        )
+      );
 
-    toast.success("Stock updated");
+      toast.success("Stock updated");
 
-    setEditStockId(null);
-    setNewStock("");
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Stock update failed");
-  }
-};
+      setEditStockId(null);
+      setNewStock("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Stock update failed");
+    }
+  };
 
   const deleteProduct = (id) => {
     setConfirmAction(() => async () => {
@@ -275,6 +499,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     formData.append("price", price);
     formData.append("stock", stock);
     formData.append("category", categoryId);
+    formData.append("subcategory", subcategoryId);
     formData.append("image", image);
 
     await api.post("/products", formData);
@@ -283,6 +508,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     setStock(0);
     setImage(null);
     setCategoryId("");
+    setSubcategoryId("");
     fetchProducts();
     setActiveTab("products");
   };
@@ -351,6 +577,37 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     }
   };
 
+  const addSubcategory = async () => {
+    if (!newSubName || !parentCategoryId) {
+      toast.error("Select category & name");
+      return;
+    }
+
+    try {
+      await api.post("/subcategories", {
+        name: newSubName,
+        category: parentCategoryId
+      });
+
+      toast.success("Subcategory added");
+      setNewSubName("");
+      fetchSubcategories();
+
+    } catch {
+      toast.error("Failed");
+    }
+  };
+
+  const deleteSubcategory = async (id) => {
+    try {
+      await api.delete(`/subcategories/${id}`);
+      toast.success("Deleted");
+      fetchSubcategories();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
   const updateProductCategory = async (productId, newCategoryId) => {
     const categoryObj = categories.find(c => c._id === newCategoryId);
 
@@ -375,6 +632,30 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     }
   };
 
+  const updateProductSubcategory = async (productId, newSubId) => {
+    const subObj = subcategories.find(s => s._id === newSubId);
+
+    try {
+      await api.put(`/products/${productId}`, {
+        subcategory: newSubId
+      });
+
+      toast.success("Subcategory updated");
+
+      setProducts(prev =>
+        prev.map(p =>
+          p._id === productId
+            ? { ...p, subcategory: subObj }
+            : p
+        )
+      );
+
+      setEditSubcategoryProductId(null);
+    } catch (err) {
+      toast.error("Update failed");
+    }
+  };
+
   const getCategoryColor = (key = "") => {
     let hash = 0;
     for (let i = 0; i < key.length; i++) {
@@ -383,6 +664,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     const hue = Math.abs(hash) % 360;
     return `hsl(${hue}, 70%, 85%)`;
   };
+
 
   const getCategoryTextColor = (name = "") => {
     let hash = 0;
@@ -393,6 +675,56 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
     const hue = Math.abs(hash) % 360;
     return `hsl(${hue}, 60%, 30%)`;
   };
+
+  const placedCount = orders.filter(o => o.status === "Placed").length;
+  const completedCount = orders.filter(o => o.status === "Completed").length;
+  const cancelledCount = orders.filter(o => o.status === "Cancelled").length;
+
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter(o => o.status === statusFilter);
+
+  const getSubcategoryColor = (key = "") => {
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = (Math.abs(hash) + 120) % 360; // shift color
+    return `hsl(${hue}, 80%, 92%)`;
+  };
+
+  const getSubcategoryTextColor = (key = "") => {
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = (Math.abs(hash) + 120) % 360;
+    return `hsl(${hue}, 60%, 35%)`;
+  };
+
+  const salesChartData = filteredReportOrders.map(o => ({
+    name: o._id.slice(-4),
+    sales: o.total
+  }));
+
+  const vendorMap = {};
+  filteredReportOrders.forEach(o => {
+    const v = o.vendor?.name || "Unknown";
+    vendorMap[v] = (vendorMap[v] || 0) + o.total;
+  });
+  const vendorData = Object.keys(vendorMap).map(v => ({ name: v, sales: vendorMap[v] }));
+
+  const productMap = {};
+  filteredReportOrders.forEach(o => {
+    o.products.forEach(p => {
+      productMap[p.name] = (productMap[p.name] || 0) + p.qty;
+    });
+  });
+
+  const topProductsData = Object.keys(productMap).map(p => ({
+    name: p, qty: productMap[p]
+  }));
 
   const logout = () => {
     localStorage.clear();
@@ -411,31 +743,30 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   }
 
   /* ===================== UI ===================== */
-
   return (
-    <div className={`admin-dashboard-container ${darkMode ? "dark-mode" : ""}`}>
+    <div className= "admin-dashboard-container" >
       {/* ===================== SIDEBAR ===================== */}
-      <aside className="admin-sidebar">
+      < aside className="admin-sidebar" >
         <h3>Admin Panel</h3>
 
         <button onClick={() => setActiveTab("products")}>📦 Inventory</button>
         <button onClick={() => setActiveTab("vendors")}>🏪 Vendors</button>
         {role === "admin" && (
-          <button onClick={() => setActiveTab("approvals")}>✅ Approvals</button>
+          <button onClick={() => setActiveTab("admins")}>⚙️ Admins</button>
         )}
         <button onClick={() => setActiveTab("orders")}>🧾 Orders</button>
         <button onClick={() => setActiveTab("add")}>➕ Add Product</button>
-        <button onClick={() => setActiveTab("categories")}>🏷 Categories</button>
+        <button onClick={() => setActiveTab("categories")}>🏷️ Categories</button>
         <button onClick={() => setActiveTab("reports")}>📊 Reports</button>
 
         <button className="logout-btn-sidebar" onClick={logout}>
           🚪 Logout
         </button>
-      </aside>
+      </aside >
 
       {/* ===================== MAIN ===================== */}
-      <main className="admin-main">
-        <Header title="Admin Dashboard" darkMode={darkMode} setDarkMode={setDarkMode} />
+      < main className="admin-main" >
+        <Header title={getTabTitle(activeTab)} />
 
         <div className="content-padding">
           {/* ===================== INVENTORY ===================== */}
@@ -443,6 +774,8 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
             <>
               {/* FILTER BAR */}
               <div className="filter-header">
+
+                {/* For Category */}
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
@@ -453,6 +786,21 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                       {c.name}
                     </option>
                   ))}
+                </select>
+
+                {/* For Sub Category */}
+                <select
+                  value={selectedSubcategory}
+                  onChange={(e) => setSelectedSubcategory(e.target.value)}
+                >
+                  <option value="">All Subcategories</option>
+                  {subcategories
+                    .filter(sc => !selectedCategory || sc.category._id === selectedCategory)
+                    .map(sc => (
+                      <option key={sc._id} value={sc._id}>
+                        {sc.name}
+                      </option>
+                    ))}
                 </select>
 
                 <input
@@ -472,46 +820,102 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                     />
 
                     <h5 className="product-name">{p.name}</h5>
+                    {/* ================= CATEGORY + SUBCATEGORY PREMIUM ================= */}
 
-                    {/* CATEGORY */}
-                    {editCategoryProductId === p._id ? (
-                      <select
-                        className="category-select"
-                        value={
-                          typeof p.category === "object"
-                            ? p.category._id
-                            : p.category || ""
-                        }
-                        autoFocus
-                        onChange={(e) => {
-                          updateProductCategory(p._id, e.target.value);
-                        }}
-                        onBlur={() => setEditCategoryProductId(null)}
-                      >
-                        <option value="">Select category</option>
-                        {categories.map((c) => (
-                          <option key={c._id} value={c._id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span
-                        className="category-pill"
-                        style={{
-                          backgroundColor: getCategoryColor(
-                            typeof p.category === "object" ? p.category._id : p.category
-                          ),
-                          color: getCategoryTextColor(
-                            typeof p.category === "object" ? p.category._id : p.category
-                          ),
-                          cursor: "pointer"
-                        }}
-                        onClick={() => setEditCategoryProductId(p._id)}
-                      >
-                        {getCategoryName(p)}
-                      </span>
-                    )}
+                    <div className="category-block">
+
+                      {/* ---------- CATEGORY ---------- */}
+                      {editCategoryProductId === p._id ? (
+                        <select
+                          className="category-select"
+                          value={
+                            typeof p.category === "object"
+                              ? p.category?._id
+                              : p.category || ""
+                          }
+                          autoFocus
+                          onChange={(e) => {
+                            updateProductCategory(p._id, e.target.value);
+                          }}
+                          onBlur={() => setEditCategoryProductId(null)}
+                        >
+                          <option value="">Select category</option>
+                          {categories.map((c) => (
+                            <option key={c._id} value={c._id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span
+                          className="category-pill premium"
+                          style={{
+                            backgroundColor: getCategoryColor(
+                              typeof p.category === "object" ? p.category?._id : p.category
+                            ),
+                            color: getCategoryTextColor(
+                              typeof p.category === "object" ? p.category?._id : p.category
+                            )
+                          }}
+                          onClick={() => setEditCategoryProductId(p._id)}
+                        >
+                          {getCategoryName(p)}
+                        </span>
+                      )}
+
+                      {/* ---------- SUBCATEGORY ---------- */}
+                      {editSubcategoryProductId === p._id ? (
+                        <select
+                          className="subcategory-select"
+                          value={
+                            typeof p.subcategory === "object"
+                              ? p.subcategory?._id
+                              : p.subcategory || ""
+                          }
+                          autoFocus
+                          onChange={(e) => {
+                            updateProductSubcategory(p._id, e.target.value);
+                          }}
+                          onBlur={() => setEditSubcategoryProductId(null)}
+                        >
+                          <option value="">Select subcategory</option>
+
+                          {subcategories
+                            .filter((s) =>
+                              (typeof p.category === "object"
+                                ? p.category?._id
+                                : p.category) ===
+                              (typeof s.category === "object"
+                                ? s.category?._id
+                                : s.category)
+                            )
+                            .map((s) => (
+                              <option key={s._id} value={s._id}>
+                                {s.name}
+                              </option>
+                            ))}
+                        </select>
+                      ) : (
+                        <span
+                          className="subcategory-pill premium"
+                          onClick={() => setEditSubcategoryProductId(p._id)}
+                          style={{
+                            backgroundColor: getSubcategoryColor(
+                              typeof p.subcategory === "object"
+                                ? p.subcategory?._id
+                                : p.subcategory || "none"
+                            ),
+                            color: getSubcategoryTextColor(
+                              typeof p.subcategory === "object"
+                                ? p.subcategory?._id
+                                : p.subcategory || "none"
+                            )
+                          }}
+                        >
+                          {p.subcategory?.name || "No Subcategory"}
+                        </span>
+                      )}
+                    </div>
 
                     {/* PRICE EDIT */}
                     {editPriceId === p._id ? (
@@ -602,80 +1006,280 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
             </>
           )}
 
-          {/* ===================== APPROVALS ===================== */}
-          {activeTab === "approvals" && role === "admin" && (
-            <div className="vendor-list">
+          {/* ===================== VENDORS ===================== */}
+          {activeTab === "vendors" && (
+            <div className="vendors-layout">
 
-              {/* ADMIN / MANAGER APPROVALS */}
-              {pendingAdmins.length > 0 && (
-                <>
-                  <h3>Pending Admin / Manager Approvals</h3>
+              <div className="vendors-create">
+                <h2>Create Vendor</h2>
 
-                  <table className="admin-table">
+                <input
+                  className="input-modern"
+                  placeholder="Vendor Email"
+                  value={vendorEmail}
+                  onChange={(e) => setVendorEmail(e.target.value)}
+                />
+
+                <input
+                  className="input-modern"
+                  placeholder="Password"
+                  value={vendorPassword}
+                  onChange={(e) => setVendorPassword(e.target.value)}
+                />
+
+                <button className="btn-primary" onClick={createVendor}>
+                  Create Vendor
+                </button>
+              </div>
+
+              <div className="vendors-approvals">
+                <h2>Pending Approvals</h2>
+
+                {vendors.filter(v => !v.approved).length === 0 && (
+                  <p>No pending vendors</p>
+                )}
+
+                {vendors
+                  .filter(v => !v.approved)
+                  .map(v => (
+                    <div key={v._id} className="vendor-row">
+
+                      <div className="vendor-left">
+                        <div className="vendor-avatar">
+                          {v.email.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div>
+                          <div className="vendor-email">{v.email}</div>
+                          <div className="vendor-status pending">
+                            Pending
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="vendor-actions">
+                        <button
+                          className="btn-approve"
+                          onClick={() => approveVendor(v._id)}
+                        >
+                          Approve
+                        </button>
+
+                        <button
+                          className="btn-remove"
+                          onClick={() => rejectVendor(v._id)}
+                        >
+                          Reject
+                        </button>
+                      </div>
+
+                    </div>
+                  ))}
+              </div>
+
+              <div className="vendors-all">
+                <div className="vendors-header">
+                  <h2>All Vendors</h2>
+
+                  <input
+                    className="vendor-search"
+                    placeholder="Search vendors..."
+                    value={vendorSearch}
+                    onChange={(e) => setVendorSearch(e.target.value)}
+                  />
+                </div>
+
+                <div className="vendors-table-wrapper">
+                  <table className="vendors-table">
                     <thead>
                       <tr>
-                        <th>Name</th>
                         <th>Email</th>
-                        <th>Role</th>
-                        <th>Action</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
+
                     <tbody>
-                      {pendingAdmins.map(user => (
-                        <tr key={user._id}>
-                          <td>{user.name}</td>
-                          <td>{user.email}</td>
-                          <td>{user.role}</td>
+                      {filteredVendors.map(v => (
+                        <tr key={v._id}>
+                          <td>{v.email}</td>
+
                           <td>
-                            <button onClick={() => approveUser(user._id)}>Approve</button>
-                            <button onClick={() => rejectUser(user._id)}>Reject</button>
+                            <span className={v.approved ? "status-active" : "status-pending"}>
+                              {v.approved ? "Active" : "Pending"}
+                            </span>
+                          </td>
+
+                          <td>
+                            {new Date(v.createdAt || Date.now()).toLocaleDateString()}
+                          </td>
+
+                          <td>
+                            {!v.approved && (
+                              <button
+                                className="btn-approve"
+                                onClick={() => approveVendor(v._id)}
+                              >
+                                Approve
+                              </button>
+                            )}
+
+                            <button
+                              className="btn-remove"
+                              onClick={() => rejectVendor(v._id)}
+                            >
+                              Remove
+                            </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </>
-              )}
-
-              {/* VENDOR APPROVALS */}
-              <h3 style={{ marginTop: 30 }}>Vendor Approvals</h3>
-
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {vendors.map(v => (
-                    <tr key={v._id}>
-                      <td>{v.email}</td>
-                      <td>{v.approved ? "Active" : "Pending"}</td>
-                      <td>
-                        {!v.approved && (
-                          <button onClick={() => approveVendor(v._id)}>Approve</button>
-                        )}
-                        <button onClick={() => rejectVendor(v._id)}>Reject</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
+                </div>
+              </div>
             </div>
           )}
+
+          {/* ===================== ADMINS ===================== */}
+          {activeTab === "admins" && (
+            <div className="admin-page">
+              <div className="admin-top">
+                <div className="admin-card">
+                  <h2>Create Admin / Manager</h2>
+
+                  <input placeholder="Name" value={newAdminName}
+                    onChange={(e) => setNewAdminName(e.target.value)} />
+
+                  <input placeholder="Email" value={newAdminEmail}
+                    onChange={(e) => setNewAdminEmail(e.target.value)} />
+
+                  <input placeholder="Phone" value={newAdminPhone}
+                    onChange={(e) => setNewAdminPhone(e.target.value)} />
+
+                  <input type="password" placeholder="Password"
+                    value={newAdminPassword}
+                    onChange={(e) => setNewAdminPassword(e.target.value)} />
+
+                  <select value={newAdminRole}
+                    onChange={(e) => setNewAdminRole(e.target.value)}>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                  </select>
+
+                  <button className="btn-primary" onClick={createAdmin}>
+                    Create
+                  </button>
+                </div>
+
+                <div className="admin-card">
+                  <h2>Pending Approvals</h2>
+
+                  {pendingAdmins.length === 0 && <p>No pending admins</p>}
+
+                  {pendingAdmins.map(a => (
+                    <div key={a._id} className="admin-row">
+                      <div>
+                        <b>{a.email}</b>
+                        <div className="muted">Pending</div>
+                      </div>
+
+                      <div>
+                        <button
+                          className="btn-approve"
+                          onClick={() => approveAdmin(a._id)}>
+                          Approve
+                        </button>
+
+                        <button
+                          className="btn-remove"
+                          onClick={() => removeAdmin(a._id)}>
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="admin-card full">
+                <h2>All Admins</h2>
+
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Joined</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {admins.filter(a => a.approved).map(a => (
+                      <tr key={a._id}>
+                        <td>{a.email}</td>
+                        <td>{a.role}</td>
+                        <td>{new Date(a.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <button
+                            className="btn-remove"
+                            onClick={() => removeAdmin(a._id)}>
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
 
           {/* ===================== ORDERS ===================== */}
           {activeTab === "orders" && (
             <div className="orders-container">
-              {orders.map((o) => (
+              <div className="orders-stats">
+                <div className="stat-card">
+                  <p>Placed</p>
+                  <h2>{placedCount}</h2>
+                </div>
+
+                <div className="stat-card">
+                  <p>Completed</p>
+                  <h2>{completedCount}</h2>
+                </div>
+
+                <div className="stat-card">
+                  <p>Cancelled</p>
+                  <h2>{cancelledCount}</h2>
+                </div>
+
+                <div className="stat-card">
+                  <p>Comission</p>
+                  <h2>{commission}</h2>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Orders</option>
+                  <option value="Placed">Placed</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              {filteredOrders.map((o) => (
                 <div key={o._id} className="admin-card order-card-wide">
 
                   {/* HEADER */}
                   <div className="order-header">
-                    <span className="order-id">Order :#{o._id.slice(-6)}</span>
+                    <span className="order-id">Order :#{o.orderNumber}</span>
 
                     <span className={getStatusClass(o.status)}>
                       {o.status}
@@ -716,7 +1320,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
                     <div className="order-footer">
                       <p>Vendor: {o.vendor?.email}</p>
-                      <p>Order ID:#{o._id}</p>
+                      <p>Order ID:#{o.orderNumber}</p>
                       <p>Total: ₹{o.total}</p>
                       <button onClick={() => downloadInvoice(o)}>
                         Invoice PDF
@@ -742,6 +1346,19 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
                   <option key={c._id} value={c._id}>{c.name}</option>
                 ))}
               </select>
+              <select
+                value={subcategoryId}
+                onChange={(e) => setSubcategoryId(e.target.value)}
+              >
+                <option value="">Select Subcategory</option>
+                {subcategories
+                  .filter(sc => sc.category._id === categoryId)
+                  .map(sc => (
+                    <option key={sc._id} value={sc._id}>
+                      {sc.name}
+                    </option>
+                  ))}
+              </select>
               <input type="file" onChange={(e) => setImage(e.target.files[0])} />
               <button onClick={addProduct}>Publish</button>
             </div>
@@ -749,121 +1366,240 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
           {/* ===================== CATEGORIES ===================== */}
           {activeTab === "categories" && (
-            <div className="form-container">
-              <h3>Categories</h3>
+            <div className="cat-wrapper">
 
-              {/* ADD CATEGORY */}
-              <input
-                placeholder="New category"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-              />
-              <button onClick={addCategory}>Add Category</button>
+              <div className="cat-card">
+                <div className="cat-card-header">
+                  <h2>Categories</h2>
+                </div>
 
-              {/* CATEGORY LIST */}
-              {categories.map((c) => {
-                const hasProducts = categoryHasProducts(c._id);
+                <input
+                  className="cat-search"
+                  placeholder="Search categories..."
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                />
 
-                return (
-                  <div key={c._id} className="category-row">
+                <div className="cat-create-row">
+                  <input
+                    placeholder="New category"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                  />
+                  <button className="btn-add" onClick={addCategory}>
+                    Add
+                  </button>
+                </div>
 
-                    {/* Enter and Escape button works */}
-                    {editCategoryId === c._id ? (
-                      <input
-                        className="category-edit-input"
-                        value={editCategoryName}
-                        autoFocus
-                        onChange={(e) => setEditCategoryName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && editCategoryName.trim() !== c.name) {
-                            updateCategory(c._id);
-                          }
-                          if (e.key === "Escape") {
-                            setEditCategoryId(null);
-                            setEditCategoryName("");
-                          }
-                        }}
-                      />
-                    ) : (
-                      <span className="category-name">{c.name}</span>
-                    )}
+                <div className="cat-list">
+                  {filteredCategories.map((c) => (
+                    <div key={c._id} className="cat-item">
 
-                    {/* ACTIONS */}
-                    <div className="category-actions">
+                      <div className="cat-title-row">
 
-                      {editCategoryId === c._id ? (
-                        <>
-                          <button
-                            className="btn-save-sm"
-                            disabled={editCategoryName.trim() === c.name}
-                            onClick={() => updateCategory(c._id)}
+                        <div className="cat-left-title">
+                          <span
+                            className="collapse-icon"
+                            onClick={() => toggleCollapse(c._id)}
                           >
-                            Save
-                          </button>
-                          <button
-                            className="btn-cancel-sm"
-                            onClick={() => setEditCategoryId(null)}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="btn-icon-sm"
-                            title="Edit category"
-                            onClick={() => {
-                              setEditCategoryId(c._id);
-                              setEditCategoryName(c.name);
-                            }}
-                          >
-                            ✏️
-                          </button>
+                            {collapsedCats[c._id] ? "▶" : "▼"}
+                          </span>
 
-                          <button
-                            className="category-delete-btn"
-                            disabled={hasProducts}
-                            title={hasProducts ? "Category has products" : "Delete"}
-                            onClick={() => deleteCategory(c._id)}
-                          >
-                            Delete
-                          </button>
-                        </>
+                          {editCategoryId === c._id ? (
+                            <input
+                              className="cat-inline-input"
+                              value={editCategoryName}
+                              onChange={(e) => setEditCategoryName(e.target.value)}
+                              onBlur={() => updateCategory(c._id)}
+                            />
+                          ) : (
+                            <span
+                              className="cat-name"
+                              onClick={() => {
+                                setEditCategoryId(c._id);
+                                setEditCategoryName(c.name);
+                              }}
+                            >
+                              {c.name}
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          className="cat-delete-btn"
+                          onClick={() => deleteCategory(c._id)}
+                        >
+                          🗑
+                        </button>
+                      </div>
+
+                      {/* SUBCATS */}
+                      {!collapsedCats[c._id] && (
+                        <div className="subcat-wrap">
+                          {subcategories
+                            .filter(sc => sc.category._id === c._id)
+                            .map(sc => (
+                              <div key={sc._id} className="sub-chip">
+                                {sc.name}
+                                <span onClick={() => deleteSubcategory(sc._id)}>×</span>
+                              </div>
+                            ))}
+                        </div>
                       )}
-
                     </div>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              </div>
+
+              <div className="cat-card">
+                <div className="cat-card-header">
+                  <h2>Add Subcategory</h2>
+                </div>
+
+                <select
+                  className="input-modern"
+                  value={parentCategoryId}
+                  onChange={(e) => setParentCategoryId(e.target.value)}
+                >
+                  <option value="">Select category</option>
+                  {categories.map(c => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
+                  ))}
+                </select>
+
+                <input
+                  className="input-modern"
+                  placeholder="Subcategory name"
+                  value={newSubName}
+                  onChange={(e) => setNewSubName(e.target.value)}
+                />
+
+                <button className="btn-add full" onClick={addSubcategory}>
+                  Create
+                </button>
+              </div>
             </div>
           )}
 
           {/* ===================== REPORTS ===================== */}
           {activeTab === "reports" && (
-            <>
-              <section className="stats-grid">
-                <div className="stat-card"><h4>Total Vendors</h4><p>{vendors.length}</p></div>
-                <div className="stat-card"><h4>Total Orders</h4><p>{analytics.totalOrders}</p></div>
-                <div className="stat-card"><h4>Completed Orders</h4><p>{analytics.completedCount}</p></div>
-                <div className="stat-card"><h4>Cancelled Orders</h4><p>{analytics.cancelledCount}</p></div>
-                {role === "admin" && (
-                  <div className="stat-card highlight-card">
-                    <h4>Commission</h4>
-                    <p>₹{commission.toFixed(2)}</p>
+            <div className="reports-page">
+
+              {/* FILTERS */}
+              <div className="report-filters">
+                <div className="range-tabs">
+                  {["today", "week", "month", "year"].map(r => (
+                    <button
+                      key={r}
+                      className={`range-btn ${reportRange === r ? "active" : ""}`}
+                      onClick={() => setReportRange(r)}
+                    >
+                      {r.charAt(0).toUpperCase() + r.slice(1)}
+                    </button>
+                  ))}
+
+                  <button
+                    className={`range-btn ${reportRange === "custom" ? "active" : ""}`}
+                    onClick={() => setReportRange("custom")}
+                  >
+                    Custom
+                  </button>
+                </div>
+
+                <h3>
+                  Showing: {reportRange.charAt(0).toUpperCase() + reportRange.slice(1)}
+                </h3>
+
+                {reportRange === "custom" && (
+                  <div className="custom-range">
+                    <input
+                      type="date"
+                      value={customStart}
+                      onChange={e => setCustomStart(e.target.value)}
+                    />
+                    <span>to</span>
+                    <input
+                      type="date"
+                      value={customEnd}
+                      onChange={e => setCustomEnd(e.target.value)}
+                    />
                   </div>
                 )}
-              </section>
-
-              <div className="report-summary-card">
-                <h3>Total Sales</h3>
-                <p>₹{analytics.totalSales}</p>
               </div>
-            </>
+
+              {/* KPI */}
+              <div className="report-top-row">
+                <div className="kpi-card"><p>Total Sales</p><h2>₹{analytics.totalSales}</h2></div>
+                <div className="kpi-card"><p>Orders</p><h2>{analytics.totalOrders}</h2></div>
+                <div className="kpi-card"><p>Completed</p><h2>{analytics.completedCount}</h2></div>
+                <div className="kpi-card"><p>Cancelled</p><h2>{analytics.cancelledCount}</h2></div>
+              </div>
+
+              {/* CHARTS */}
+              <div className="chart-grid">
+                {/* SALES */}
+                <div className="chart-card">
+                  <h3>Sales Overview</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <LineChart data={salesChartData}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={3} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* STATUS */}
+                <div className="chart-card">
+                  <h3>Order Status</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <PieChart>
+                      <Pie data={[
+                        { name: "Completed", value: analytics.completedCount },
+                        { name: "Cancelled", value: analytics.cancelledCount },
+                        { name: "Pending", value: analytics.totalOrders - analytics.completedCount - analytics.cancelledCount }
+                      ]} dataKey="value" outerRadius={90}>
+                        <Cell fill="#22c55e" />
+                        <Cell fill="#ef4444" />
+                        <Cell fill="#f59e0b" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* VENDOR */}
+                <div className="chart-card">
+                  <h3>Vendor Performance</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={vendorData}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="sales" fill="#6366f1" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* TOP PRODUCTS */}
+                <div className="chart-card">
+                  <h3>Top Products</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={topProductsData}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="qty" fill="#22c55e" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
           )}
         </div>
-
         <Footer />
-      </main>
+      </main >
 
       <ConfirmModal
         show={showConfirm}
@@ -876,9 +1612,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
         onCancel={() => setShowConfirm(false)}
         onConfirm={confirmAction}
       />
-    </div>
+    </div >
   );
 }
-
-//Add sub category
-//Admin can CRUD Admins and Vendor
