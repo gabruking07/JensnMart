@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import "./Login.css"; // Using the single perfected CSS file
+import "./Login.css"; 
 
 import logo from "../assets/logo.png";
 import bg from "../assets/bg.png";

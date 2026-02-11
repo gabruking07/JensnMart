@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 
 import "./VendorProfile.css";
 
-export default function VendorProfile({ darkMode, setDarkMode }) {
+export default function VendorProfile() {
   const [vendor, setVendor] = useState(null);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -43,13 +43,11 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
   if (!vendor) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
-    <div className={`profile-page-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header title="Account Settings" darkMode={darkMode} setDarkMode={setDarkMode} />
+    <div className= "profile-page-root" >
+      <Header title="Account Settings" />
 
       <main className="profile-content">
         <div className="profile-grid">
-          
-          {/* Left Side: Summary Card */}
           <section className="profile-sidebar">
             <div className="admin-card user-info-card">
               <div className="profile-avatar">

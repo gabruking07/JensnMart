@@ -5,7 +5,7 @@ import "./Cart.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-export default function Cart({ darkMode, setDarkMode }) {
+export default function Cart() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,8 +54,8 @@ export default function Cart({ darkMode, setDarkMode }) {
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
-    <div className={`cart-page-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header title="Shopping Cart" darkMode={darkMode} setDarkMode={setDarkMode} />
+    <div className = "cart-page-root">
+      <Header title="Shopping Cart" />
 
       <main className="cart-main-content">
         <h2 className="page-title">Your Cart ({cartItems.length} items)</h2>

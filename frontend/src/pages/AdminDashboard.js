@@ -10,7 +10,7 @@ import Footer from "../components/Footer";
 import ConfirmModal from "../components/ConfirmModal";
 import { ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
-export default function AdminDashboard({ darkMode, setDarkMode }) {
+export default function AdminDashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
 
@@ -744,7 +744,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   /* ===================== UI ===================== */
   return (
-    <div className={`admin-dashboard-container ${darkMode ? "dark-mode" : ""}`} >
+    <div className= "admin-dashboard-container" >
       {/* ===================== SIDEBAR ===================== */}
       < aside className="admin-sidebar" >
         <h3>Admin Panel</h3>

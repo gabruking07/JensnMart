@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Products.css";
 
-export default function Products({ darkMode, setDarkMode }) {
+export default function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,8 +35,8 @@ export default function Products({ darkMode, setDarkMode }) {
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
-    <div className={`products-page-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header title="Marketplace" darkMode={darkMode} setDarkMode={setDarkMode} />
+    <div className= "products-page-root" >
+      <Header title="Marketplace" />
 
       <main className="products-main">
         <div className="products-header-row">
