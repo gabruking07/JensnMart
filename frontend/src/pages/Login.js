@@ -65,14 +65,12 @@ export default function Login() {
               <label className="input-label">Login As:</label>
               <div className="role-buttons">
                 <button
-                  type="button"
                   className={role === "admin" ? "active" : ""}
                   onClick={() => setRole("admin")}
                 >
                   Admin / Manager
                 </button>
                 <button
-                  type="button"
                   className={role === "vendor" ? "active" : ""}
                   onClick={() => setRole("vendor")}
                 >
