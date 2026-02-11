@@ -30,7 +30,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* ✅ ADD TOASTER HERE */}
       <Toaster
         position="top-right"
         toastOptions={{

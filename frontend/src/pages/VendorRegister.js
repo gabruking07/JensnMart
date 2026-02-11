@@ -3,149 +3,89 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import "./AdminRegister.css"; // Reuse the shared auth styles
+import "./Login.css";
 
-export default function VendorRegister({ darkMode, setDarkMode }) {
+import logo from "../assets/logo.png";
+import bg from "../assets/bg.png";
+
+export default function VendorRegister() {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    businessName: "",
+    email: "",
+    password: "",
+    phone: ""
+  });
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-
-  // ✅ Email validation function
-  const validateEmail = (value) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    return regex.test(value);
-  };
-
-  // ✅ Submit handler with validation
   const handleRegister = async () => {
-    if (!name || !email || !password || phone.length !== 10) {
-      alert("All fields are required (phone must be 10 digits)");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setEmailError("Please enter a valid email address");
-      return;
-    }
-
     try {
-      await api.post("/vendor/register", {
-        name,
-        email: email.toLowerCase(),
-        password,
-        phone,
-      });
-
-      alert("Registration successful! Please wait for admin approval.");
-      navigate("/");
+      await api.post("/vendor/register", formData);
+      navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Vendor registration failed");
+      alert("Registration failed");
     }
   };
 
   return (
-    <div className={`auth-page-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header
-        title="Vendor Onboarding"
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-      />
+    <div className="auth-page-root" style={{ backgroundImage: `url(${bg})` }}>
+      <div className="auth-overlay">
+        <Header title="Vendor Registration" />
 
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <h2>Partner with Us</h2>
-            <p>Register your shop and start shopping</p>
-          </div>
-
-          <div className="auth-form">
-            {/* Name */}
-            <div className="form-group">
-              <label>Full Name</label>
-              <input
-                placeholder="e.g. Reliance Mart"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+        <div className="login-container">
+          <div className="auth-card">
+            <div className="auth-header">
+              <img src={logo} alt="Logo" className="auth-logo" />
+              <h2 className="card-title">Partner With Us</h2>
+              <p className="card-subtitle">Grow your business with JensnMart</p>
             </div>
 
-            {/* Email */}
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                placeholder="vendor@business.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (!validateEmail(e.target.value)) {
-                    setEmailError("Please enter a valid email address");
-                  } else {
-                    setEmailError("");
-                  }
-                }}
-                required
-              />
-              {emailError && (
-                <p className="error-text">{emailError}</p>
-              )}
-            </div>
-
-            <div className="form-row">
-              {/* Password */}
+            <div className="auth-form">
               <div className="form-group">
-                <label>Password</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                <label className="input-label">Name</label>
+                <input 
+                  type="text" 
+                  className="auth-input" 
+                  placeholder="Enter your name" 
+                  onChange={(e) => setFormData({...formData, businessName: e.target.value})}
                 />
               </div>
 
-              {/* Phone */}
               <div className="form-group">
-                <label>Contact Number</label>
-                <input
-                  placeholder="10-digit mobile"
-                  value={phone}
-                  onChange={(e) => {
-                    if (/^\d{0,10}$/.test(e.target.value)) {
-                      setPhone(e.target.value);
-                    }
-                  }}
-                  required
+                <label className="input-label">Email Address</label>
+                <input 
+                  type="email" 
+                  className="auth-input" 
+                  placeholder="vendor@gmail.com" 
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
               </div>
+
+              <div className="form-group">
+                <label className="input-label">Password</label>
+                <input 
+                  type="password" 
+                  className="auth-input" 
+                  placeholder="••••••" 
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                />
+              </div>
+
+              <button className="btn-sign-in" onClick={handleRegister}>
+                REGISTER NOW
+              </button>
             </div>
 
-            <button className="btn-auth-primary" onClick={handleRegister}>
-              Apply for Partnership
-            </button>
-
-            <button
-              className="btn-auth-secondary"
-              onClick={() => navigate("/")}
-            >
-              Already a partner? Login here
-            </button>
-          </div>
-
-          <div className="approval-notice">
-            <small>
-              ℹ️ All applications are reviewed by our admin team within 24 hours.
-            </small>
+            <div className="auth-footer">
+              <p className="footer-text">Already have a vendor account?</p>
+              <button className="btn-reg" onClick={() => navigate("/login")}>
+                Login Here
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 }

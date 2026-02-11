@@ -15,7 +15,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
   const role = localStorage.getItem("role");
 
   /* ===================== STATE ===================== */
-
   // Core data
   const [admins, setAdmins] = useState([]);
   const [vendors, setVendors] = useState([]);
@@ -686,7 +685,6 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
       ? orders
       : orders.filter(o => o.status === statusFilter);
 
-  // 🔵 Subcategory color
   const getSubcategoryColor = (key = "") => {
     let hash = 0;
     for (let i = 0; i < key.length; i++) {
@@ -712,7 +710,7 @@ export default function AdminDashboard({ darkMode, setDarkMode }) {
 
   const vendorMap = {};
   filteredReportOrders.forEach(o => {
-    const v = o.vendor?.email || "Unknown";
+    const v = o.vendor?.name || "Unknown";
     vendorMap[v] = (vendorMap[v] || 0) + o.total;
   });
   const vendorData = Object.keys(vendorMap).map(v => ({ name: v, sales: vendorMap[v] }));
