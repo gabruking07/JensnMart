@@ -8,7 +8,6 @@ import "./AdminDashboard.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ConfirmModal from "../components/ConfirmModal";
-import { Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -73,24 +72,6 @@ export default function AdminDashboard() {
   const [newCategory, setNewCategory] = useState("");
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState("");
-  const [subcategories, setSubcategories] = useState([]);
-  const [subcategoryId, setSubcategoryId] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [editSubcategoryProductId, setEditSubcategoryProductId] = useState(null);
-  const [newSubName, setNewSubName] = useState("");
-  const [parentCategoryId, setParentCategoryId] = useState("");
-
-  //Orders
-  const [orderSearch, setOrderSearch] = useState("");
-  const [vendorFilter, setVendorFilter] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-
-  //Reports
-  const [reportRange, setReportRange] = useState("month");
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
 
   /* ===================== AUTH ===================== */
   useEffect(() => {
@@ -705,103 +686,6 @@ export default function AdminDashboard() {
     return `hsl(${hue}, 60%, 30%)`;
   };
 
-  const placedCount = filteredReportOrders.filter(o => o.status === "Placed").length;
-  const completedCount = filteredReportOrders.filter(o => o.status === "Completed").length;
-  const cancelledCount = filteredReportOrders.filter(o => o.status === "Cancelled").length;
-
-  const orderStatusData = [
-    { name: "Placed", value: placedCount, color: "#f59e0b" },
-    { name: "Completed", value: completedCount, color: "#22c55e" },
-    { name: "Cancelled", value: cancelledCount, color: "#ef4444" }
-  ];
-
-  const getSubcategoryColor = (key = "") => {
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      hash = key.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = (Math.abs(hash) + 120) % 360; // shift color
-    return `hsl(${hue}, 80%, 92%)`;
-  };
-
-  const getSubcategoryTextColor = (key = "") => {
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      hash = key.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = (Math.abs(hash) + 120) % 360;
-    return `hsl(${hue}, 60%, 35%)`;
-  };
-
-  const grouped = {};
-
-  filteredReportOrders.forEach(o => {
-    const d = new Date(o.createdAt).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short"
-    });
-
-    if (!grouped[d]) grouped[d] = 0;
-    grouped[d] += o.totalAmount;
-  });
-
-  const groupedSales = {};
-
-  filteredReportOrders.forEach(o => {
-    const d = new Date(o.createdAt);
-
-    let key = "";
-
-    if (reportRange === "today") {
-      key = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
-    }
-
-    else if (reportRange === "week") {
-      key = d.toLocaleDateString("en-IN", { weekday: "short" });
-      // Mon Tue Wed
-    }
-
-    else if (reportRange === "month") {
-      key = d.getDate() + " " + d.toLocaleString("en-IN", { month: "short" });
-      // 8 Feb
-    }
-
-    else if (reportRange === "year") {
-      key = d.toLocaleString("en-IN", { month: "short" });
-      // Jan Feb Mar
-    }
-
-    else {
-      key = d.toLocaleDateString("en-IN");
-    }
-
-    if (!groupedSales[key]) groupedSales[key] = 0;
-    groupedSales[key] += o.total;   // or totalAmount (your correct field)
-  });
-
-  const salesChartData = Object.keys(groupedSales).map(k => ({
-    name: k,
-    sales: groupedSales[k]
-  }));
-
-  const vendorMap = {};
-  filteredReportOrders.forEach(o => {
-    const v = o.vendor?.name || "Unknown";
-    vendorMap[v] = (vendorMap[v] || 0) + o.total;
-  });
-  const vendorData = Object.keys(vendorMap).map(v => ({ name: v, sales: vendorMap[v] }));
-
-  const productMap = {};
-  filteredReportOrders.forEach(o => {
-    o.products.forEach(p => {
-      productMap[p.name] = (productMap[p.name] || 0) + p.qty;
-    });
-  });
-
-  const topProductsData = Object.keys(productMap).map(p => ({
-    name: p, qty: productMap[p]
-  }));
-
   const logout = () => {
     localStorage.clear();
     navigate("/");
@@ -820,7 +704,7 @@ export default function AdminDashboard() {
 
   /* ===================== UI ===================== */
   return (
-    <div className="admin-dashboard-container" >
+    <div className={`admin-dashboard-container ${darkMode ? "dark-mode" : ""}`}>
       {/* ===================== SIDEBAR ===================== */}
       < aside className="admin-sidebar" >
         <h3>Admin Panel</h3>
@@ -862,22 +746,6 @@ export default function AdminDashboard() {
                       {c.name}
                     </option>
                   ))}
-                </select>
-
-                {/* For Sub Category */}
-                <select
-                  value={selectedSubcategory}
-                  onChange={(e) => setSelectedSubcategory(e.target.value)}
-                  disabled={!selectedCategory}
-                >
-                  <option value="">All Subcategories</option>
-                  {subcategories
-                    .filter(sc => !selectedCategory || sc.category._id === selectedCategory)
-                    .map(sc => (
-                      <option key={sc._id} value={sc._id}>
-                        {sc.name}
-                      </option>
-                    ))}
                 </select>
 
                 <input
@@ -1213,117 +1081,36 @@ export default function AdminDashboard() {
                       ))}
                     </tbody>
                   </table>
-                </div>
-              </div>
-            </div>
-          )}
+                </>
+              )}
 
-          {/* ===================== ADMINS ===================== */}
-          {activeTab === "admins" && (
-            <div className="admin-page">
-              <div className="admin-top">
-                <div className="admin-card">
-                  <h2>Create Admin / Manager</h2>
+              {/* VENDOR APPROVALS */}
+              <h3 style={{ marginTop: 30 }}>Vendor Approvals</h3>
 
-                  <input placeholder="Name" value={newAdminName}
-                    onChange={(e) => setNewAdminName(e.target.value)} />
-
-                  <input placeholder="Email" value={newAdminEmail}
-                    onChange={(e) => setNewAdminEmail(e.target.value)} />
-
-                  <input placeholder="Phone" value={newAdminPhone}
-                    onChange={(e) => setNewAdminPhone(e.target.value)} />
-
-                  <input type="password" placeholder="Password"
-                    value={newAdminPassword}
-                    onChange={(e) => setNewAdminPassword(e.target.value)} />
-
-                  <select value={newAdminRole}
-                    onChange={(e) => setNewAdminRole(e.target.value)}>
-                    <option value="manager">Manager</option>
-                    <option value="admin">Admin</option>
-                  </select>
-
-                  <button className="btn-primary" onClick={createAdmin}>
-                    Create
-                  </button>
-                </div>
-
-                <div className="admin-card">
-                  <h2>Pending Approvals</h2>
-
-                  {pendingAdmins.length === 0 && <p>No pending admins</p>}
-
-                  {pendingAdmins.map(a => (
-                    <div key={a._id} className="admin-row">
-                      <div>
-                        <b>{a.email}</b>
-                        <div className="muted">Pending</div>
-                      </div>
-
-                      <div>
-                        <button
-                          className="btn-approve"
-                          onClick={() => approveAdmin(a._id)}>
-                          Approve
-                        </button>
-
-                        <button
-                          className="btn-remove"
-                          onClick={() => removeAdmin(a._id)}>
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="admin-card full">
-                <div className="admins-header-row">
-                  <h2>All Admins</h2>
-
-                  <input
-                    className="admin-search"
-                    placeholder="Search admins..."
-                    value={adminSearch}
-                    onChange={(e) => setAdminSearch(e.target.value)}
-                  />
-                </div>
-
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Email</th>
-                      <th>Role</th>
-                      <th>Joined</th>
-                      <th>Action</th>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vendors.map(v => (
+                    <tr key={v._id}>
+                      <td>{v.email}</td>
+                      <td>{v.approved ? "Active" : "Pending"}</td>
+                      <td>
+                        {!v.approved && (
+                          <button onClick={() => approveVendor(v._id)}>Approve</button>
+                        )}
+                        <button onClick={() => rejectVendor(v._id)}>Reject</button>
+                      </td>
                     </tr>
-                  </thead>
+                  ))}
+                </tbody>
+              </table>
 
-                  <tbody>
-                    {admins
-                      .filter(a => a.approved)
-                      .filter(a =>
-                        a.email.toLowerCase().includes(adminSearch.toLowerCase())
-                      )
-                      .map(a => (
-                        <tr key={a._id}>
-                          <td>{a.email}</td>
-                          <td>{a.role}</td>
-                          <td>{new Date(a.createdAt).toLocaleDateString()}</td>
-                          <td>
-                            <button
-                              className="btn-remove"
-                              onClick={() => removeAdmin(a._id)}>
-                              Remove
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
             </div>
           )}
 
@@ -1331,88 +1118,7 @@ export default function AdminDashboard() {
           {/* ===================== ORDERS ===================== */}
           {activeTab === "orders" && (
             <div className="orders-container">
-              <div className="orders-stats">
-                <div className="stat-card">
-                  <p>Placed</p>
-                  <h2>{placedCount}</h2>
-                </div>
-
-                <div className="stat-card">
-                  <p>Completed</p>
-                  <h2>{completedCount}</h2>
-                </div>
-
-                <div className="stat-card">
-                  <p>Cancelled</p>
-                  <h2>{cancelledCount}</h2>
-                </div>
-
-                <div className="stat-card">
-                  <p>Comission</p>
-                  <h2>{commission}</h2>
-                </div>
-              </div>
-
-              <div className="orders-filter-bar">
-
-                <select
-                  className="status-select"
-                  value={statusFilter}
-                  onChange={e => setStatusFilter(e.target.value)}
-                >
-                  <option value="all">All Status</option>
-                  <option value="Placed">Placed</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
-
-                <input
-                  className="order-search"
-                  placeholder="Search Order #"
-                  value={orderSearch}
-                  onChange={e => setOrderSearch(e.target.value)}
-                />
-
-                <select
-                  className="vendor-select"
-                  value={vendorFilter}
-                  onChange={e => setVendorFilter(e.target.value)}
-                >
-                  <option value="">All Vendors</option>
-                  {vendors.map(v => (
-                    <option key={v._id} value={v._id}>{v.email}</option>
-                  ))}
-                </select>
-
-                <input
-                  className="date-input"
-                  type="date"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                />
-
-                <input
-                  className="date-input"
-                  type="date"
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                />
-
-                <button
-                  className="filter-reset-btn"
-                  onClick={() => {
-                    setStatusFilter("all");
-                    setVendorFilter("");
-                    setOrderSearch("");
-                    setStartDate("");
-                    setEndDate("");
-                  }}
-                >
-                  Reset
-                </button>
-              </div>
-
-              {filteredOrders.map((o) => (
+              {orders.map((o) => (
                 <div key={o._id} className="admin-card order-card-wide">
 
                   {/* HEADER */}
@@ -1665,85 +1371,6 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              {/* KPI */}
-              <div className="report-top-row">
-                <div className="kpi-card"><p>Total Sales</p><h2>₹{analytics.totalSales}</h2></div>
-                <div className="kpi-card"><p>Orders</p><h2>{analytics.totalOrders}</h2></div>
-                <div className="kpi-card"><p>Completed</p><h2>{analytics.completedCount}</h2></div>
-                <div className="kpi-card"><p>Cancelled</p><h2>{analytics.cancelledCount}</h2></div>
-              </div>
-
-              {/* CHARTS */}
-              <div className="chart-grid">
-                {/* SALES */}
-                <div className="chart-card">
-                  <h3>Sales Overview</h3>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={salesChartData}>
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={3} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* STATUS */}
-                <div className="chart-card">
-                  <h3>Order Status</h3>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <PieChart width={350} height={260}>
-                      <Pie
-                        data={orderStatusData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="45%"
-                        outerRadius={85}
-                      >
-                        {orderStatusData.map((entry, index) => (
-                          <Cell key={index} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend
-                        verticalAlign="bottom"
-                        align="center"
-                        iconType="circle"
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* VENDOR */}
-                <div className="chart-card">
-                  <h3>Vendor Performance</h3>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={vendorData}>
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="sales" fill="#6366f1" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* TOP PRODUCTS */}
-                <div className="chart-card">
-                  <h3>Top Products</h3>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={topProductsData}>
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="qty" fill="#22c55e" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
         <Footer />
       </main >
 
