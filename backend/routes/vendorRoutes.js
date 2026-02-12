@@ -35,6 +35,12 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
       });
     }
 
+    if (typeof pincode === "string" && pincode.trim() && !/^\d{6}$/.test(pincode.trim())) {
+      return res.status(400).json({
+        message: "Pincode must be exactly 6 digits"
+      });
+    }
+
     const existing = await Vendor.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(400).json({
@@ -188,6 +194,9 @@ router.put("/profile", auth, upload.single("profileImage"), async (req, res) => 
     }
 
     if (typeof req.body.pincode === "string") {
+      if (req.body.pincode.trim() && !/^\d{6}$/.test(req.body.pincode.trim())) {
+        return res.status(400).json({ message: "Pincode must be 6 digits" });
+      }
       update["address.pincode"] = req.body.pincode.trim();
     }
 

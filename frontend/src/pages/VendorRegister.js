@@ -26,8 +26,18 @@ export default function VendorRegister() {
 
   const handleRegister = async () => {
     try {
-      if (!formData.name || !formData.email || !formData.password || formData.phone.length !== 10) {
+      if (!formData.name || !formData.email || !formData.password || !formData.phone) {
         alert("Fill all required fields");
+        return;
+      }
+
+      if (!/^\d{10}$/.test(formData.phone)) {
+        alert("Phone number must be exactly 10 digits");
+        return;
+      }
+
+      if (formData.pincode && !/^\d{6}$/.test(formData.pincode)) {
+        alert("Pincode must be exactly 6 digits");
         return;
       }
 
@@ -90,8 +100,12 @@ export default function VendorRegister() {
               <div className="form-group">
                 <label>Phone</label>
                 <input
+                  type="tel"
                   className="auth-input"
                   placeholder="10 digit"
+                  inputMode="numeric"
+                  maxLength={10}
+                  pattern="\d{10}"
                   onChange={(e) => {
                     if (/^\d{0,10}$/.test(e.target.value)) {
                       setFormData({...formData, phone: e.target.value});
@@ -136,8 +150,17 @@ export default function VendorRegister() {
               <div className="form-group">
                 <label>Pincode</label>
                 <input
+                  type="tel"
                   className="auth-input"
-                  onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+                  placeholder="6 digit"
+                  inputMode="numeric"
+                  maxLength={6}
+                  pattern="\d{6}"
+                  value={formData.pincode}
+                  onChange={(e) => {
+                    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setFormData({...formData, pincode: digitsOnly});
+                  }}
                 />
               </div>
 
