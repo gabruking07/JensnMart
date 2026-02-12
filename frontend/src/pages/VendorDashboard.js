@@ -5,9 +5,15 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./VendorDashboard.css";
 
-export default function VendorDashboard({ darkMode, setDarkMode }) {
+export default function VendorDashboard() {
   const navigate = useNavigate();
-  const approved = localStorage.getItem("approved") === "true";
+  const [approved, setApproved] = useState(false);
+
+  useEffect(() => {
+    api.get("/vendor/profile").then(res => {
+      setApproved(res.data.approved);
+    });
+  }, []);
 
   const [products, setProducts] = useState([]);
   const [cartQty, setCartQty] = useState({});
@@ -102,10 +108,9 @@ export default function VendorDashboard({ darkMode, setDarkMode }) {
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
-    <div className={`vendor-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header title="Vendor Portal" darkMode={darkMode} setDarkMode={setDarkMode} />
+    <div className="vendor-root" >
+      <Header title="Vendor Portal" />
 
-      {/* Status Banner */}
       {!approved && (
         <div className="status-banner warning">
           <p>⚠️ Your account is currently <strong>Pending Approval</strong>. You can browse products but cannot add to cart yet.</p>

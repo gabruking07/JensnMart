@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./VendorOrders.css";
 
-export default function VendorOrders({ darkMode, setDarkMode }) {
+export default function VendorOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,8 +30,8 @@ export default function VendorOrders({ darkMode, setDarkMode }) {
   }
 
   return (
-    <div className={`vendor-orders-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header title="My Orders" darkMode={darkMode} setDarkMode={setDarkMode} />
+    <div className= "vendor-orders-root">
+      <Header title="My Orders" />
 
       <main className="vendor-orders-main">
         {orders.length === 0 ? (

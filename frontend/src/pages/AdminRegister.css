@@ -150,3 +150,45 @@
   font-size: 0.85rem;
   margin-top: 4px;
 }
+
+/* ===== REPORT RANGE FILTER ===== */
+.range-tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.range-btn{
+  padding:8px 16px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  background:#f3f4f6;
+  cursor:pointer;
+  font-weight:500;
+  transition:0.2s;
+}
+
+.range-btn:hover{
+  background:#e5e7eb;
+}
+
+.range-btn.active{
+  background:linear-gradient(90deg,#6366f1,#8b5cf6);
+  color:#fff;
+  border:none;
+  box-shadow:0 4px 14px rgba(99,102,241,0.4);
+}
+
+.custom-range{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:10px;
+}
+
+.custom-range input{
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  background:#fff;
+}

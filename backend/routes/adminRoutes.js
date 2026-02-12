@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const bcrypt = require("bcryptjs");
 
 const Product = require("../models/Product");
 const Vendor = require("../models/Vendor");
@@ -8,18 +9,72 @@ const Admin = require("../models/Admin");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly");
 
-/* =====================================================
-   VENDORS
-===================================================== */
-
 /* GET ALL VENDORS (ADMIN ONLY) */
-router.get(
-  "/vendors",
+router.get("/vendors", authMiddleware, roleOnly("admin","manager"), async (req,res)=>{
+  const vendors = await Vendor.find().sort({createdAt:-1});
+  res.json(vendors);
+});
+
+/* =====================================================
+   CREATE NEW VENDOR (ADMIN ONLY)
+===================================================== */
+router.post(
+  "/create-vendor",
   authMiddleware,
-  roleOnly(["admin", "manager"]),
+  roleOnly("admin"),
   async (req, res) => {
-    const vendors = await Vendor.find();
-    res.json(vendors);
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email & password required" });
+      }
+
+      const exists = await Vendor.findOne({ email });
+      if (exists) {
+        return res.status(400).json({ message: "Vendor already exists" });
+      }
+
+      const hashed = await bcrypt.hash(password, 10);
+
+      const vendor = await Vendor.create({
+        name: email.split("@")[0], // auto name
+        email,
+        password: hashed,
+        phone: "0000000000", // temp
+        role: "vendor",
+        approved: false
+      });
+
+      res.json(vendor);
+    } catch (err) {
+      console.error("CREATE VENDOR ERROR:", err);
+      res.status(500).json({ message: "Vendor creation failed" });
+    }
+  }
+);
+
+/* =====================================================
+   UPDATE VENDOR
+===================================================== */
+router.put(
+  "/vendor/:id",
+  authMiddleware,
+  roleOnly("admin"),
+  async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      const vendor = await Vendor.findByIdAndUpdate(
+        req.params.id,
+        { email },
+        { new: true }
+      );
+
+      res.json(vendor);
+    } catch {
+      res.status(500).json({ message: "Update failed" });
+    }
   }
 );
 
@@ -61,8 +116,68 @@ router.delete(
 );
 
 /* =====================================================
-   ADMIN / MANAGER APPROVALS
+   ADMIN / MANAGER 
 ===================================================== */
+// GET ALL ADMINS
+router.get("/all-admins", async (req, res) => {
+  const admins = await Admin.find({
+    role: { $in: ["admin","manager"] }
+  });
+  res.json(admins);
+});
+
+// ================= CREATE ADMIN =================
+router.post(
+  "/create-admin",
+  authMiddleware,
+  roleOnly("admin"),
+  async (req, res) => {
+    try {
+      const { name, email, password, role, phone } = req.body;
+
+      if (!email || !password || !phone) {
+        return res.status(400).json({ message: "All fields required" });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+
+      if (!/^\d{10}$/.test(phone)) {
+        return res.status(400).json({ message: "Phone must be 10 digits" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 chars" });
+      }
+
+      const exists = await Admin.findOne({ email });
+      if (exists) {
+        return res.status(400).json({ message: "Admin already exists" });
+      }
+
+      // ================= CREATE =================
+
+      const hash = await bcrypt.hash(password, 10);
+
+      const newAdmin = await Admin.create({
+        name: name || "Admin",
+        email: email.toLowerCase(),
+        password: hash,
+        role: role || "manager",
+        phone,
+        approved: false
+      });
+
+      res.json(newAdmin);
+
+    } catch (err) {
+      console.error("CREATE ADMIN ERROR:", err);
+      res.status(500).json({ message: "Server error creating admin" });
+    }
+  }
+);
 
 /* GET PENDING ADMINS & MANAGERS (ADMIN ONLY) */
 router.get(
@@ -110,16 +225,30 @@ router.put(
 );
 
 /* REJECT ADMIN / MANAGER (ADMIN ONLY) */
+/* ================= DELETE ADMIN ================= */
 router.delete(
-  "/reject-admin/:id",
+  "/remove-admin/:id",
   authMiddleware,
   roleOnly("admin"),
   async (req, res) => {
     try {
+      const admin = await Admin.findById(req.params.id);
+
+      if (!admin) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+
+      // Prevent deleting yourself
+      if (admin._id.toString() === req.user.id) {
+        return res.status(400).json({ message: "Cannot delete yourself" });
+      }
+
       await Admin.findByIdAndDelete(req.params.id);
-      res.json({ message: "User rejected and deleted" });
+
+      res.json({ message: "Admin removed" });
     } catch (err) {
-      res.status(500).json({ message: "Rejection failed" });
+      console.error("REMOVE ADMIN ERROR:", err);
+      res.status(500).json({ message: "Remove failed" });
     }
   }
 );
@@ -149,37 +278,6 @@ router.put(
       }
 
       res.json({ message: "Price updated", price: product.price });
-    } catch (err) {
-      console.error("UPDATE PRICE ERROR:", err);
-      res.status(500).json({ message: "Failed to update price" });
-    }
-  }
-);
-
-/* ================= UPDATE PRICE ================= */
-router.put(
-  "/update-price/:id",
-  authMiddleware,
-  roleOnly("admin", "manager"),
-  async (req, res) => {
-    try {
-      const rawPrice = req.body.price;
-      const price = Number(rawPrice);
-
-      if (Number.isNaN(price) || price < 0) {
-        return res.status(400).json({ message: "Invalid price value" });
-      }
-
-      const product = await Product.findById(req.params.id);
-
-      if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-
-      product.price = price;
-      await product.save();
-
-      res.json({ message: "Price updated", price });
     } catch (err) {
       console.error("UPDATE PRICE ERROR:", err);
       res.status(500).json({ message: "Failed to update price" });

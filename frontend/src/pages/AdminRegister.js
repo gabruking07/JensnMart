@@ -3,16 +3,19 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import "./AdminRegister.css";
+import "./Login.css"; 
 
-export default function AdminRegister({ darkMode, setDarkMode }) {
+import logo from "../assets/logo.png";
+import bg from "../assets/bg.png";
+
+export default function AdminRegister() {
   const [adminName, setAdminName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
-
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("manager");
+  
   const navigate = useNavigate();
 
   const validateEmail = (email) => {
@@ -41,73 +44,61 @@ export default function AdminRegister({ darkMode, setDarkMode }) {
       });
 
       alert("Admin registered successfully");
-      navigate("/admin-login");
+      navigate("/");
     } catch (error) {
       alert(error.response?.data?.message || "Registration failed");
     }
   };
 
   return (
-    <div className={`auth-page-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header darkMode={darkMode} setDarkMode={setDarkMode} />
+    <div className="auth-page-root" style={{ backgroundImage: `url(${bg})` }}>
+      <div className="auth-overlay">
+        <Header title="Admin Portal" />
 
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <h2>Create Admin Account</h2>
-            <p>Join the management team</p>
-          </div>
-
-          <div className="auth-form">
-            <div className="form-group">
-              <label>Full Name</label>
-              <input
-                type="text"
-                placeholder="Enter your name"
-                value={adminName}
-                onChange={(e) => setAdminName(e.target.value)}
-                required
-              />
+        <div className="login-container">
+          <div className="auth-card">
+            <div className="auth-header">
+              <img src={logo} alt="Logo" className="auth-logo" />
+              <h2 className="card-title">Create Admin Account</h2>
+              <p className="card-subtitle">Join the management team</p>
             </div>
 
-            <div className="form-group">
-              <label>Email Address</label>
-              <input
-                type="email"
-                placeholder="name@company.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-
-                  if (!validateEmail(e.target.value)) {
-                    setEmailError("Please enter a valid email address");
-                  } else {
-                    setEmailError("");
-                  }
-                }}
-                required
-              />
-
-              {emailError && (
-                <p className="error-text">{emailError}</p>
-              )}
-            </div>
-
-            <div className="form-row">
+            <div className="auth-form">
               <div className="form-group">
-                <label>Password</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Phone Number</label>
+                <label className="input-label">Full Name</label>
                 <input
                   type="text"
+                  className="auth-input"
+                  placeholder="Enter your name"
+                  value={adminName}
+                  onChange={(e) => setAdminName(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="input-label">Email Address</label>
+                <input
+                  type="email"
+                  className="auth-input"
+                  placeholder="name@company.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (!validateEmail(e.target.value)) {
+                      setEmailError("Invalid email format");
+                    } else {
+                      setEmailError("");
+                    }
+                  }}
+                />
+                {emailError && <p className="error-text">{emailError}</p>}
+              </div>
+
+              <div className="form-group">
+                <label className="input-label">Phone Number</label>
+                <input
+                  type="text"
+                  className="auth-input"
                   placeholder="10-digit number"
                   value={phone}
                   onChange={(e) => {
@@ -115,31 +106,49 @@ export default function AdminRegister({ darkMode, setDarkMode }) {
                       setPhone(e.target.value);
                     }
                   }}
-                  required
                 />
               </div>
+
+              <div className="form-group">
+                <label className="input-label">Password</label>
+                <input
+                  type="password"
+                  className="auth-input"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="input-label">Assign Role</label>
+                <select 
+                  className="auth-input" 
+                  value={role} 
+                  onChange={(e) => setRole(e.target.value)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <option value="manager">Manager (Standard)</option>
+                  <option value="admin">Admin (Full Access)</option>
+                </select>
+              </div>
+
+              <button className="btn-sign-in" onClick={handleRegister}>
+                CREATE ACCOUNT
+              </button>
             </div>
 
-            <div className="form-group">
-              <label>Assign Role</label>
-              <select value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="manager">Manager (Standard Access)</option>
-                <option value="admin">Admin (Full Access)</option>
-              </select>
+            <div className="auth-footer">
+              <p className="footer-text">Already have an account?</p>
+              <button className="btn-reg" onClick={() => navigate("/")}>
+                Back to Login
+              </button>
             </div>
-
-            <button className="btn-auth-primary" onClick={handleRegister}>
-              Create Account
-            </button>
-
-            <button className="btn-auth-secondary" onClick={() => navigate("/")}>
-              Already have an account? Login
-            </button>
           </div>
         </div>
-      </div>
 
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 }

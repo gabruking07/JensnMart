@@ -32,6 +32,12 @@ const ProductSchema = new mongoose.Schema(
       required: true
     },
 
+    subcategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategory",
+      default: null
+    },
+
     // Optional: which vendor supplies this product
     vendor: {
       type: mongoose.Schema.Types.ObjectId,

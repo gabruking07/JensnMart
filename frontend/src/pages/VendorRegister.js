@@ -3,149 +3,194 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import "./AdminRegister.css"; // Reuse the shared auth styles
+import "./Login.css";
 
-export default function VendorRegister({ darkMode, setDarkMode }) {
+import logo from "../assets/logo.png";
+import bg from "../assets/bg.png";
+
+export default function VendorRegister() {
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "India"
+  });
 
-  // ✅ Email validation function
-  const validateEmail = (value) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    return regex.test(value);
-  };
-
-  // ✅ Submit handler with validation
   const handleRegister = async () => {
-    if (!name || !email || !password || phone.length !== 10) {
-      alert("All fields are required (phone must be 10 digits)");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setEmailError("Please enter a valid email address");
-      return;
-    }
-
     try {
-      await api.post("/vendor/register", {
-        name,
-        email: email.toLowerCase(),
-        password,
-        phone,
-      });
+      if (!formData.name || !formData.email || !formData.password || !formData.phone) {
+        alert("Fill all required fields");
+        return;
+      }
 
-      alert("Registration successful! Please wait for admin approval.");
-      navigate("/");
+      if (!/^\d{10}$/.test(formData.phone)) {
+        alert("Phone number must be exactly 10 digits");
+        return;
+      }
+
+      if (formData.pincode && !/^\d{6}$/.test(formData.pincode)) {
+        alert("Pincode must be exactly 6 digits");
+        return;
+      }
+
+      await api.post("/vendor/register", formData);
+
+      alert("Registered. Wait for admin approval");
+      navigate("/vendor-login");
+
     } catch (err) {
-      alert(err.response?.data?.message || "Vendor registration failed");
+      alert(err.response?.data?.message || "Registration failed");
     }
   };
 
   return (
-    <div className={`auth-page-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header
-        title="Vendor Onboarding"
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-      />
+    <div className="auth-page-root" style={{ backgroundImage: `url(${bg})` }}>
+      <div className="auth-overlay">
+        <Header title="Vendor Registration" />
 
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <h2>Partner with Us</h2>
-            <p>Register your shop and start shopping</p>
-          </div>
+        <div className="login-container">
+          <div className="auth-card">
 
-          <div className="auth-form">
-            {/* Name */}
-            <div className="form-group">
-              <label>Full Name</label>
-              <input
-                placeholder="e.g. Reliance Mart"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+            <div className="auth-header">
+              <img src={logo} alt="Logo" className="auth-logo" />
+              <h2 className="card-title">Partner With Us</h2>
             </div>
 
-            {/* Email */}
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                placeholder="vendor@business.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (!validateEmail(e.target.value)) {
-                    setEmailError("Please enter a valid email address");
-                  } else {
-                    setEmailError("");
-                  }
-                }}
-                required
-              />
-              {emailError && (
-                <p className="error-text">{emailError}</p>
-              )}
-            </div>
+            <div className="auth-form">
 
-            <div className="form-row">
-              {/* Password */}
+              {/* NAME */}
+              <div className="form-group">
+                <label>Name</label>
+                <input
+                  className="auth-input"
+                  placeholder="Business name"
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                />
+              </div>
+
+              {/* EMAIL */}
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  className="auth-input"
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
+              </div>
+
+              {/* PASSWORD */}
               <div className="form-group">
                 <label>Password</label>
                 <input
                   type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  className="auth-input"
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
                 />
               </div>
-
-              {/* Phone */}
+{/* XVF */}
+              {/* PHONE */}
               <div className="form-group">
-                <label>Contact Number</label>
+                <label>Phone</label>
                 <input
-                  placeholder="10-digit mobile"
-                  value={phone}
+                  type="tel"
+                  className="auth-input"
+                  placeholder="10 digit"
+                  inputMode="numeric"
+                  maxLength={10}
+                  pattern="\d{10}"
                   onChange={(e) => {
                     if (/^\d{0,10}$/.test(e.target.value)) {
-                      setPhone(e.target.value);
+                      setFormData({...formData, phone: e.target.value});
                     }
                   }}
-                  required
                 />
               </div>
+
+              {/* ADDRESS */}
+              <div className="form-group">
+                <label>Address Line 1</label>
+                <input
+                  className="auth-input"
+                  onChange={(e) => setFormData({...formData, addressLine1: e.target.value})}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Address Line 2</label>
+                <input
+                  className="auth-input"
+                  onChange={(e) => setFormData({...formData, addressLine2: e.target.value})}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>City</label>
+                <input
+                  className="auth-input"
+                  onChange={(e) => setFormData({...formData, city: e.target.value})}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>State</label>
+                <input
+                  className="auth-input"
+                  onChange={(e) => setFormData({...formData, state: e.target.value})}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Pincode</label>
+                <input
+                  type="tel"
+                  className="auth-input"
+                  placeholder="6 digit"
+                  inputMode="numeric"
+                  maxLength={6}
+                  pattern="\d{6}"
+                  value={formData.pincode}
+                  onChange={(e) => {
+                    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setFormData({...formData, pincode: digitsOnly});
+                  }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Country</label>
+                <input
+                  className="auth-input"
+                  value={formData.country}
+                  onChange={(e) => setFormData({...formData, country: e.target.value})}
+                />
+              </div>
+
+              <button className="btn-sign-in" onClick={handleRegister}>
+                REGISTER NOW
+              </button>
+
             </div>
 
-            <button className="btn-auth-primary" onClick={handleRegister}>
-              Apply for Partnership
-            </button>
+            <div className="auth-footer">
+              <p>Already have account?</p>
+              <button className="btn-reg" onClick={() => navigate("/vendor-login")}>
+                Login
+              </button>
+            </div>
 
-            <button
-              className="btn-auth-secondary"
-              onClick={() => navigate("/")}
-            >
-              Already a partner? Login here
-            </button>
-          </div>
-
-          <div className="approval-notice">
-            <small>
-              ℹ️ All applications are reviewed by our admin team within 24 hours.
-            </small>
           </div>
         </div>
-      </div>
 
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 }
