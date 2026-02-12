@@ -3,6 +3,7 @@ const Vendor = require("../models/Vendor");
 const auth = require("../middleware/authMiddleware");
 const bcrypt = require("bcryptjs");
 const upload = require("../config/upload");
+const jwt = require("jsonwebtoken");
 
 /* =====================================================
    REGISTER VENDOR
@@ -170,7 +171,6 @@ router.put("/profile", auth, upload.single("profileImage"), async (req, res) => 
       update.phone = req.body.phone;
     }
 
-    // address fields → nested
     if (typeof req.body.addressLine1 === "string") {
       update["address.line1"] = req.body.addressLine1.trim();
     }
