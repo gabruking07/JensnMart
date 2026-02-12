@@ -19,8 +19,9 @@ export default function VendorDashboard() {
   const [cartQty, setCartQty] = useState({});
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
-  const [categoryId, setCategoryId] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [subcategories, setSubcategories] = useState([]);
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [maxPrice, setMaxPrice] = useState(0);
   const [priceRange, setPriceRange] = useState(0);
@@ -39,6 +40,26 @@ export default function VendorDashboard() {
     fetchProducts();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      setSubcategories([]);
+      setSelectedSubcategory("");
+      return;
+    }
+
+    const fetchSub = async () => {
+      try {
+        const res = await api.get(`/categories/${selectedCategory}/subcategories`);
+        setSubcategories(res.data || []);
+        setSelectedSubcategory("");
+      } catch (err) {
+        console.error("Subcategory fetch failed");
+      }
+    };
+
+    fetchSub();
+  }, [selectedCategory]);
 
   const fetchProducts = async () => {
     try {
@@ -71,15 +92,18 @@ export default function VendorDashboard() {
     const matchCategory =
       !selectedCategory || p.category?._id === selectedCategory;
 
+    const matchSubcategory =
+      !selectedSubcategory || p.subcategory?._id === selectedSubcategory;
+
     const matchSearch =
       p.name.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchPrice =
       p.price >= priceRange[0] &&
       p.price <= priceRange[1];
-    return matchCategory && matchSearch && matchPrice;
-  });
 
+    return matchCategory && matchSubcategory && matchSearch && matchPrice;
+  });
 
   const increaseQty = (id) => {
     setCartQty((prev) => ({ ...prev, [id]: (prev[id] || 1) + 1 }));
@@ -138,10 +162,9 @@ export default function VendorDashboard() {
           </div>
         </header>
 
-        {/* Single Row Filter Bar */}
         <div className="filter-row-container">
 
-          {/* 1. Category Dropdown */}
+          {/* Category Dropdown */}
           <div className="filter-item">
             <label className="filter-label">Category</label>
             <select
@@ -156,7 +179,25 @@ export default function VendorDashboard() {
             </select>
           </div>
 
-          {/* 2. Search Input */}
+          {/* SUBCATEGORY */}
+          <div className="filter-item">
+            <label className="filter-label">Sub Category</label>
+            <select
+              value={selectedSubcategory}
+              onChange={(e) => setSelectedSubcategory(e.target.value)}
+              className="filter-select"
+              disabled={!selectedCategory}
+            >
+              <option value="">All</option>
+              {subcategories.map((sub) => (
+                <option key={sub._id} value={sub._id}>
+                  {sub.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Search Input */}
           <div className="filter-item search-grow">
             <label className="filter-label">Search Products</label>
             <input
