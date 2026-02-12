@@ -9,6 +9,8 @@ export default function Cart() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddress, setShowAddress] = useState(false);
+  const [address, setAddress] = useState("");
 
   useEffect(() => {
     fetchCart();
@@ -34,27 +36,47 @@ export default function Cart() {
     }
   };
 
+  const updateQty = async (productId, qty) => {
+    if (qty < 1) return;
+
+    try {
+      await api.put(`/cart/update/${productId}`, { quantity: qty });
+      fetchCart();
+    } catch {
+      alert("Failed to update qty");
+    }
+  };
+
   const total = cartItems.reduce((sum, item) => {
-    if (!item.product) return sum; // 🔑 guard
+    if (!item.product) return sum;
     return sum + item.product.price * item.quantity;
   }, 0);
 
-  const placeOrder = async () => {
-    if (cartItems.length === 0) return;
+  const placeOrder = () => {
+    setShowAddress(true);
+  };
+
+  const confirmOrder = async () => {
+    if (!address) {
+      alert("Enter address");
+      return;
+    }
+
     try {
-      await api.post("/orders/checkout");
-      alert("Order placed successfully! 🎉");
+      await api.post("/orders/checkout", { address });
+      alert("Order placed!");
+      setShowAddress(false);
       fetchCart();
-      navigate("/vendor");
-    } catch (err) {
-      alert(err.response?.data?.message || "Checkout failed");
+      navigate("/");
+    } catch {
+      alert("Checkout failed");
     }
   };
 
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
-    <div className = "cart-page-root">
+    <div className="cart-page-root">
       <Header title="Shopping Cart" />
 
       <main className="cart-main-content">
@@ -86,7 +108,23 @@ export default function Cart() {
                       <p className="vendor-name">Sold by: {item.product.vendorName || "Verified Vendor"}</p>
                       <div className="cart-item-details">
                         <span className="unit-price">₹{item.product.price}</span>
-                        <span className="qty-tag">Qty: {item.quantity}</span>
+                        <div className="qty-box">
+                          <button
+                            className="qty-btn"
+                            onClick={() => updateQty(item.product._id, item.quantity - 1)}
+                          >
+                            −
+                          </button>
+
+                          <span className="qty-number">{item.quantity}</span>
+
+                          <button
+                            className="qty-btn"
+                            onClick={() => updateQty(item.product._id, item.quantity + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -136,6 +174,32 @@ export default function Cart() {
           </div>
         )}
       </main>
+      {showAddress && (
+        <div className="address-modal">
+          <div className="address-box">
+            <h3>Select Delivery Address</h3>
+
+            <textarea
+              placeholder="Enter delivery address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+
+            <div className="address-actions">
+              <button onClick={confirmOrder} className="btn-checkout">
+                Confirm Order
+              </button>
+
+              <button
+                onClick={() => setShowAddress(false)}
+                className="btn-cancel"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

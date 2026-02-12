@@ -72,15 +72,12 @@ router.get(
       return res.json({ items: [] });
     }
 
-    // 🔑 REMOVE ITEMS WITH DELETED PRODUCTS
     const validItems = cart.items.filter(item => item.product);
 
-    // If cleanup happened, save it
     if (validItems.length !== cart.items.length) {
       cart.items = validItems;
       await cart.save();
     }
-
     res.json(cart);
   }
 );
@@ -108,5 +105,28 @@ router.delete(
     res.json(cart);
   }
 );
+
+/* ================= QUANTITY CHANGE ================= */
+
+router.put("/update/:productId", auth, async (req, res) => {
+  const { quantity } = req.body;
+
+  if (quantity < 1) {
+    return res.status(400).json({ message: "Invalid quantity" });
+  }
+
+  const cart = await Cart.findOne({ user: req.user.id });
+
+  const item = cart.items.find(i =>
+    i.product.toString() === req.params.productId
+  );
+
+  if (!item) return res.status(404).json({ message: "Item not found" });
+
+  item.quantity = quantity;
+  await cart.save();
+
+  res.json({ message: "Cart updated" });
+});
 
 module.exports = router;
