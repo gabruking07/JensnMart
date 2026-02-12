@@ -17,23 +17,13 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
   const [pincode, setPincode] = useState("");
   const [country, setCountry] = useState("India");
   const [profileImage, setProfileImage] = useState(null);
-  const [profilePreview, setProfilePreview] = useState("");
-  const [profileImageError, setProfileImageError] = useState(false);
-  const fileInputRef = useRef(null);
 
+  const fileInputRef = useRef(null);
   const uploadsBaseUrl = `${api.defaults.baseURL.replace(/\/api\/?$/, "")}/uploads`;
 
   useEffect(() => {
     loadProfile();
   }, []);
-
-  useEffect(() => {
-    return () => {
-      if (profilePreview?.startsWith("blob:")) {
-        URL.revokeObjectURL(profilePreview);
-      }
-    };
-  }, [profilePreview]);
 
   const getProfileImageUrl = (filename) => {
     if (!filename) return "";
@@ -57,13 +47,8 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
       setPincode(v.address?.pincode || "");
       setCountry(v.address?.country || "India");
 
-      if (v.profileImage) {
-        setProfilePreview(getProfileImageUrl(v.profileImage));
-      }
-
-      setProfileImageError(false);
+  
     } catch (err) {
-      console.error("Failed to load profile", err);
     }
   };
 
@@ -92,12 +77,11 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
       }
 
       await api.put("/vendor/profile", formData);
-      alert("Profile updated");
 
+      alert("Profile updated");
       setPassword("");
       setProfileImage(null);
       loadProfile();
-
     } catch (err) {
       alert("Update failed");
     } finally {
@@ -105,23 +89,23 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
     }
   };
 
-  const onProfileImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const onProfileImageChange = async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Select image file");
-      return;
-    }
+  try {
+    const formData = new FormData();
+    formData.append("profileImage", file);
+    await api.put("/vendor/profile", formData);
+    await loadProfile();
 
-    setProfileImage(file);
-    setProfilePreview(URL.createObjectURL(file));
-    setProfileImageError(false);
-  };
+  } catch (err) {
+    alert("Image upload failed");
+  }
+};
 
+  const profileImageSrc = getProfileImageUrl(vendor?.profileImage);
   const avatarLabel = (name || vendor?.name || "V").charAt(0).toUpperCase();
-  const profileImageSrc = profilePreview || getProfileImageUrl(vendor?.profileImage);
-  const showImage = Boolean(profileImageSrc) && !profileImageError;
 
   if (!vendor) {
     return (
@@ -143,20 +127,21 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
             <div className="admin-card user-info-card">
 
               <div className="profile-avatar-wrap">
-                {showImage ? (
+                {vendor?.profileImage ? (
                   <img
-                    src={profileImageSrc}
+                    src={getProfileImageUrl(vendor.profileImage)}
                     className="profile-avatar-image"
-                    onError={() => setProfileImageError(true)}
                   />
                 ) : (
-                  <div className="profile-avatar">{avatarLabel}</div>
+                  <div className="profile-avatar">
+                    {(vendor?.name || "V").charAt(0).toUpperCase()}
+                  </div>
                 )}
 
                 <button
                   type="button"
                   className="camera-upload-btn"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => fileInputRef.current.click()}
                 >
                   📷
                 </button>
@@ -165,7 +150,7 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  className="hidden-file-input"
+                  style={{ display: "none" }}
                   onChange={onProfileImageChange}
                 />
               </div>
@@ -176,7 +161,6 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
               <div className={`status-pill ${vendor.approved ? "status-approved" : "status-pending"}`}>
                 {vendor.approved ? "Verified Vendor" : "Pending Verification"}
               </div>
-
             </div>
           </section>
 
@@ -186,7 +170,6 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
               <h3>Edit Profile</h3>
 
               <div className="profile-form">
-
                 <div className="form-group">
                   <label>Name</label>
                   <input value={name} onChange={(e) => setName(e.target.value)} />
@@ -232,14 +215,16 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
                   />
                 </div>
 
-                <button className="btn-save-profile" onClick={updateProfile} disabled={isUpdating}>
+                <button
+                  className="btn-save-profile"
+                  onClick={updateProfile}
+                  disabled={isUpdating}
+                >
                   {isUpdating ? "Saving..." : "Save Changes"}
                 </button>
-
               </div>
             </div>
           </section>
-
         </div>
       </main>
 
