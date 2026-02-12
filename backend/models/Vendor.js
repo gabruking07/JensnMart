@@ -14,6 +14,19 @@ const vendorSchema = new mongoose.Schema(
       required: true,
       match: /^[0-9]{10}$/
     },
+    address: {
+      line1: { type: String, default: "" },
+      line2: { type: String, default: "" },
+      city: { type: String, default: "" },
+      state: { type: String, default: "" },
+      pincode: { type: String, default: "" },
+      country: { type: String, default: "India" }
+    },
+
+    profileImage: {
+      type: String,
+      default: ""
+    },
     approved: { type: Boolean, default: false },
     role: { type: String, default: "vendor" }
   },

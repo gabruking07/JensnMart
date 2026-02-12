@@ -5,7 +5,6 @@ const path = require("path");
 require("dotenv").config();
 
 const adminAuthRoutes = require("./routes/adminAuth");
-const vendorAuthRoutes = require("./routes/vendorAuth");
 const adminRoutes = require("./routes/adminRoutes");
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
@@ -21,10 +20,10 @@ app.use(express.json());
 
 /* ================= STATIC ================= */
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static("uploads"));
 
 /* ================= AUTH ROUTES ================= */
 app.use("/api/admin", adminAuthRoutes);
-app.use("/api/vendor", vendorAuthRoutes);
 
 /* ================= FEATURE ROUTES ================= */
 app.use("/api/admin", adminRoutes);
