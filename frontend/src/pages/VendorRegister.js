@@ -85,7 +85,7 @@ export default function VendorRegister() {
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                 />
               </div>
-
+{/* XVF */}
               {/* PHONE */}
               <div className="form-group">
                 <label>Phone</label>
