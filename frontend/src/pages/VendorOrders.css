@@ -1,83 +1,174 @@
-.order-card {
-  margin-bottom: 16px;
+/* ===============================
+   ROOT
+================================ */
+.vendor-orders-root{
+  min-height:100vh;
+  background:#f5f6f8;
+  display:flex;
+  flex-direction:column;
+  font-family:Inter, sans-serif;
 }
 
-.order-header {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
+.vendor-orders-main{
+  max-width:1100px;
+  width:100%;
+  margin:auto;
+  padding:30px 40px;
+  flex:1;
 }
 
-.status.placed { color: #2563eb; }
-.status.completed { color: #16a34a; }
-.status.cancelled { color: #dc2626; }
-
-.order-product-row {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
+/* ===============================
+   ORDER CARD
+================================ */
+.order-card{
+  background:#fff;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  border:1px solid #eee;
 }
 
-.order-product-row img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 6px;
+/* header */
+.order-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:600;
+  margin-bottom:12px;
 }
 
-.order-footer {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 12px;
-  font-weight: bold;
+/* status badge */
+.status{
+  padding:4px 10px;
+  border-radius:6px;
+  font-size:12px;
+  text-transform:capitalize;
+  font-weight:600;
 }
 
-.status {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  color: white;
-  font-weight: 500;
+.status.pending{
+  background:#fff3cd;
+  color:#856404;
 }
 
-.processing {
-  background: orange;
+.status.completed{
+  background:#d4edda;
+  color:#155724;
 }
 
-.shipped {
-  background: #3b82f6;
+.status.cancelled{
+  background:#f8d7da;
+  color:#721c24;
 }
 
-.delivered {
-  background: #10b981;
+/* ===============================
+   PRODUCT LIST
+================================ */
+.order-products{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:10px;
 }
 
-.returned {
-  background: #ef4444;
+.order-product-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#fafafa;
+  padding:10px;
+  border-radius:10px;
 }
 
-.completed {
-  background: #10b981;
+.order-product-row img{
+  width:60px;
+  height:60px;
+  object-fit:contain;
+  background:#f0f0f0;
+  border-radius:8px;
+  padding:6px;
 }
 
-.cancelled {
-  background: #991b1b;
+.order-product-row strong{
+  font-size:14px;
 }
 
-.placed {
-  background: #2563eb;
+.order-product-row p{
+  font-size:13px;
+  opacity:0.7;
+  margin:2px 0 0;
 }
 
-.status-history-box {
-  margin-top: 15px;
-  padding: 10px;
-  background: #f9fafb;
-  border-radius: 8px;
+/* ===============================
+   FOOTER
+================================ */
+.order-footer{
+  display:flex;
+  justify-content:space-between;
+  margin-top:14px;
+  font-weight:600;
+  font-size:14px;
+  border-top:1px solid #eee;
+  padding-top:10px;
 }
 
-.history-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-top: 6px;
+/* ===============================
+   BACK BUTTON
+================================ */
+.btn-secondary{
+  margin-top:20px;
+  background:#fff;
+  border:1px solid #ddd;
+  padding:10px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.btn-secondary:hover{
+  background:#f0f0f0;
+}
+
+/* ===============================
+   LOADER
+================================ */
+.loader-container{
+  height:80vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.loader{
+  border:5px solid #eee;
+  border-top:5px solid #111;
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  animation:spin 0.7s linear infinite;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg);}
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width:768px){
+  .vendor-orders-main{
+    padding:20px;
+  }
+
+  .order-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+  }
+
+  .order-footer{
+    flex-direction:column;
+    gap:6px;
+  }
 }

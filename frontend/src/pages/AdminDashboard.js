@@ -134,7 +134,7 @@ export default function AdminDashboard() {
     fetchProducts(selectedCategory);
   }, [selectedCategory]);
 
-  /* ===================== LOAD ALL jhvgujvhg ===================== */
+  /* ===================== LOAD ALL ===================== */
   const loadAll = async () => {
     try {
       const tasks = [
