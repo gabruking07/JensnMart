@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
+import "./VendorLayout.css";
 
 export default function VendorLayout({ children }) {
   const navigate = useNavigate();
