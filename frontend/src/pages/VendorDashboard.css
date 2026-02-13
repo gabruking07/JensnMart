@@ -419,6 +419,10 @@
   opacity: 0.6;
 }
 
+.state{
+  color: #000;
+}
+
 /* ================================
    FOOTER ACTIONS
 ================================ */
@@ -462,7 +466,7 @@
 
 .vendor-logo{
   display:flex;
-  flex-direction:column;     /* STACK */
+  flex-direction:column;     
   align-items:center;
   justify-content:center;
   margin-bottom:25px;
