@@ -76,6 +76,96 @@
   background: #000;
 }
 
+.vendor-layout{
+  display:flex;
+  min-height:100vh;
+  background:#f5f6f8;
+}
+
+/* SIDEBAR */
+.vendor-sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  height:100vh;
+  width:220px;
+  background:#0f172a;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  z-index:1000;
+  padding:20px 16px;
+}
+
+.side-link{
+  background:transparent;
+  border:none;
+  color:#fff;
+  text-align:left;
+  padding:10px 12px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.side-link:hover{
+  background:#1e293b;
+}
+
+.logout{
+  margin-top:auto;
+  background:#111827;
+}
+
+/* SIDEBAR ACTIVE */
+.side-link{
+  background:transparent;
+  border:none;
+  color:#cbd5e1;
+  text-align:left;
+  padding:12px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition:0.2s;
+}
+
+.side-link:hover{
+  background:#1e293b;
+  color:#fff;
+}
+
+.side-link.active{
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+}
+
+.side-link.logout{
+  margin-top:auto;
+  background:#111827;
+}
+
+/* RIGHT CONTENT */
+.vendor-content{
+  margin-left:100px;
+  width:100%;
+  min-height:100vh;
+  background:#f5f6f8;
+  display:flex;
+  flex-direction:column;
+}
+
+.vendor-main{
+  padding:30px;
+  max-width:1400px;
+  margin:auto;
+  width:100%;
+}
+
 /* ================================
    APPROVAL BANNER
 ================================ */
@@ -93,88 +183,90 @@
 }
 
 /* ================================
-   FILTER BAR
+   FILTER BAR (CLEAN ADMIN STYLE)
 ================================ */
-.filter-row-container {
-  background: #fff;
-  padding: 18px;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+.filter-row-container{
+  background:#ffffff;
+  border-radius:14px;
+  padding:20px 22px;
+  margin-bottom:28px;
+  display:grid;
+  grid-template-columns: 180px 180px 1fr 280px;
+  gap:20px;
+  align-items:end;
+  box-shadow:0 4px 18px rgba(0,0,0,0.06);
 }
 
-.filter-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 180px;
+.filter-item{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
 }
 
-.search-grow {
-  flex: 1;
+.filter-item label{
+  font-size:12px;
+  font-weight:600;
+  color:#6b7280;
 }
 
-.filter-label {
-  font-size: 12px;
-  font-weight: 600;
-  opacity: 0.6;
+.filter-item select,
+.filter-item input{
+  height:38px;
+  padding:0 10px;
+  border-radius:8px;
+  border:1px solid #e5e7eb;
+  font-size:14px;
+  background:#fff;
 }
 
-.filter-select,
-.filter-input {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
+.filter-item select:focus,
+.filter-item input:focus{
+  outline:none;
+  border-color:#111;
 }
 
-.filter-select:focus,
-.filter-input:focus {
-  outline: none;
-  border-color: #111;
+.filter-item:nth-child(3){
+  width:500px;
 }
 
-/* ================================
-   PRICE SLIDER
-================================ */
-.price-pill-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* ================= PRICE SLIDER ================= */
+.price-pill-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
 
-.price-val {
-  font-size: 12px;
-  width: 70px;
-  text-align: center;
+.price-val{
+  font-size:16px;
+  width:60px;
+  text-align:center;
+  color:#6b7280;
 }
 
-.slider-track-box {
-  position: relative;
-  width: 200px;
+.slider-track-box{
+  position:relative;
+  width:180px;
+  height:6px;
 }
 
-.dual-range-input {
-  position: absolute;
-  width: 100%;
-  pointer-events: none;
-  appearance: none;
-  height: 6px;
-  background: transparent;
+.dual-range-input{
+  position:absolute;
+  width:100%;
+  appearance:none;
+  background:#e5e7eb;
+  height:6px;
+  border-radius:6px;
+  pointer-events:none;
 }
 
-.dual-range-input::-webkit-slider-thumb {
-  pointer-events: all;
-  appearance: none;
-  height: 14px;
-  width: 14px;
-  border-radius: 50%;
-  background: #111;
-  cursor: pointer;
+.dual-range-input::-webkit-slider-thumb{
+  pointer-events:auto;
+  appearance:none;
+  width:14px;
+  height:14px;
+  background:#111;
+  border-radius:50%;
+  cursor:pointer;
 }
 
 /* ================================
@@ -366,6 +458,21 @@
   width: 40px;
   height: 40px;
   animation: spin 0.7s linear infinite;
+}
+
+.vendor-logo{
+  display:flex;
+  flex-direction:column;     /* STACK */
+  align-items:center;
+  justify-content:center;
+  margin-bottom:25px;
+  padding-top:10px;
+}
+
+.vendor-logo img{
+  width: 200px;
+  height:200px;
+  margin-bottom:-120px;
 }
 
 @keyframes spin {

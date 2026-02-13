@@ -109,25 +109,86 @@ router.delete(
 
 /* ================= QUANTITY CHANGE ================= */
 
-router.put("/update/:productId", auth, async (req, res) => {
-  const { quantity } = req.body;
+router.put("/update/:productId", authMiddleware, async (req, res) => {
+  try {
+    const { quantity } = req.body;
+    const { productId } = req.params;
 
-  if (quantity < 1) {
-    return res.status(400).json({ message: "Invalid quantity" });
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({ message: "Invalid quantity" });
+    }
+
+    const cart = await Cart.findOne({
+      vendor: req.user.id,
+      status: "active"
+    }).populate("items.product");
+
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+
+    const item = cart.items.find(
+      i => i.product._id.toString() === productId
+    );
+
+    if (!item) {
+      return res.status(404).json({ message: "Item not in cart" });
+    }
+
+    item.quantity = quantity;
+
+    await cart.save();
+
+    res.json({ message: "Qty updated", cart });
+  } catch (err) {
+    console.log("UPDATE QTY ERROR:", err);
+    res.status(500).json({ message: "Update failed" });
   }
-
-  const cart = await Cart.findOne({ user: req.user.id });
-
-  const item = cart.items.find(i =>
-    i.product.toString() === req.params.productId
-  );
-
-  if (!item) return res.status(404).json({ message: "Item not found" });
-
-  item.quantity = quantity;
-  await cart.save();
-
-  res.json({ message: "Cart updated" });
 });
+
+// // FOR ADDRESSES 
+
+// router.get("/vendor/addresses", authMiddleware, async (req,res)=>{
+//   const vendor = await Vendor.findById(req.user.id);
+//   res.json(vendor.addresses || []);
+// });
+
+// // ADD ADDRESSES
+// router.post("/vendor/addresses", authMiddleware, async (req,res)=>{
+//   const vendor = await Vendor.findById(req.user.id);
+
+//   const newAddress = req.body;
+
+//   if(newAddress.isDefault){
+//     vendor.addresses.forEach(a => a.isDefault = false);
+//   }
+
+//   vendor.addresses.push(newAddress);
+//   await vendor.save();
+
+//   res.json(vendor.addresses);
+// });
+
+// //DELETE ADDRESSES
+// router.delete("/vendor/addresses/:index", authMiddleware, async (req,res)=>{
+//   const vendor = await Vendor.findById(req.user.id);
+
+//   vendor.addresses.splice(req.params.index,1);
+//   await vendor.save();
+
+//   res.json(vendor.addresses);
+// });
+
+// // SET DEFAULT
+// router.put("/vendor/addresses/default/:index", authMiddleware, async (req,res)=>{
+//   const vendor = await Vendor.findById(req.user.id);
+
+//   vendor.addresses.forEach(a => a.isDefault = false);
+//   vendor.addresses[req.params.index].isDefault = true;
+
+//   await vendor.save();
+
+//   res.json(vendor.addresses);
+// });
 
 module.exports = router;

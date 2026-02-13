@@ -4,13 +4,23 @@ import api from "../services/api";
 import "./Cart.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import VendorLayout from "./VendorLayout";
 
 export default function Cart() {
   const navigate = useNavigate();
+
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAddress, setShowAddress] = useState(false);
-  const [address, setAddress] = useState("");
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [newAddress, setNewAddress] = useState({
+    label: "",
+    line1: "",
+    city: "",
+    pincode: ""
+  });
 
   useEffect(() => {
     fetchCart();
@@ -27,181 +37,329 @@ export default function Cart() {
     }
   };
 
-  const removeItem = async (productId) => {
+  /* ================= LOAD ADDRESSES ================= */
+  const loadAddresses = async () => {
     try {
-      await api.delete(`/cart/remove/${productId}`);
-      fetchCart();
+      const res = await api.get("/vendor/addresses");
+      const data = res.data || [];
+
+      setAddresses(data);
+
+      const defaultAddr = data.find(a => a.isDefault);
+      if (defaultAddr) {
+        setSelectedAddress(defaultAddr);
+      }
     } catch (err) {
-      alert("Failed to remove item");
+      console.log("Address load error", err);
     }
   };
 
+  /* ================= REMOVE ITEM ================= */
+  const removeItem = async (productId) => {
+    await api.delete(`/cart/remove/${productId}`);
+    fetchCart();
+  };
+
+  /* ================= UPDATE QTY ================= */
   const updateQty = async (productId, qty) => {
-    if (qty < 1) return;
+  const item = cartItems.find(i => i.product._id === productId);
+  if (!item) return;
 
-    try {
-      await api.put(`/cart/update/${productId}`, { quantity: qty });
-      fetchCart();
-    } catch {
-      alert("Failed to update qty");
-    }
-  };
+  if (qty < 1) return;
+  if (qty > item.product.stock) return;
 
+  setCartItems(prev =>
+    prev.map(i =>
+      i.product._id === productId
+        ? { ...i, quantity: qty }
+        : i
+    )
+  );
+  try {
+    await api.put(`/cart/update/${productId}`, { quantity: qty });
+  } catch {
+    fetchCart();
+  }
+};
+
+  /* ================= TOTAL ================= */
   const total = cartItems.reduce((sum, item) => {
     if (!item.product) return sum;
     return sum + item.product.price * item.quantity;
   }, 0);
 
-  const placeOrder = () => {
-    setShowAddress(true);
+  const placeOrder = async () => {
+    await loadAddresses();
+    setShowAddressModal(true);
   };
 
   const confirmOrder = async () => {
-    if (!address) {
-      alert("Enter address");
+    if (!selectedAddress) {
+      alert("Select address");
       return;
     }
 
-    try {
-      await api.post("/orders/checkout", { address });
-      alert("Order placed!");
-      setShowAddress(false);
-      fetchCart();
-      navigate("/");
-    } catch {
-      alert("Checkout failed");
-    }
+    await api.post("/orders/checkout", {
+      address: selectedAddress
+    });
+
+    alert("Order placed");
+    setShowAddressModal(false);
+    fetchCart();
   };
 
-  if (loading) return <div className="loader-container"><div className="loader"></div></div>;
+  const addAddress = async () => {
+    await api.post("/vendor/addresses", newAddress);
+    setNewAddress({ label: "", line1: "", city: "", pincode: "" });
+    loadAddresses();
+  };
+
+  const deleteAddress = async (index) => {
+    await api.delete(`/vendor/addresses/${index}`);
+    loadAddresses();
+  };
+
+  const formatAddress = (a) =>
+    `${a.line1}, ${a.city} - ${a.pincode}`;
+
+  const updateAddress = async () => {
+    await api.put(`/vendor/addresses/${editingIndex}`, newAddress);
+
+    setEditingIndex(null);
+    setNewAddress({
+      label: "",
+      line1: "",
+      city: "",
+      pincode: ""
+    });
+
+    loadAddresses();
+  };
+
+  if (loading)
+    return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
-    <div className="cart-page-root">
-      <Header title="Shopping Cart" />
+    <VendorLayout>
+      <Header title="Cart" />
 
-      <main className="cart-main-content">
-        <h2 className="page-title">Your Cart ({cartItems.length} items)</h2>
+      <main className="vendor-main">
+        <div className="cart-page-root">
 
-        {cartItems.length === 0 ? (
-          <div className="empty-cart-state">
-            <div className="empty-icon">🛒</div>
-            <h3>Your cart is empty</h3>
-            <p>Looks like you haven't added anything to your cart yet.</p>
-            <button className="btn-primary" onClick={() => navigate("/vendor")}>Start Shopping</button>
-          </div>
-        ) : (
-          <div className="cart-grid">
-            {/* Left Side: Items List */}
-            <div className="cart-items-list">
-              {cartItems
-                .filter(item => item.product) // 🔑 skip null products
-                .map((item) => (
+          <h2 className="page-title">Your Cart ({cartItems.length} items)</h2>
+
+          {cartItems.length === 0 ? (
+            <div className="empty-cart-state">
+              <div className="empty-icon">🛒</div>
+              <h3>Your cart is empty</h3>
+              <button className="btn-primary" onClick={() => navigate("/vendor")}>
+                Start Shopping
+              </button>
+            </div>
+          ) : (
+            <div className="cart-grid">
+              <div className="cart-items-list">
+                {cartItems.filter(i => i.product).map((item) => (
                   <div className="admin-card cart-item-card" key={item.product._id}>
                     <img
                       src={`http://localhost:5000/uploads/${item.product.image}`}
-                      alt={item.product.name}
+                      alt=""
                       className="cart-item-img"
                     />
 
                     <div className="cart-item-info">
                       <h4>{item.product.name}</h4>
-                      <p className="vendor-name">Sold by: {item.product.vendorName || "Verified Vendor"}</p>
                       <div className="cart-item-details">
                         <span className="unit-price">₹{item.product.price}</span>
-                        <div className="qty-box">
+
                           <button
                             className="qty-btn"
                             onClick={() => updateQty(item.product._id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
                           >
                             −
                           </button>
 
-                          <span className="qty-number">{item.quantity}</span>
+                          <input
+                            type="number"
+                            className="qty-input"
+                            value={item.quantity}
+                            min="1"
+                            max={item.product.stock}
+                            onChange={(e) => {
+                              let val = Number(e.target.value);
+
+                              if (isNaN(val)) return;
+                              if (val < 1) val = 1;
+                              if (val > item.product.stock) val = item.product.stock;
+
+                              updateQty(item.product._id, val);
+                            }}
+                          />
 
                           <button
                             className="qty-btn"
                             onClick={() => updateQty(item.product._id, item.quantity + 1)}
+                            disabled={item.quantity >= item.product.stock}
                           >
                             +
                           </button>
-                        </div>
+
                       </div>
                     </div>
 
                     <div className="cart-item-actions">
-                      <p className="subtotal-price">₹{item.product.price * item.quantity}</p>
+                      <p className="subtotal-price">
+                        ₹{item.product.price * item.quantity}
+                      </p>
                       <button className="btn-remove" onClick={() => removeItem(item.product._id)}>
                         Remove
                       </button>
                     </div>
                   </div>
                 ))}
-            </div>
-
-            {/* Right Side: Summary Card */}
-            <aside className="cart-summary-sidebar">
-              <div className="admin-card summary-card">
-                <h3>Order Summary</h3>
-                <div className="summary-row">
-                  <span>Subtotal</span>
-                  <span>₹{total}</span>
-                </div>
-                <div className="summary-row">
-                  <span>Shipping</span>
-                  <span className="free-text">FREE</span>
-                </div>
-                <div className="summary-row">
-                  <span>Tax (GST)</span>
-                  <span>₹0.00</span>
-                </div>
-                <hr className="summary-divider" />
-                <div className="summary-row total">
-                  <span>Total Amount</span>
-                  <span>₹{total}</span>
-                </div>
-
-                <button
-                  className="btn-checkout"
-                  onClick={placeOrder}
-                  disabled={cartItems.length === 0}
-                >
-                  Proceed to Checkout
-                </button>
-
-                <p className="secure-text">🔒 Secure SSL Encrypted Checkout</p>
               </div>
-            </aside>
-          </div>
-        )}
-      </main>
-      {showAddress && (
-        <div className="address-modal">
-          <div className="address-box">
-            <h3>Select Delivery Address</h3>
 
-            <textarea
-              placeholder="Enter delivery address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
+              <aside className="cart-summary-sidebar">
+                <div className="admin-card summary-card">
+                  <h3>Order Summary</h3>
+                  <div className="summary-row total">
+                    <span>Total</span>
+                    <span>₹{total}</span>
+                  </div>
 
-            <div className="address-actions">
-              <button onClick={confirmOrder} className="btn-checkout">
-                Confirm Order
-              </button>
-
-              <button
-                onClick={() => setShowAddress(false)}
-                className="btn-cancel"
-              >
-                Cancel
-              </button>
+                  <button className="btn-checkout" onClick={placeOrder}>
+                    Proceed to Checkout
+                  </button>
+                </div>
+              </aside>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      <Footer />
-    </div>
+          {/* ================= ADDRESS MODAL ================= */}
+          {showAddressModal && (
+            <div className="address-modal">
+              <div className="address-box pro-checkout">
+                <div className="pro-left">
+                  <h3>Select Delivery Address</h3>
+
+                  <div className="address-list">
+                    {addresses.map((a, i) => (
+                      <div
+                        key={i}
+                        className={`address-card ${selectedAddress === formatAddress(a) ? "selected" : ""}`}
+                        onClick={() => setSelectedAddress(formatAddress(a))}
+                      >
+                        <input
+                          type="radio"
+                          checked={selectedAddress === formatAddress(a)}
+                          onChange={() => setSelectedAddress(formatAddress(a))}
+                        />
+
+                        <div>
+                          <strong>{a.label}</strong>
+                          <p>{formatAddress(a)}</p>
+
+                          <div className="address-actions-row">
+                            <button
+                              className="btn-edit-address"
+                              onClick={() => {
+                                setEditingIndex(i);
+                                setNewAddress({
+                                  label: a.label || "",
+                                  line1: a.line1 || "",
+                                  city: a.city || "",
+                                  pincode: a.pincode || ""
+                                });
+                              }}
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              className="btn-delete-address"
+                              onClick={() => deleteAddress(i)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="add-address-section">
+                    <h4>Add New Address</h4>
+
+                    <input
+                      placeholder="Label (Home / Shop)"
+                      value={newAddress.label}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, label: e.target.value })
+                      }
+                    />
+                    <input
+                      placeholder="Address line"
+                      value={newAddress.line1}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, line1: e.target.value })
+                      }
+                    />
+                    <input
+                      placeholder="City"
+                      value={newAddress.city}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, city: e.target.value })
+                      }
+                    />
+                    <input
+                      placeholder="Pincode"
+                      value={newAddress.pincode}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, pincode: e.target.value })
+                      }
+                    />
+
+                    <button
+                      className="btn-save-address"
+                      onClick={editingIndex !== null ? updateAddress : addAddress}
+                    >
+                      {editingIndex !== null ? "Update Address" : "Save Address"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pro-right">
+                  <h3>Order Summary</h3>
+
+                  <div className="summary-row">
+                    <span>Items</span>
+                    <span>{cartItems.length}</span>
+                  </div>
+
+                  <div className="summary-row">
+                    <span>Total</span>
+                    <strong>₹{total}</strong>
+                  </div>
+
+                  <button className="btn-checkout" onClick={confirmOrder}>
+                    Confirm Order
+                  </button>
+
+                  <button
+                    className="btn-cancel"
+                    onClick={() => setShowAddressModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Footer />
+        </div>
+      </main>
+    </VendorLayout>
   );
 }

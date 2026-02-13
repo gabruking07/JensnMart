@@ -3,6 +3,7 @@ import api from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./VendorProfile.css";
+import VendorLayout from "./VendorLayout";
 
 export default function VendorProfile({ darkMode, setDarkMode }) {
   const [vendor, setVendor] = useState(null);
@@ -47,7 +48,7 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
       setPincode(v.address?.pincode || "");
       setCountry(v.address?.country || "India");
 
-  
+
     } catch (err) {
     }
   };
@@ -90,19 +91,19 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
   };
 
   const onProfileImageChange = async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  try {
-    const formData = new FormData();
-    formData.append("profileImage", file);
-    await api.put("/vendor/profile", formData);
-    await loadProfile();
+    try {
+      const formData = new FormData();
+      formData.append("profileImage", file);
+      await api.put("/vendor/profile", formData);
+      await loadProfile();
 
-  } catch (err) {
-    alert("Image upload failed");
-  }
-};
+    } catch (err) {
+      alert("Image upload failed");
+    }
+  };
 
   const profileImageSrc = getProfileImageUrl(vendor?.profileImage);
   const avatarLabel = (name || vendor?.name || "V").charAt(0).toUpperCase();
@@ -116,119 +117,120 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
   }
 
   return (
-    <div className={`profile-page-root ${darkMode ? "dark-mode" : ""}`}>
-      <Header title="Account Settings" darkMode={darkMode} setDarkMode={setDarkMode} />
+    <VendorLayout>
+      <Header title="Profile" />
+      <main className="vendor-main">
+        <div className="profile-page-root" >
+            <div className="profile-grid">
 
-      <main className="profile-content">
-        <div className="profile-grid">
+              {/* LEFT */}
+              <section className="profile-sidebar">
+                <div className="admin-card user-info-card">
 
-          {/* LEFT */}
-          <section className="profile-sidebar">
-            <div className="admin-card user-info-card">
+                  <div className="profile-avatar-wrap">
+                    {vendor?.profileImage ? (
+                      <img
+                        src={getProfileImageUrl(vendor.profileImage)}
+                        className="profile-avatar-image"
+                      />
+                    ) : (
+                      <div className="profile-avatar">
+                        {(vendor?.name || "V").charAt(0).toUpperCase()}
+                      </div>
+                    )}
 
-              <div className="profile-avatar-wrap">
-                {vendor?.profileImage ? (
-                  <img
-                    src={getProfileImageUrl(vendor.profileImage)}
-                    className="profile-avatar-image"
-                  />
-                ) : (
-                  <div className="profile-avatar">
-                    {(vendor?.name || "V").charAt(0).toUpperCase()}
+                    <button
+                      type="button"
+                      className="camera-upload-btn"
+                      onClick={() => fileInputRef.current.click()}
+                    >
+                      📷
+                    </button>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={onProfileImageChange}
+                    />
                   </div>
-                )}
 
-                <button
-                  type="button"
-                  className="camera-upload-btn"
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  📷
-                </button>
+                  <h2>{vendor.name}</h2>
+                  <p className="profile-email">{vendor.email}</p>
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={onProfileImageChange}
-                />
-              </div>
+                  <div className={`status-pill ${vendor.approved ? "status-approved" : "status-pending"}`}>
+                    {vendor.approved ? "Verified Vendor" : "Pending Verification"}
+                  </div>
+                </div>
+              </section>
 
-              <h2>{vendor.name}</h2>
-              <p className="profile-email">{vendor.email}</p>
+              {/* RIGHT */}
+              <section className="profile-main">
+                <div className="admin-card edit-profile-card">
+                  <h3>Edit Profile</h3>
 
-              <div className={`status-pill ${vendor.approved ? "status-approved" : "status-pending"}`}>
-                {vendor.approved ? "Verified Vendor" : "Pending Verification"}
-              </div>
+                  <div className="profile-form">
+                    <div className="form-group">
+                      <label>Name</label>
+                      <input value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Email</label>
+                      <input value={vendor.email} disabled />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Phone</label>
+                      <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Address Line 1</label>
+                      <input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Address Line 2</label>
+                      <input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} />
+                    </div>
+
+                    <div className="form-row">
+                      <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
+                      <input value={state} onChange={(e) => setState(e.target.value)} placeholder="State" />
+                    </div>
+
+                    <div className="form-row">
+                      <input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Pincode" />
+                      <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" />
+                    </div>
+
+                    <div className="form-group">
+                      <label>New Password</label>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Leave blank to keep"
+                      />
+                    </div>
+
+                    <button
+                      className="btn-save-profile"
+                      onClick={updateProfile}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
+                </div>
+              </section>
             </div>
-          </section>
 
-          {/* RIGHT */}
-          <section className="profile-main">
-            <div className="admin-card edit-profile-card">
-              <h3>Edit Profile</h3>
-
-              <div className="profile-form">
-                <div className="form-group">
-                  <label>Name</label>
-                  <input value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                  <label>Email</label>
-                  <input value={vendor.email} disabled />
-                </div>
-
-                <div className="form-group">
-                  <label>Phone</label>
-                  <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                  <label>Address Line 1</label>
-                  <input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                  <label>Address Line 2</label>
-                  <input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} />
-                </div>
-
-                <div className="form-row">
-                  <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
-                  <input value={state} onChange={(e) => setState(e.target.value)} placeholder="State" />
-                </div>
-
-                <div className="form-row">
-                  <input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Pincode" />
-                  <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" />
-                </div>
-
-                <div className="form-group">
-                  <label>New Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Leave blank to keep"
-                  />
-                </div>
-
-                <button
-                  className="btn-save-profile"
-                  onClick={updateProfile}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </div>
-          </section>
+          <Footer />
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </VendorLayout>
   );
 }
