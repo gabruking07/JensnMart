@@ -11,35 +11,84 @@ const approvedVendorOnly = require("../middleware/approveVendorOnly");
 const roleOnly = require("../middleware/adminOnly");
 
 /* =====================================================
-   STATUS CONSTANTS
+   PLACE ORDER (VENDOR ONLY)
+   POST /api/orders/buy/:productId
 ===================================================== */
-const ORDER_STATUSES = [
-  "Placed",
-  "Processing",
-  "Shipped",
-  "Delivered",
-  "Returned",
-  "Completed",
-  "Cancelled",
-];
+router.post("/buy/:productId", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "vendor") {
+      return res.status(403).json({ message: "Only vendors can buy products" });
+    }
+
+    const { qty } = req.body;
+    const { productId } = req.params;
+
+    if (!qty || qty <= 0) {
+      return res.status(400).json({ message: "Invalid quantity" });
+    }
+
+    const vendor = await Vendor.findById(req.user.id);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (product.stock < qty) {
+      return res.status(400).json({ message: "Insufficient stock" });
+    }
+
+    product.stock -= qty;
+    await product.save();
+
+    const total = product.price * qty;
+    const adminCommission = total * 0.1;
+
+    const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
+
+    const newNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
+
+    const order = await Order.create({
+      orderNumber: newNumber,
+      vendor: vendor._id,
+      products: [
+        {
+          orderNumber: newNumber,
+          productId: product._id,
+          name: product.name,
+          price: product.price,
+          qty
+        }
+      ],
+      total,
+      adminCommission,
+      status: "Placed"
+    });
+
+    res.json({ message: "Order placed successfully", order });
+  } catch (err) {
+    console.error("BUY ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 /* =====================================================
-   SAFE ORDER NUMBER GENERATOR
+   GET VENDOR ORDERS (VENDOR ONLY)
 ===================================================== */
-const generateOrderNumber = async () => {
-  const lastOrder = await Order.findOne({
-    orderNumber: { $exists: true }
-  }).sort({ orderNumber: -1 });
-
-  if (!lastOrder || typeof lastOrder.orderNumber !== "number") {
-    return 1;
+router.get("/vendor/orders", authMiddleware, async (req, res) => {
+  if (req.user.role !== "vendor") {
+    return res.status(403).json({ message: "Access denied" });
   }
 
-  return lastOrder.orderNumber + 1;
-};
+  const orders = await Order.find({ vendor: req.user.id });
+  res.json(orders);
+});
 
 /* =====================================================
-   CHECKOUT CART
+   CHECKOUT CART (VENDOR ONLY)
 ===================================================== */
 router.post(
   "/checkout",
@@ -56,14 +105,11 @@ router.post(
         return res.status(400).json({ message: "Cart is empty" });
       }
 
-      const newNumber = await generateOrderNumber();
-
       let total = 0;
       const products = [];
 
       for (const item of cart.items) {
         const product = item.product;
-        if (!product) continue;
 
         if (product.stock < item.quantity) {
           return res.status(400).json({
@@ -77,6 +123,7 @@ router.post(
         total += product.price * item.quantity;
 
         products.push({
+          orderNumber: newNumber,
           productId: product._id,
           name: product.name,
           price: product.price,
@@ -85,9 +132,9 @@ router.post(
         });
       }
 
-      if (products.length === 0) {
-        return res.status(400).json({ message: "Invalid cart items" });
-      }
+      const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
+
+      const newNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
 
       const adminCommission = total * 0.1;
 
@@ -97,17 +144,13 @@ router.post(
         products,
         total,
         adminCommission,
-        status: "Processing",
-        statusHistory: [
-          { status: "Processing", updatedAt: new Date() }
-        ]
+        status: "Placed"
       });
 
       cart.status = "ordered";
       await cart.save();
 
       res.json({ message: "Order placed successfully", order });
-
     } catch (err) {
       console.error("CHECKOUT ERROR:", err);
       res.status(500).json({ message: "Checkout failed" });
@@ -116,116 +159,55 @@ router.post(
 );
 
 /* =====================================================
-   GET VENDOR ORDERS
-===================================================== */
-router.get("/vendor/orders", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "vendor") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
-    const orders = await Order.find({ vendor: req.user.id })
-      .sort({ createdAt: -1 });
-
-    res.json(orders);
-
-  } catch (err) {
-    console.error("VENDOR ORDERS ERROR:", err);
-    res.status(500).json({ message: "Failed to fetch orders" });
-  }
-});
-
-/* =====================================================
    GET ALL ORDERS (ADMIN + MANAGER)
+   GET /api/orders/admin
 ===================================================== */
 router.get("/admin", authMiddleware, async (req, res) => {
-  try {
-    if (!["admin", "manager"].includes(req.user.role)) {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
-    const orders = await Order.find()
-      .populate("vendor", "name email")
-      .sort({ createdAt: -1 });
-
-    res.json(orders);
-
-  } catch (err) {
-    console.error("ADMIN FETCH ERROR:", err);
-    res.status(500).json({ message: "Failed to fetch orders" });
+  if (!["admin", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Access denied" });
   }
+
+  const orders = await Order.find()
+    .populate("vendor", "name email")
+    .sort({ createdAt: -1 });
+
+  res.json(orders);
 });
 
 /* =====================================================
-   UPDATE ORDER STATUS
+   UPDATE ORDER STATUS (ADMIN + MANAGER)
 ===================================================== */
 router.put("/status/:id", authMiddleware, async (req, res) => {
-  try {
-    if (!["admin", "manager"].includes(req.user.role)) {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
-    const { status } = req.body;
-
-    if (!ORDER_STATUSES.includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
-
-    const order = await Order.findById(req.params.id);
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
-    if (status === "Returned" && order.status !== "Returned") {
-      for (const item of order.products) {
-        const product = await Product.findById(item.productId);
-        if (product) {
-          product.stock += item.qty;
-          await product.save();
-        }
-      }
-    }
-
-    if (order.status !== status) {
-      order.status = status;
-      order.statusHistory.push({
-        status,
-        updatedAt: new Date(),
-      });
-    }
-
-    await order.save();
-
-    res.json(order);
-
-  } catch (err) {
-    console.error("STATUS UPDATE ERROR:", err);
-    res.status(500).json({ message: "Status update failed" });
+  if (!["admin", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Access denied" });
   }
+
+  const { status } = req.body;
+
+  if (!["Placed", "Completed", "Cancelled"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { status },
+    { new: true }
+  );
+
+  if (!order) {
+    return res.status(404).json({ message: "Order not found" });
+  }
+
+  res.json(order);
 });
 
 /* =====================================================
-   ADMIN COMMISSION
+   ADMIN COMMISSION (ADMIN ONLY)
 ===================================================== */
-router.get(
-  "/commission",
-  authMiddleware,
-  roleOnly("admin"),
-  async (req, res) => {
-    try {
-      const orders = await Order.find();
-      const total = orders.reduce(
-        (sum, o) => sum + o.adminCommission,
-        0
-      );
-
-      res.json({ total });
-
-    } catch (err) {
-      console.error("COMMISSION ERROR:", err);
-      res.status(500).json({ message: "Failed to calculate commission" });
-    }
-  }
-);
+router.get("/commission", authMiddleware, roleOnly("admin"), async (req, res) => {
+  const orders = await Order.find();
+  const total = orders.reduce((sum, o) => sum + o.adminCommission, 0);
+  res.json({ total });
+});
 
 module.exports = router;
