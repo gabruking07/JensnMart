@@ -31,3 +31,53 @@
   margin-top: 12px;
   font-weight: bold;
 }
+
+.status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: white;
+  font-weight: 500;
+}
+
+.processing {
+  background: orange;
+}
+
+.shipped {
+  background: #3b82f6;
+}
+
+.delivered {
+  background: #10b981;
+}
+
+.returned {
+  background: #ef4444;
+}
+
+.completed {
+  background: #10b981;
+}
+
+.cancelled {
+  background: #991b1b;
+}
+
+.placed {
+  background: #2563eb;
+}
+
+.status-history-box {
+  margin-top: 15px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-top: 6px;
+}

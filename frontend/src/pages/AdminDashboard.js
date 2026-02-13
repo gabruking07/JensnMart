@@ -10,6 +10,15 @@ import Footer from "../components/Footer";
 import ConfirmModal from "../components/ConfirmModal";
 import { Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
+const ORDER_STATUS_OPTIONS = [
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Returned",
+  "Completed",
+  "Cancelled",
+];
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -274,7 +283,7 @@ export default function AdminDashboard() {
   });
 
   const completedOrders = filteredReportOrders.filter(
-    o => o.status === "Completed"
+    o => ["Delivered", "Completed"].includes(o.status)
   );
 
   const analytics = {
@@ -705,14 +714,20 @@ export default function AdminDashboard() {
     return `hsl(${hue}, 60%, 30%)`;
   };
 
-  const placedCount = filteredReportOrders.filter(o => o.status === "Placed").length;
+  const processingCount = filteredReportOrders.filter(o => o.status === "Processing").length;
+  const shippedCount = filteredReportOrders.filter(o => o.status === "Shipped").length;
+  const deliveredCount = filteredReportOrders.filter(o => o.status === "Delivered").length;
+  const returnedCount = filteredReportOrders.filter(o => o.status === "Returned").length;
   const completedCount = filteredReportOrders.filter(o => o.status === "Completed").length;
   const cancelledCount = filteredReportOrders.filter(o => o.status === "Cancelled").length;
 
   const orderStatusData = [
-    { name: "Placed", value: placedCount, color: "#f59e0b" },
+    { name: "Processing", value: processingCount, color: "#f59e0b" },
+    { name: "Shipped", value: shippedCount, color: "#3b82f6" },
+    { name: "Delivered", value: deliveredCount, color: "#22c55e" },
+    { name: "Returned", value: returnedCount, color: "#ef4444" },
     { name: "Completed", value: completedCount, color: "#22c55e" },
-    { name: "Cancelled", value: cancelledCount, color: "#ef4444" }
+    { name: "Cancelled", value: cancelledCount, color: "#991b1b" }
   ];
 
   const getSubcategoryColor = (key = "") => {
@@ -1333,8 +1348,8 @@ export default function AdminDashboard() {
             <div className="orders-container">
               <div className="orders-stats">
                 <div className="stat-card">
-                  <p>Placed</p>
-                  <h2>{placedCount}</h2>
+                  <p>Processing</p>
+                  <h2>{processingCount}</h2>
                 </div>
 
                 <div className="stat-card">
@@ -1361,9 +1376,11 @@ export default function AdminDashboard() {
                   onChange={e => setStatusFilter(e.target.value)}
                 >
                   <option value="all">All Status</option>
-                  <option value="Placed">Placed</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Cancelled">Cancelled</option>
+                  {ORDER_STATUS_OPTIONS.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
                 </select>
 
                 <input
@@ -1430,9 +1447,11 @@ export default function AdminDashboard() {
                           requestStatusChange(o._id, e.target.value)
                         }
                       >
-                        <option value="Placed">Placed</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
+                        {ORDER_STATUS_OPTIONS.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
                       </select><br /> <br />
                     </div>
                   </div>
