@@ -48,6 +48,17 @@
   background:#1e293b;
 }
 
+.side-link.active{
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+}
+
+.side-link.logout{
+  margin-top:auto;
+  background:#111827;
+}
+
 .vendor-content{
   margin-left:100px;
   width:100%;
@@ -55,9 +66,4 @@
   background:#f5f6f8;
   display:flex;
   flex-direction:column;
-}
-
-.logout{
-  margin-top:auto;
-  background:#111827;
 }
