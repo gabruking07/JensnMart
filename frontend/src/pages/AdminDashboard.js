@@ -113,22 +113,22 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (activeTab !== "reports") return;
 
+    const refreshReports = () => {
+      Promise.allSettled([
+        fetchOrders(),
+        fetchVendors(),
+        fetchProducts(),
+      ]);
+    };
+
+    refreshReports();
+
     const interval = setInterval(() => {
-      fetchOrders();
-      fetchVendors();
-      fetchProducts();
+      refreshReports();
     }, 10000); // refresh every 10s
 
     return () => clearInterval(interval);
   }, [activeTab]);
-
-  useEffect(() => {
-    fetch("/api/admin/orders", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setOrders(data));
-  }, []);
 
   useEffect(() => {
     fetchProducts(selectedCategory);
@@ -141,8 +141,7 @@ export default function AdminDashboard() {
         fetchOrders(),
         fetchCategories(),
         fetchProducts(),
-        fetchSubcategories(),
-        fetchPendingAdmins()
+        fetchSubcategories()
       ];
 
       if (role === "admin") {
@@ -188,8 +187,16 @@ export default function AdminDashboard() {
   };
 
   const fetchVendors = async () => {
-    const res = await api.get("/admin/vendors");
-    setVendors(res.data || []);
+    try {
+      const res = await api.get("/admin/vendors");
+      setVendors(res.data || []);
+    } catch (err) {
+      if (err.response?.status === 403) {
+        setVendors([]);
+        return;
+      }
+      throw err;
+    }
   };
 
   const fetchProducts = async (category = "") => {
@@ -200,8 +207,16 @@ export default function AdminDashboard() {
   };
 
   const fetchOrders = async () => {
-    const res = await api.get("/orders/admin");
-    setOrders(res.data || []);
+    try {
+      const res = await api.get("/orders/admin");
+      setOrders(res.data || []);
+    } catch (err) {
+      if (err.response?.status === 403) {
+        setOrders([]);
+        return;
+      }
+      throw err;
+    }
   };
 
   const fetchCategories = async () => {
