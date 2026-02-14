@@ -20,10 +20,9 @@ export default function VendorDashboard() {
   const [subcategories, setSubcategories] = useState([]);
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  // const [maxPrice, setMaxPrice] = useState(0);
-  // const [priceRange, setPriceRange] = useState(0);
-  // const [minPrice, setMinPrice] = useState(0);
-  // const [realMax, setRealMax] = useState(0);
+  const [editingQty, setEditingQty] = useState(null);
+  const [qtyValue, setQtyValue] = useState("");
+
   const [sortBy, setSortBy] = useState("");
 
   useEffect(() => {
@@ -112,6 +111,20 @@ export default function VendorDashboard() {
   if (sortBy === "bestsell") {
     filteredProducts.sort((a, b) => (b.sold || 0) - (a.sold || 0));
   }
+
+  const saveQty = (productId, stock) => {
+    let val = Number(qtyValue);
+
+    if (isNaN(val) || val < 1) val = 1;
+    if (val > stock) val = stock;
+
+    setCartQty(prev => ({
+      ...prev,
+      [productId]: val
+    }));
+
+    setEditingQty(null);
+  };
 
   const handleSortChange = (value) => {
     setSortBy(value);
@@ -225,9 +238,44 @@ export default function VendorDashboard() {
 
                     <div className="v-purchase-zone">
                       <div className="v-qty-selector">
-                        <button onClick={() => decreaseQty(p._id)}>-</button>
-                        <span>{cartQty[p._id] || 1}</span>
-                        <button onClick={() => increaseQty(p._id)}>+</button>
+                        <button
+                          onClick={() => decreaseQty(p._id)}
+                          disabled={(cartQty[p._id] || 1) <= 1}
+                        >
+                          −
+                        </button>
+
+                        {editingQty === p._id ? (
+                          <input
+                            className="qty-input"
+                            value={qtyValue}
+                            autoFocus
+                            onChange={(e) => setQtyValue(e.target.value)}
+                            onBlur={() => saveQty(p._id, p.stock)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveQty(p._id, p.stock);
+                              if (e.key === "Escape") setEditingQty(null);
+                            }}
+                          />
+                        ) : (
+                          <span
+                            className="qty-number"
+                            onClick={() => {
+                              setEditingQty(p._id);
+                              setQtyValue(cartQty[p._id] || 1);
+                            }}
+                            style={{ cursor: "pointer" }}
+                          >
+                            {cartQty[p._id] || 1}
+                          </span>
+                        )}
+
+                        <button
+                          onClick={() => increaseQty(p._id)}
+                          disabled={(cartQty[p._id] || 1) >= p.stock}
+                        >
+                          +
+                        </button>
                       </div>
 
                       <button
