@@ -38,7 +38,11 @@ const ProductSchema = new mongoose.Schema(
       default: null
     },
 
-    // Optional: which vendor supplies this product
+    sold: {
+      type: Number,
+      default: 0
+    },
+
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",

@@ -12,12 +12,6 @@ export default function VendorDashboard() {
   const location = useLocation();
   const [approved, setApproved] = useState(false);
 
-  useEffect(() => {
-    api.get("/vendor/profile").then(res => {
-      setApproved(res.data.approved);
-    });
-  }, []);
-
   const [products, setProducts] = useState([]);
   const [cartQty, setCartQty] = useState({});
   const [loading, setLoading] = useState(true);
@@ -26,22 +20,36 @@ export default function VendorDashboard() {
   const [subcategories, setSubcategories] = useState([]);
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [maxPrice, setMaxPrice] = useState(0);
-  const [priceRange, setPriceRange] = useState(0);
-  const [minPrice, setMinPrice] = useState(0);
-  const [realMax, setRealMax] = useState(0);
+  // const [maxPrice, setMaxPrice] = useState(0);
+  // const [priceRange, setPriceRange] = useState(0);
+  // const [minPrice, setMinPrice] = useState(0);
+  // const [realMax, setRealMax] = useState(0);
+  const [sortBy, setSortBy] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    const init = async () => {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
 
-    if (!token || role !== "vendor") {
-      navigate("/");
-      return;
-    }
+      if (!token || role !== "vendor") {
+        navigate("/");
+        return;
+      }
 
-    fetchProducts();
-    fetchCategories();
+      try {
+        const profileRes = await api.get("/vendor/profile");
+        setApproved(profileRes.data.approved);
+
+        await fetchProducts();
+        await fetchCategories();
+      } catch (err) {
+        console.error("Init error", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
   }, []);
 
   useEffect(() => {
@@ -64,26 +72,9 @@ export default function VendorDashboard() {
     fetchSub();
   }, [selectedCategory]);
 
-  const fetchProducts = async () => {
-    try {
-      const res = await api.get("/products");
-      const data = res.data || [];
-
-      setProducts(data);
-
-      if (data.length > 0) {
-        const prices = data.map(p => p.price);
-        const actualMax = Math.max(...prices);
-        const roundedMax = Math.ceil(actualMax / 100) * 100;
-        setRealMax(actualMax);
-        setMaxPrice(roundedMax);
-        setPriceRange([0, roundedMax]);
-      }
-    } catch (err) {
-      console.error("Product fetch failed", err);
-    } finally {
-      setLoading(false);
-    }
+  const fetchProducts = async (sort = "") => {
+    const res = await api.get(`/products?sort=${sort}`);
+    setProducts(res.data || []);
   };
 
   const fetchCategories = async () => {
@@ -91,7 +82,7 @@ export default function VendorDashboard() {
     setCategories(res.data || []);
   };
 
-  const filteredProducts = products.filter((p) => {
+  let filteredProducts = products.filter((p) => {
     const matchCategory =
       !selectedCategory || p.category?._id === selectedCategory;
 
@@ -101,12 +92,31 @@ export default function VendorDashboard() {
     const matchSearch =
       p.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchPrice =
-      p.price >= priceRange[0] &&
-      p.price <= priceRange[1];
-
-    return matchCategory && matchSubcategory && matchSearch && matchPrice;
+    return matchCategory && matchSubcategory && matchSearch;
   });
+
+  if (sortBy === "priceHigh") {
+    filteredProducts.sort((a, b) => b.price - a.price);
+  }
+
+  if (sortBy === "priceLow") {
+    filteredProducts.sort((a, b) => a.price - b.price);
+  }
+
+  if (sortBy === "new") {
+    filteredProducts.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+  }
+
+  if (sortBy === "bestsell") {
+    filteredProducts.sort((a, b) => (b.sold || 0) - (a.sold || 0));
+  }
+
+  const handleSortChange = (value) => {
+    setSortBy(value);
+    fetchProducts(value);
+  };
 
   const increaseQty = (id) => {
     setCartQty((prev) => ({ ...prev, [id]: (prev[id] || 1) + 1 }));
@@ -181,52 +191,22 @@ export default function VendorDashboard() {
               {/* SEARCH */}
               <div className="filter-item">
                 <label>Search</label>
-                <input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               </div>
 
               {/*  Price Range Slider */}
               <div className="filter-item">
-                <label className="filter-label">Price Range</label>
-                <div className="price-pill-row">
-                  <span className="price-val">₹{priceRange[0].toLocaleString()}</span>
-
-                  <div className="slider-track-box">
-                    {/* <input
-                    type="range"
-                    min={minPrice}
-                    max={maxPrice}
-                    step="100"
-                    value={priceRange[0]}
-                    style={{ zIndex: priceRange[0] > maxPrice / 2 ? 5 : 4 }}
-                    onChange={(e) => {
-                      const value = Math.min(Number(e.target.value), priceRange[1] - 100);
-                      setPriceRange([value, priceRange[1]]);
-                    }}
-                    className="dual-range-input"
-                  /> */}
-                    <input
-                      type="range"
-                      min={minPrice}
-                      max={maxPrice}
-                      step="100"
-                      value={priceRange[1]}
-                      style={{ zIndex: priceRange[1] < maxPrice / 2 ? 5 : 4 }}
-                      onChange={(e) => {
-                        const value = Math.max(Number(e.target.value), priceRange[0] + 100);
-                        setPriceRange([priceRange[0], value]);
-                      }}
-                      className="dual-range-input"
-                    />
-                  </div>
-
-                  <span className="price-val">₹{priceRange[1].toLocaleString()}</span>
-                </div>
-                <p style={{ fontSize: '18px', marginTop: '16px', opacity: 1 }}>
-                  Max available: ₹{realMax.toLocaleString()}
-                </p>
+                <label>Sort By</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                >
+                  <option value="">Default</option>
+                  <option value="bestsell">🔥 Most Sold</option>
+                  <option value="priceHigh">💰 Price High → Low</option>
+                  <option value="priceLow">💰 Price Low → High</option>
+                  <option value="new">🆕 New Arrivals</option>
+                </select>
               </div>
             </div>
 
