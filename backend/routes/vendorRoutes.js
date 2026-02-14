@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const authMiddleware = require("../middleware/authMiddleware");
 const Vendor = require("../models/Vendor");
 const auth = require("../middleware/authMiddleware");
 const bcrypt = require("bcryptjs");
@@ -140,7 +141,6 @@ router.get("/profile", auth, async (req, res) => {
     res.json({
       ...v,
 
-      // 🔥 THIS is critical mapping
       addressLine1: v.address?.line1 || "",
       addressLine2: v.address?.line2 || "",
       city: v.address?.city || "",
@@ -232,6 +232,74 @@ router.put("/profile", auth, upload.single("profileImage"), async (req, res) => 
   } catch (err) {
     console.log("UPDATE PROFILE ERROR:", err);
     res.status(500).json({ message: "Profile update failed" });
+  }
+});
+
+/* =====================================================
+   ADDRESS BOOK ROUTES
+   BASE: /api/vendor
+===================================================== */
+
+router.get("/addresses", authMiddleware, async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.user.id);
+    res.json(vendor.addresses || []);
+  } catch {
+    res.status(500).json({ message: "Failed to load addresses" });
+  }
+});
+
+router.post("/addresses", authMiddleware, async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.user.id);
+
+    vendor.addresses.push({
+      label: req.body.label,
+      line1: req.body.line1,
+      city: req.body.city,
+      state: req.body.state || "",
+      pincode: req.body.pincode
+    });
+
+    await vendor.save();
+    res.json(vendor.addresses);
+  } catch {
+    res.status(500).json({ message: "Add failed" });
+  }
+});
+
+router.put("/addresses/:index", authMiddleware, async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.user.id);
+    const i = Number(req.params.index);
+
+    if (!vendor.addresses[i]) {
+      return res.status(400).json({ message: "Address not found" });
+    }
+
+    vendor.addresses[i] = {
+      label: req.body.label,
+      line1: req.body.line1,
+      city: req.body.city,
+      state: req.body.state || "",
+      pincode: req.body.pincode
+    };
+
+    await vendor.save();
+    res.json(vendor.addresses);
+  } catch {
+    res.status(500).json({ message: "Edit failed" });
+  }
+});
+
+router.delete("/addresses/:index", authMiddleware, async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.user.id);
+    vendor.addresses.splice(req.params.index, 1);
+    await vendor.save();
+    res.json(vendor.addresses);
+  } catch {
+    res.status(500).json({ message: "Delete failed" });
   }
 });
 

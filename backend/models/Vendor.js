@@ -22,6 +22,16 @@ const vendorSchema = new mongoose.Schema(
       pincode: { type: String, default: "" },
       country: { type: String, default: "India" }
     },
+    addresses: [
+      {
+        label: String,
+        line1: String,
+        city: String,
+        state: String,
+        pincode: String,
+        isDefault: { type: Boolean, default: false }
+      }
+    ],
 
     profileImage: {
       type: String,

@@ -41,4 +41,17 @@ router.delete("/:id", authMiddleware, roleOnly("admin"), async (req,res)=>{
   res.json({message:"Deleted"});
 });
 
+/* GET subcategories by category */
+router.get("/:categoryId/subcategories", async (req, res) => {
+  try {
+    const subs = await SubCategory.find({
+      category: req.params.categoryId
+    }).sort({ name: 1 });
+
+    res.json(subs);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch subcategories" });
+  }
+});
+
 module.exports = router;
