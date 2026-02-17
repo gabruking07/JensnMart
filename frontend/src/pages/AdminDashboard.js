@@ -903,7 +903,7 @@ export default function AdminDashboard() {
                 >
                   <option value="">All Subcategories</option>
                   {subcategories
-                    .filter(sc => !selectedCategory || sc.category._id === selectedCategory)
+                    .filter(sc => !selectedCategory || sc.category?._id === selectedCategory)
                     .map(sc => (
                       <option key={sc._id} value={sc._id}>
                         {sc.name}
@@ -1525,7 +1525,7 @@ export default function AdminDashboard() {
               >
                 <option value="">Select Subcategory</option>
                 {subcategories
-                  .filter(sc => sc.category._id === categoryId)
+                  .filter(sc => sc.category?._id === categoryId)
                   .map(sc => (
                     <option key={sc._id} value={sc._id}>
                       {sc.name}
@@ -1610,7 +1610,7 @@ export default function AdminDashboard() {
                       {!collapsedCats[c._id] && (
                         <div className="subcat-wrap">
                           {subcategories
-                            .filter(sc => sc.category._id === c._id)
+                            .filter(sc => sc.category?._id === c._id)
                             .map(sc => (
                               <div key={sc._id} className="sub-chip">
                                 {sc.name}
