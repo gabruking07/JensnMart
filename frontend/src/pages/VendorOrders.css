@@ -47,19 +47,34 @@
   font-weight:600;
 }
 
-.status.pending{
-  background:#fff3cd;
-  color:#856404;
+.status.placed{
+  background:#e5e7eb;
+  color:#111827;
+}
+
+.status.shipped{
+  background:#dbeafe;
+  color:#1d4ed8;
 }
 
 .status.completed{
-  background:#d4edda;
-  color:#155724;
+  background:#d1fae5;
+  color:#065f46;
 }
 
 .status.cancelled{
-  background:#f8d7da;
-  color:#721c24;
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.status.returned{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.status.delivered{
+  background:#d1fae5;
+  color:#000000;
 }
 
 /* ===============================
@@ -148,6 +163,21 @@
   height:40px;
   animation:spin 0.7s linear infinite;
 }
+
+.orders-filter-bar{
+  display:flex;
+  gap:12px;
+  margin-bottom:20px;
+}
+
+.orders-filter-bar select,
+.orders-filter-bar input{
+  height:36px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  padding:0 10px;
+}
+
 
 @keyframes spin{
   to{transform:rotate(360deg);}

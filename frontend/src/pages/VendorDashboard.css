@@ -54,6 +54,11 @@
   font-size:14px;
 }
 
+.filter-item-search{
+  width:240px;
+  justify-self:start;
+}
+
 .filter-item select:focus,
 .filter-item input:focus{
   outline:none;
@@ -164,6 +169,15 @@
 }
 
 /* ===== QTY ===== */
+.qty-input{
+  width:40px;
+  height:28px;
+  border:1px solid #ddd;
+  border-radius:6px;
+  text-align:center;
+  font-size:14px;
+}
+
 .v-qty-selector{
   display:flex;
   align-items:center;
