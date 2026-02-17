@@ -98,12 +98,6 @@ export default function VendorOrders() {
                 <option value="Cancelled">Cancelled</option>
               </select>
 
-              <input
-                value={searchId}
-                onChange={(e) => setSearchId(e.target.value)}
-                placeholder="Search order number"
-              />
-
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
@@ -113,6 +107,12 @@ export default function VendorOrders() {
                 <option value="week">Last 7 days</option>
                 <option value="month">Last 30 days</option>
               </select>
+
+              <input
+                value={searchId}
+                onChange={(e) => setSearchId(e.target.value)}
+                placeholder="Search order number"
+              />
 
             </div>
 
