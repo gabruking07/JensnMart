@@ -37,7 +37,8 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Insufficient stock" });
     }
 
-    product.stock -= qty;
+    product.stock -= item.quantity;
+    product.sold += item.quantity; 
     await product.save();
 
     const lastOrder = await Order.findOne().sort({ orderNumber: -1 });

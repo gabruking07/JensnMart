@@ -49,19 +49,26 @@ router.post(
 ===================================================== */
 router.get("/", async (req, res) => {
   try {
-    const { category, subcategory } = req.query;
+    const { category, subcategory, sort } = req.query;
 
     const filter = {};
 
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
 
-    const products = await Product.find(filter)
+    let query = Product.find(filter)
       .populate("category", "name")
-      .populate("subcategory", "name")   // ⭐ IMPORTANT
-      .sort({ createdAt: -1 });
+      .populate("subcategory", "name");
 
+    if (sort === "priceHigh") query = query.sort({ price: -1 });
+    else if (sort === "priceLow") query = query.sort({ price: 1 });
+    else if (sort === "new") query = query.sort({ createdAt: -1 });
+    else if (sort === "bestsell") query = query.sort({ sold: -1 });
+    else query = query.sort({ createdAt: -1 });
+
+    const products = await query;
     res.json(products);
+
   } catch (err) {
     console.error("FETCH PRODUCTS ERROR:", err);
     res.status(500).json({ message: "Failed to fetch products" });
