@@ -18,7 +18,7 @@ const ORDER_STATUS_OPTIONS = [
   "Completed",
   "Cancelled",
 ];
-{/*k*/}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -637,7 +637,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      await api.post("categories/subcategories", {
+      await api.post("/subcategories", {
         name: newSubName,
         category: parentCategoryId
       });
@@ -646,8 +646,9 @@ export default function AdminDashboard() {
       setNewSubName("");
       fetchSubcategories();
 
-    } catch {
-      toast.error("Failed");
+    } catch (err) {
+      console.log(err.response?.data);
+      toast.error("Failed to add subcategory");
     }
   };
 

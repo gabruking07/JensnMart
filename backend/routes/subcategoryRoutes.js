@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
-
 const SubCategory = require("../models/SubCategory");
 const authMiddleware = require("../middleware/authMiddleware");
-const roleOnly = require("../middleware/adminOnly"); // ← fixed
+const roleOnly = require("../middleware/adminOnly");
 
-/* CREATE */
-router.post("/", authMiddleware, roleOnly(["admin","manager"]), async (req,res)=>{
+router.post("/", authMiddleware, roleOnly("admin","manager"), async (req,res)=>{
   try{
     const { name, category } = req.body;
 
@@ -26,7 +24,6 @@ router.post("/", authMiddleware, roleOnly(["admin","manager"]), async (req,res)=
   }
 });
 
-/* GET */
 router.get("/", authMiddleware, async (req,res)=>{
   const data = await SubCategory.find()
     .populate("category","name")
@@ -35,14 +32,12 @@ router.get("/", authMiddleware, async (req,res)=>{
   res.json(data);
 });
 
-/* DELETE */
 router.delete("/:id", authMiddleware, roleOnly("admin"), async (req,res)=>{
   await SubCategory.findByIdAndDelete(req.params.id);
   res.json({message:"Deleted"});
 });
 
-/* GET subcategories by category */
-router.get("/:categoryId/subcategories", async (req, res) => {
+router.get("/:categoryId/by-category", async (req, res) => {
   try {
     const subs = await SubCategory.find({
       category: req.params.categoryId
