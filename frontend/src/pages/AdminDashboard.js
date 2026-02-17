@@ -18,7 +18,7 @@ const ORDER_STATUS_OPTIONS = [
   "Completed",
   "Cancelled",
 ];
-{/*k*/}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -637,7 +637,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      await api.post("categories/subcategories", {
+      await api.post("/subcategories", {
         name: newSubName,
         category: parentCategoryId
       });
@@ -646,8 +646,9 @@ export default function AdminDashboard() {
       setNewSubName("");
       fetchSubcategories();
 
-    } catch {
-      toast.error("Failed");
+    } catch (err) {
+      console.log(err.response?.data);
+      toast.error("Failed to add subcategory");
     }
   };
 
@@ -902,7 +903,7 @@ export default function AdminDashboard() {
                 >
                   <option value="">All Subcategories</option>
                   {subcategories
-                    .filter(sc => !selectedCategory || sc.category._id === selectedCategory)
+                    .filter(sc => !selectedCategory || sc.category?._id === selectedCategory)
                     .map(sc => (
                       <option key={sc._id} value={sc._id}>
                         {sc.name}
@@ -1524,7 +1525,7 @@ export default function AdminDashboard() {
               >
                 <option value="">Select Subcategory</option>
                 {subcategories
-                  .filter(sc => sc.category._id === categoryId)
+                  .filter(sc => sc.category?._id === categoryId)
                   .map(sc => (
                     <option key={sc._id} value={sc._id}>
                       {sc.name}
@@ -1609,7 +1610,7 @@ export default function AdminDashboard() {
                       {!collapsedCats[c._id] && (
                         <div className="subcat-wrap">
                           {subcategories
-                            .filter(sc => sc.category._id === c._id)
+                            .filter(sc => sc.category?._id === c._id)
                             .map(sc => (
                               <div key={sc._id} className="sub-chip">
                                 {sc.name}
