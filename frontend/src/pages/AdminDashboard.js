@@ -622,7 +622,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      await api.post("/subcategories", {
+      await api.post("categories/subcategories", {
         name: newSubName,
         category: parentCategoryId
       });
