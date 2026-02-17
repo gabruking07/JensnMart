@@ -508,7 +508,8 @@ export default function AdminDashboard() {
     setShowConfirm(true);
   };
 
-  const filteredOrders = orders.filter(o => {
+  const filteredOrders = orders
+  .filter(o => {
 
     if (statusFilter !== "all" && o.status !== statusFilter) {
       return false;
@@ -531,6 +532,26 @@ export default function AdminDashboard() {
     }
 
     return true;
+  })
+   .sort((a, b) => {
+
+    if (!orderSearch) {
+      return b.orderNumber - a.orderNumber;
+    }
+
+    const aNum = String(a.orderNumber);
+    const bNum = String(b.orderNumber);
+
+    if (aNum === orderSearch) return -1;
+    if (bNum === orderSearch) return 1;
+
+    const aStarts = aNum.startsWith(orderSearch);
+    const bStarts = bNum.startsWith(orderSearch);
+
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+
+    return a.orderNumber - b.orderNumber;
   });
 
   const downloadInvoice = (order) => {
@@ -1399,13 +1420,6 @@ export default function AdminDashboard() {
                   ))}
                 </select>
 
-                <input
-                  className="order-search"
-                  placeholder="Search Order #"
-                  value={orderSearch}
-                  onChange={e => setOrderSearch(e.target.value)}
-                />
-
                 <select
                   className="vendor-select"
                   value={vendorFilter}
@@ -1416,6 +1430,13 @@ export default function AdminDashboard() {
                     <option key={v._id} value={v._id}>{v.email}</option>
                   ))}
                 </select>
+
+                <input
+                  className="order-search"
+                  placeholder="Search Order #"
+                  value={orderSearch}
+                  onChange={e => setOrderSearch(e.target.value)}
+                />
 
                 <input
                   className="date-input"
