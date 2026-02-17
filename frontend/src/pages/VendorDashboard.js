@@ -52,24 +52,17 @@ export default function VendorDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!selectedCategory) {
-      setSubcategories([]);
-      setSelectedSubcategory("");
-      return;
-    }
-
-    const fetchSub = async () => {
+    const fetchSubcategories = async () => {
       try {
-        const res = await api.get(`/subcategories/${selectedCategory}/subcategories`)
+        const res = await api.get("/subcategories");
         setSubcategories(res.data || []);
-        setSelectedSubcategory("");
       } catch (err) {
         console.error("Subcategory fetch failed");
       }
     };
 
-    fetchSub();
-  }, [selectedCategory]);
+    fetchSubcategories();
+  }, []);
 
   const fetchProducts = async (sort = "") => {
     const res = await api.get(`/products?sort=${sort}`);
@@ -195,9 +188,11 @@ export default function VendorDashboard() {
                   disabled={!selectedCategory}
                 >
                   <option value="">All</option>
-                  {subcategories.map(s => (
-                    <option key={s._id} value={s._id}>{s.name}</option>
-                  ))}
+                  {subcategories
+                    .filter(s => !selectedCategory || s.category?._id === selectedCategory)
+                    .map(s => (
+                      <option key={s._id} value={s._id}>{s.name}</option>
+                    ))}
                 </select>
               </div>
 
@@ -207,7 +202,7 @@ export default function VendorDashboard() {
                 <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               </div>
 
-              {/*  Price Range Slider */}
+              {/*  Price Range */}
               <div className="filter-item">
                 <label>Sort By</label>
                 <select
