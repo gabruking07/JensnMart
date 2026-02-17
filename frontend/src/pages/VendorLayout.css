@@ -1,51 +1,62 @@
+/* =========================
+   ROOT LAYOUT
+========================= */
 .vendor-layout{
   display:flex;
   min-height:100vh;
   background:#f5f6f8;
+  font-family:Inter, sans-serif;
 }
 
+/* =========================
+   SIDEBAR
+========================= */
 .vendor-sidebar{
-  position:fixed;
-  left:0;
-  top:0;
-  height:100vh;
-  width:220px;
-  background:#0f172a;
+  width:240px;
+  background:#0b1c3f;
   color:#fff;
+  padding:20px 16px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:8px;
+  position:fixed;
+  top:0;
+  left:0;
+  bottom:0;
   z-index:1000;
-  padding:20px 16px;
+  transition:0.3s;
 }
 
+/* LOGO */
 .vendor-logo{
   display:flex;
-  flex-direction:column;     
-  align-items:center;
   justify-content:center;
-  margin-bottom:25px;
-  padding-top:10px;
+  margin-bottom:20px;
 }
 
 .vendor-logo img{
-  width: 200px;
-  height:200px;
-  margin-bottom:-120px;
+  width:350px;
+  height: 150px;
+  background-color: #cbd5e1;
+  border-radius: 80px;
 }
 
+/* LINKS */
 .side-link{
   background:transparent;
   border:none;
-  color:#fff;
+  color:#cbd5e1;
   text-align:left;
-  padding:10px 12px;
-  border-radius:8px;
+  padding:12px 14px;
+  border-radius:10px;
+  font-size:15px;
   cursor:pointer;
+  transition:0.25s;
 }
 
 .side-link:hover{
-  background:#1e293b;
+  background:#162a5c;
+  color:#fff;
 }
 
 .side-link.active{
@@ -54,16 +65,41 @@
   font-weight:600;
 }
 
+/* logout */
 .side-link.logout{
   margin-top:auto;
-  background:#111827;
+  background:#162a5c;
 }
 
+.side-link.logout:hover{
+  background:#ef4444;
+  color:#fff;
+}
+
+/* =========================
+   CONTENT AREA
+========================= */
 .vendor-content{
-  margin-left:100px;
+  padding:0;
+  overflow-x:hidden;
+  margin-left:240px;
   width:100%;
-  min-height:100vh;
-  background:#f5f6f8;
-  display:flex;
-  flex-direction:column;
+}
+
+
+/* MOBILE */
+@media (max-width:768px){
+  .vendor-layout{
+    flex-direction:column;
+  }
+
+  .vendor-sidebar{
+    width:100%;
+    flex-direction:row;
+    overflow-x:auto;
+  }
+
+  .vendor-content{
+    padding:0;
+  }
 }

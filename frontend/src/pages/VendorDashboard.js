@@ -52,24 +52,17 @@ export default function VendorDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!selectedCategory) {
-      setSubcategories([]);
-      setSelectedSubcategory("");
-      return;
-    }
-
-    const fetchSub = async () => {
+    const fetchSubcategories = async () => {
       try {
-        const res = await api.get(`/subcategories/${selectedCategory}/subcategories`)
+        const res = await api.get("/subcategories");
         setSubcategories(res.data || []);
-        setSelectedSubcategory("");
       } catch (err) {
         console.error("Subcategory fetch failed");
       }
     };
 
-    fetchSub();
-  }, [selectedCategory]);
+    fetchSubcategories();
+  }, []);
 
   const fetchProducts = async (sort = "") => {
     const res = await api.get(`/products?sort=${sort}`);
@@ -160,140 +153,106 @@ export default function VendorDashboard() {
   return (
     <VendorLayout>
       <Header title="Inventory" />
+
       <main className="vendor-main">
-        <div className="vendor-layout">
-          <div className="vendor-content">
-            {!approved && (
-              <div className="status-banner warning">
-                Pending approval — cart disabled
-              </div>
-            )}
+        {!approved && (
+          <div className="status-banner warning">
+            Pending approval — cart disabled
+          </div>
+        )}
 
-            {/* FILTER BAR */}
-            <div className="filter-row-container">
-
-              {/* CATEGORY */}
-              <div className="filter-item">
-                <label>Category</label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="">All</option>
-                  {categories.map(c => (
-                    <option key={c._id} value={c._id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* SUBCATEGORY */}
-              <div className="filter-item">
-                <label>Sub Category</label>
-                <select
-                  value={selectedSubcategory}
-                  onChange={(e) => setSelectedSubcategory(e.target.value)}
-                  disabled={!selectedCategory}
-                >
-                  <option value="">All</option>
-                  {subcategories.map(s => (
-                    <option key={s._id} value={s._id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* SEARCH */}
-              <div className="filter-item filter-item-search">
-                <label>Search</label>
-                <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-              </div>
-
-              {/*  Price Range Slider */}
-              <div className="filter-item">
-                <label>Sort By</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => handleSortChange(e.target.value)}
-                >
-                  <option value="">Default</option>
-                  <option value="bestsell">🔥 Most Sold</option>
-                  <option value="priceHigh">💰 Price High → Low</option>
-                  <option value="priceLow">💰 Price Low → High</option>
-                  <option value="new">🆕 New Arrivals</option>
-                </select>
-              </div>
-            </div>
-
-            {/* PRODUCTS */}
-            <div className="vendor-product-grid">
-              {filteredProducts.map(p => (
-                <div className="vendor-product-card" key={p._id}>
-                  <div className="v-card-img">
-                    <img src={`http://localhost:5000/uploads/${p.image}`} alt={p.name} />
-                    <span className="stock-label">{p.stock} in stock</span>
-                  </div>
-
-                  <div className="v-card-body">
-                    <h4>{p.name}</h4>
-                    <p>₹{p.price}</p>
-
-                    <div className="v-purchase-zone">
-                      <div className="v-qty-selector">
-                        <button
-                          onClick={() => decreaseQty(p._id)}
-                          disabled={(cartQty[p._id] || 1) <= 1}
-                        >
-                          −
-                        </button>
-
-                        {editingQty === p._id ? (
-                          <input
-                            className="qty-input"
-                            value={qtyValue}
-                            autoFocus
-                            onChange={(e) => setQtyValue(e.target.value)}
-                            onBlur={() => saveQty(p._id, p.stock)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") saveQty(p._id, p.stock);
-                              if (e.key === "Escape") setEditingQty(null);
-                            }}
-                          />
-                        ) : (
-                          <span
-                            className="qty-number"
-                            onClick={() => {
-                              setEditingQty(p._id);
-                              setQtyValue(cartQty[p._id] || 1);
-                            }}
-                            style={{ cursor: "pointer" }}
-                          >
-                            {cartQty[p._id] || 1}
-                          </span>
-                        )}
-
-                        <button
-                          onClick={() => increaseQty(p._id)}
-                          disabled={(cartQty[p._id] || 1) >= p.stock}
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <button
-                        className="v-add-btn"
-                        disabled={!approved}
-                        onClick={() => addToCart(p._id)}
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
-                  </div>
-                </div>
+        {/* FILTER BAR */}
+        <div className="filter-row-container">
+          {/* CATEGORY */}
+          <div className="filter-item">
+            <label>Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="">All</option>
+              {categories.map(c => (
+                <option key={c._id} value={c._id}>{c.name}</option>
               ))}
-            </div>
+            </select>
+          </div>
 
-            <Footer />
+          {/* SUBCATEGORY */}
+          <div className="filter-item">
+            <label>Sub Category</label>
+            <select
+              value={selectedSubcategory}
+              onChange={(e) => setSelectedSubcategory(e.target.value)}
+              disabled={!selectedCategory}
+            >
+              <option value="">All</option>
+              {subcategories
+                .filter(s => !selectedCategory || s.category?._id === selectedCategory)
+                .map(s => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
+                ))}
+            </select>
+          </div>
+
+          {/* SEARCH */}
+          <div className="filter-item filter-item-search">
+            <label>Search</label>
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* SORT */}
+          <div className="filter-item">
+            <label>Sort By</label>
+            <select
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value)}
+            >
+              <option value="">Default</option>
+              <option value="bestsell">🔥 Most Sold</option>
+              <option value="priceHigh">💰 Price High → Low</option>
+              <option value="priceLow">💰 Price Low → High</option>
+              <option value="new">🆕 New Arrivals</option>
+            </select>
           </div>
         </div>
+
+        {/* PRODUCTS */}
+        <div className="vendor-product-grid">
+          {filteredProducts.map(p => (
+            <div className="vendor-product-card" key={p._id}>
+              <div className="v-card-img">
+                <img src={`http://localhost:5000/uploads/${p.image}`} alt={p.name} />
+                <span className="stock-label">{p.stock} in stock</span>
+              </div>
+
+              <div className="v-card-body">
+                <h4>{p.name}</h4>
+                <p>₹{p.price}</p>
+
+                <div className="v-purchase-zone">
+                  <div className="v-qty-selector">
+                    <button onClick={() => decreaseQty(p._id)}>−</button>
+                    <span>{cartQty[p._id] || 1}</span>
+                    <button onClick={() => increaseQty(p._id)}>+</button>
+                  </div>
+
+                  <button
+                    className="v-add-btn"
+                    disabled={!approved}
+                    onClick={() => addToCart(p._id)}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Footer />
       </main>
     </VendorLayout>
   );
