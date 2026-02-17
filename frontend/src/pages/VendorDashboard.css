@@ -54,6 +54,11 @@
   font-size:14px;
 }
 
+.filter-item-search{
+  width:240px;
+  justify-self:start;
+}
+
 .filter-item select:focus,
 .filter-item input:focus{
   outline:none;
