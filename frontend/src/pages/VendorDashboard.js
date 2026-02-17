@@ -202,7 +202,7 @@ export default function VendorDashboard() {
               </div>
 
               {/* SEARCH */}
-              <div className="filter-item">
+              <div className="filter-item filter-item-search">
                 <label>Search</label>
                 <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               </div>
