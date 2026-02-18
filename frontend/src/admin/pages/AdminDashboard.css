@@ -427,8 +427,34 @@
 .order-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
   font-weight: bold;
   margin-top: 10px;
+}
+
+.order-info-btn {
+  background: #0f172a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.vendor-info-panel {
+  margin-top: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.vendor-info-panel p {
+  margin: 4px 0;
 }
 
 /* ===============================
