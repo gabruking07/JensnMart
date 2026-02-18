@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import api from "../../services/api";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 import "./VendorOrders.css";
 import VendorLayout from "./VendorLayout";
 

@@ -4,7 +4,7 @@ import api from "../services/api";
 import "./Cart.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import VendorLayout from "./VendorLayout";
+import VendorLayout from "../vendor/pages/VendorLayout";
 
 export default function Cart() {
   const navigate = useNavigate();

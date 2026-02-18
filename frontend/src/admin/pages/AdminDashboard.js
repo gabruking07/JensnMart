@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import api from "../../services/api";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 
 import "./AdminDashboard.css";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import ConfirmModal from "../components/ConfirmModal";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import ConfirmModal from "../../components/ConfirmModal";
 import { Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
 const ORDER_STATUS_OPTIONS = [
@@ -18,7 +18,7 @@ const ORDER_STATUS_OPTIONS = [
   "Completed",
   "Cancelled",
 ];
-
+{/*k*/}
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -95,6 +95,7 @@ export default function AdminDashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [openVendorInfo, setOpenVendorInfo] = useState({});
 
   //Reports
   const [reportRange, setReportRange] = useState("month");
@@ -508,8 +509,7 @@ export default function AdminDashboard() {
     setShowConfirm(true);
   };
 
-  const filteredOrders = orders
-  .filter(o => {
+  const filteredOrders = orders.filter(o => {
 
     if (statusFilter !== "all" && o.status !== statusFilter) {
       return false;
@@ -532,26 +532,6 @@ export default function AdminDashboard() {
     }
 
     return true;
-  })
-   .sort((a, b) => {
-
-    if (!orderSearch) {
-      return b.orderNumber - a.orderNumber;
-    }
-
-    const aNum = String(a.orderNumber);
-    const bNum = String(b.orderNumber);
-
-    if (aNum === orderSearch) return -1;
-    if (bNum === orderSearch) return 1;
-
-    const aStarts = aNum.startsWith(orderSearch);
-    const bStarts = bNum.startsWith(orderSearch);
-
-    if (aStarts && !bStarts) return -1;
-    if (!aStarts && bStarts) return 1;
-
-    return a.orderNumber - b.orderNumber;
   });
 
   const downloadInvoice = (order) => {
@@ -667,9 +647,8 @@ export default function AdminDashboard() {
       setNewSubName("");
       fetchSubcategories();
 
-    } catch (err) {
-      console.log(err.response?.data);
-      toast.error("Failed to add subcategory");
+    } catch {
+      toast.error("Failed");
     }
   };
 
@@ -862,6 +841,22 @@ export default function AdminDashboard() {
   const getStatusClass = (status) =>
     `status-badge status-${status.toLowerCase()}`;
 
+  const formatVendorAddress = (address) => {
+    if (!address) return "N/A";
+    if (typeof address === "string") return address;
+
+    return [
+      address.line1,
+      address.line2,
+      address.city,
+      address.state,
+      address.pincode,
+      address.country,
+    ]
+      .filter(Boolean)
+      .join(", ") || "N/A";
+  };
+
   if (loading) {
     return (
       <div className="loader-container">
@@ -924,7 +919,7 @@ export default function AdminDashboard() {
                 >
                   <option value="">All Subcategories</option>
                   {subcategories
-                    .filter(sc => !selectedCategory || sc.category?._id === selectedCategory)
+                    .filter(sc => !selectedCategory || sc.category._id === selectedCategory)
                     .map(sc => (
                       <option key={sc._id} value={sc._id}>
                         {sc.name}
@@ -1420,6 +1415,13 @@ export default function AdminDashboard() {
                   ))}
                 </select>
 
+                <input
+                  className="order-search"
+                  placeholder="Search Order #"
+                  value={orderSearch}
+                  onChange={e => setOrderSearch(e.target.value)}
+                />
+
                 <select
                   className="vendor-select"
                   value={vendorFilter}
@@ -1430,13 +1432,6 @@ export default function AdminDashboard() {
                     <option key={v._id} value={v._id}>{v.email}</option>
                   ))}
                 </select>
-
-                <input
-                  className="order-search"
-                  placeholder="Search Order #"
-                  value={orderSearch}
-                  onChange={e => setOrderSearch(e.target.value)}
-                />
 
                 <input
                   className="date-input"
@@ -1516,10 +1511,29 @@ export default function AdminDashboard() {
                       <p>Vendor: {o.vendor?.email}</p>
                       <p>Order ID:#{o.orderNumber}</p>
                       <p>Total: ₹{o.total}</p>
+                      <button
+                        className="order-info-btn"
+                        onClick={() =>
+                          setOpenVendorInfo((prev) => ({
+                            ...prev,
+                            [o._id]: !prev[o._id],
+                          }))
+                        }
+                      >
+                        Information
+                      </button>
                       <button onClick={() => downloadInvoice(o)}>
                         Invoice PDF
                       </button>
                     </div>
+
+                    {openVendorInfo[o._id] && (
+                      <div className="vendor-info-panel">
+                        <p><strong>Name:</strong> {o.vendor?.name || "N/A"}</p>
+                        <p><strong>Address:</strong> {formatVendorAddress(o.vendor?.address)}</p>
+                        <p><strong>Phone:</strong> {o.vendor?.phone || "N/A"}</p>
+                      </div>
+                    )}
                   </div>
 
                 </div>
@@ -1546,7 +1560,7 @@ export default function AdminDashboard() {
               >
                 <option value="">Select Subcategory</option>
                 {subcategories
-                  .filter(sc => sc.category?._id === categoryId)
+                  .filter(sc => sc.category._id === categoryId)
                   .map(sc => (
                     <option key={sc._id} value={sc._id}>
                       {sc.name}
@@ -1631,7 +1645,7 @@ export default function AdminDashboard() {
                       {!collapsedCats[c._id] && (
                         <div className="subcat-wrap">
                           {subcategories
-                            .filter(sc => sc.category?._id === c._id)
+                            .filter(sc => sc.category._id === c._id)
                             .map(sc => (
                               <div key={sc._id} className="sub-chip">
                                 {sc.name}

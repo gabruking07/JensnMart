@@ -5,13 +5,13 @@ import { Toaster } from "react-hot-toast";
 import Login from "./pages/Login";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
-import AdminDashboard from "./pages/AdminDashboard";
-import VendorDashboard from "./pages/VendorDashboard";
+import AdminDashboard from "./admin/pages/AdminDashboard";
+import VendorDashboard from "./vendor/pages/VendorDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRegister from "./pages/AdminRegister";
 import VendorRegister from "./pages/VendorRegister";
-import VendorProfile from "./pages/VendorProfile";
-import VendorOrders from "./pages/VendorOrders";
+import VendorProfile from "./vendor/pages/VendorProfile";
+import VendorOrders from "./vendor/pages/VendorOrders";
 
 function App() {
   const [darkMode, setDarkMode] = useState(

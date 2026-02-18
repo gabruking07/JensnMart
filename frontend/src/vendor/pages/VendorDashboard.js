@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate, Link } from "react-router-dom";
-import api from "../services/api";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import api from "../../services/api";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 import "./VendorDashboard.css";
 import VendorLayout from "./VendorLayout";
 

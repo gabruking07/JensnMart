@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import api from "../services/api";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import api from "../../services/api";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 import "./VendorProfile.css";
 import VendorLayout from "./VendorLayout";
 
