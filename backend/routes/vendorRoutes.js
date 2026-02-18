@@ -243,6 +243,9 @@ router.put("/profile", auth, upload.single("profileImage"), async (req, res) => 
 router.get("/addresses", authMiddleware, async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.user.id);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
     res.json(vendor.addresses || []);
   } catch {
     res.status(500).json({ message: "Failed to load addresses" });
@@ -252,6 +255,13 @@ router.get("/addresses", authMiddleware, async (req, res) => {
 router.post("/addresses", authMiddleware, async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.user.id);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    if (!Array.isArray(vendor.addresses)) {
+      vendor.addresses = [];
+    }
 
     vendor.addresses.push({
       label: req.body.label,
@@ -271,6 +281,14 @@ router.post("/addresses", authMiddleware, async (req, res) => {
 router.put("/addresses/:index", authMiddleware, async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.user.id);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    if (!Array.isArray(vendor.addresses)) {
+      vendor.addresses = [];
+    }
+
     const i = Number(req.params.index);
 
     if (!vendor.addresses[i]) {
@@ -295,7 +313,15 @@ router.put("/addresses/:index", authMiddleware, async (req, res) => {
 router.delete("/addresses/:index", authMiddleware, async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.user.id);
-    vendor.addresses.splice(req.params.index, 1);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    if (!Array.isArray(vendor.addresses)) {
+      vendor.addresses = [];
+    }
+
+    vendor.addresses.splice(Number(req.params.index), 1);
     await vendor.save();
     res.json(vendor.addresses);
   } catch {

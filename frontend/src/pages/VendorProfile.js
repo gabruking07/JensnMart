@@ -16,6 +16,7 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [pincode, setPincode] = useState("");
+  const [pincodeError, setPincodeError] = useState("");
   const [country, setCountry] = useState("India");
   const [profileImage, setProfileImage] = useState(null);
 
@@ -36,17 +37,21 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
     try {
       const res = await api.get("/vendor/profile");
       const v = res.data;
+      const fallbackAddress =
+        v.addresses?.find((a) => a?.isDefault) ||
+        v.addresses?.[0] ||
+        {};
 
       setVendor(v);
       setName(v.name || "");
       setPhone(v.phone || "");
 
-      setAddressLine1(v.address?.line1 || "");
-      setAddressLine2(v.address?.line2 || "");
-      setCity(v.address?.city || "");
-      setState(v.address?.state || "");
-      setPincode(v.address?.pincode || "");
-      setCountry(v.address?.country || "India");
+      setAddressLine1(v.address?.line1 || v.addressLine1 || fallbackAddress.line1 || "");
+      setAddressLine2(v.address?.line2 || v.addressLine2 || "");
+      setCity(v.address?.city || v.city || fallbackAddress.city || "");
+      setState(v.address?.state || v.state || fallbackAddress.state || "");
+      setPincode(v.address?.pincode || v.pincode || fallbackAddress.pincode || "");
+      setCountry(v.address?.country || v.country || "India");
 
 
     } catch (err) {
@@ -58,6 +63,13 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
     try {
       if (phone && !/^\d{10}$/.test(phone)) {
         alert("Phone must be 10 digits");
+        setIsUpdating(false);
+        return;
+      }
+
+      if (pincode && !/^\d{6}$/.test(pincode.trim())) {
+        alert("Pincode must be 6 digits");
+        setPincodeError("Pincode must be 6 digits");
         setIsUpdating(false);
         return;
       }
@@ -84,10 +96,22 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
       setProfileImage(null);
       loadProfile();
     } catch (err) {
-      alert("Update failed");
+      alert(err.response?.data?.message || "Update failed");
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handlePincodeChange = (value) => {
+    const digits = value.replace(/\D/g, "").slice(0, 6);
+    setPincode(digits);
+
+    if (!digits || /^\d{6}$/.test(digits)) {
+      setPincodeError("");
+      return;
+    }
+
+    setPincodeError("Pincode must be 6 digits");
   };
 
   const onProfileImageChange = async (e) => {
@@ -202,9 +226,18 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
                     </div>
 
                     <div className="form-row">
-                      <input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Pincode" />
+                      <input
+                        value={pincode}
+                        onChange={(e) => handlePincodeChange(e.target.value)}
+                        placeholder="Pincode"
+                        inputMode="numeric"
+                        maxLength={6}
+                      />
                       <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" />
                     </div>
+                    {pincodeError && (
+                      <p className="error-text">{pincodeError}</p>
+                    )}
 
                     <div className="form-group">
                       <label>New Password</label>
@@ -219,7 +252,7 @@ export default function VendorProfile({ darkMode, setDarkMode }) {
                     <button
                       className="btn-save-profile"
                       onClick={updateProfile}
-                      disabled={isUpdating}
+                      disabled={isUpdating || !!pincodeError}
                     >
                       {isUpdating ? "Saving..." : "Save Changes"}
                     </button>

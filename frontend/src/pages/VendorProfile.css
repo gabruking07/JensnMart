@@ -159,6 +159,13 @@ input:focus{
   gap:12px;
 }
 
+.error-text{
+  margin: -6px 0 2px;
+  color:#d32f2f;
+  font-size:12px;
+  font-weight:600;
+}
+
 /* save button */
 .btn-save-profile{
   margin-top:10px;

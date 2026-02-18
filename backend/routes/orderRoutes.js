@@ -89,8 +89,27 @@ router.get("/vendor/orders", authMiddleware, async (req, res) => {
 router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) => {
   try {
     const { address } = req.body;
+    const normalizeAddress = (raw) => {
+      if (!raw) return "";
+      if (typeof raw === "string") return raw.trim();
+      if (typeof raw === "object") {
+        return [
+          raw.label,
+          raw.line1,
+          raw.line2,
+          raw.city,
+          raw.state,
+          raw.pincode,
+          raw.country,
+        ]
+          .filter(Boolean)
+          .join(", ");
+      }
+      return "";
+    };
 
-    if (!address) {
+    const deliveryAddress = normalizeAddress(address);
+    if (!deliveryAddress) {
       return res.status(400).json({ message: "Address required" });
     }
 
@@ -111,6 +130,9 @@ router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) =>
 
     for (const item of cart.items) {
       const product = item.product;
+      if (!product) {
+        return res.status(400).json({ message: "Cart has invalid product. Refresh cart and try again." });
+      }
 
       if (product.stock < item.quantity) {
         return res.status(400).json({
@@ -141,7 +163,7 @@ router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) =>
       products,
       total,
       adminCommission,
-      deliveryAddress: address,   // ⭐ address stored here
+      deliveryAddress,
       status: "Placed"
     });
 
@@ -165,7 +187,7 @@ router.get("/admin", authMiddleware, async (req, res) => {
   }
 
   const orders = await Order.find()
-    .populate("vendor", "name email")
+    .populate("vendor", "name email phone address")
     .sort({ createdAt: -1 });
 
   res.json(orders);

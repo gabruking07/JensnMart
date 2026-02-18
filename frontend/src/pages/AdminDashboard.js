@@ -95,6 +95,7 @@ export default function AdminDashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [openVendorInfo, setOpenVendorInfo] = useState({});
 
   //Reports
   const [reportRange, setReportRange] = useState("month");
@@ -840,6 +841,22 @@ export default function AdminDashboard() {
   const getStatusClass = (status) =>
     `status-badge status-${status.toLowerCase()}`;
 
+  const formatVendorAddress = (address) => {
+    if (!address) return "N/A";
+    if (typeof address === "string") return address;
+
+    return [
+      address.line1,
+      address.line2,
+      address.city,
+      address.state,
+      address.pincode,
+      address.country,
+    ]
+      .filter(Boolean)
+      .join(", ") || "N/A";
+  };
+
   if (loading) {
     return (
       <div className="loader-container">
@@ -1494,10 +1511,29 @@ export default function AdminDashboard() {
                       <p>Vendor: {o.vendor?.email}</p>
                       <p>Order ID:#{o.orderNumber}</p>
                       <p>Total: ₹{o.total}</p>
+                      <button
+                        className="order-info-btn"
+                        onClick={() =>
+                          setOpenVendorInfo((prev) => ({
+                            ...prev,
+                            [o._id]: !prev[o._id],
+                          }))
+                        }
+                      >
+                        Information
+                      </button>
                       <button onClick={() => downloadInvoice(o)}>
                         Invoice PDF
                       </button>
                     </div>
+
+                    {openVendorInfo[o._id] && (
+                      <div className="vendor-info-panel">
+                        <p><strong>Name:</strong> {o.vendor?.name || "N/A"}</p>
+                        <p><strong>Address:</strong> {formatVendorAddress(o.vendor?.address)}</p>
+                        <p><strong>Phone:</strong> {o.vendor?.phone || "N/A"}</p>
+                      </div>
+                    )}
                   </div>
 
                 </div>
