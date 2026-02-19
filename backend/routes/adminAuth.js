@@ -31,7 +31,7 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
       phone,
       role,
-      approved: false // 🔴 MUST be approved later
+      approved: false 
     });
 
     res.status(201).json({

@@ -18,7 +18,6 @@ const ORDER_STATUS_OPTIONS = [
   "Completed",
   "Cancelled",
 ];
-{/*k*/}
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -586,23 +585,38 @@ export default function AdminDashboard() {
   };
 
   const addProduct = async () => {
-    const formData = new FormData();
-    formData.append("name", pname);
-    formData.append("price", price);
-    formData.append("stock", stock);
-    formData.append("category", categoryId);
-    formData.append("subcategory", subcategoryId);
-    formData.append("image", image);
+    try {
+      const formData = new FormData();
+      formData.append("name", pname);
+      formData.append("price", price);
+      formData.append("stock", stock);
+      formData.append("category", categoryId);
 
-    await api.post("/products", formData);
-    setPname("");
-    setPrice("");
-    setStock(0);
-    setImage(null);
-    setCategoryId("");
-    setSubcategoryId("");
-    fetchProducts();
-    setActiveTab("products");
+      if (subcategoryId) {
+        formData.append("subcategory", subcategoryId);
+      }
+
+      if (image) {
+        formData.append("image", image);
+      }
+
+      await api.post("/products", formData);
+
+      toast.success("Product added");
+
+      setPname("");
+      setPrice("");
+      setStock(0);
+      setImage(null);
+      setCategoryId("");
+      setSubcategoryId("");
+      fetchProducts();
+      setActiveTab("products");
+
+    } catch (err) {
+      console.log("ADD PRODUCT ERROR:", err.response?.data);
+      toast.error(err.response?.data?.message || "Add failed");
+    }
   };
 
   const getCategoryName = (product) => {
@@ -958,7 +972,9 @@ export default function AdminDashboard() {
                 >
                   <option value="">All Subcategories</option>
                   {subcategories
-                    .filter(sc => !selectedCategory || sc.category._id === selectedCategory)
+                    .filter(sc =>
+                      !selectedCategory || sc.category?._id === selectedCategory
+                    )
                     .map(sc => (
                       <option key={sc._id} value={sc._id}>
                         {sc.name}
@@ -1637,7 +1653,7 @@ export default function AdminDashboard() {
               >
                 <option value="">Select Subcategory</option>
                 {subcategories
-                  .filter(sc => sc.category._id === categoryId)
+                  .filter(sc => sc.category?._id === categoryId)
                   .map(sc => (
                     <option key={sc._id} value={sc._id}>
                       {sc.name}
@@ -1722,7 +1738,7 @@ export default function AdminDashboard() {
                       {!collapsedCats[c._id] && (
                         <div className="subcat-wrap">
                           {subcategories
-                            .filter(sc => sc.category._id === c._id)
+                            .filter(sc => sc.category?._id === c._id)
                             .map(sc => (
                               <div key={sc._id} className="sub-chip">
                                 {sc.name}

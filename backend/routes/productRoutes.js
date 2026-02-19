@@ -20,28 +20,29 @@ router.post(
     try {
       const { name, price, stock, category, subcategory } = req.body;
 
-      if (!category) {
-        return res.status(400).json({ message: "Category required" });
+      if (!name || !price || !stock || !category) {
+        return res.status(400).json({ message: "All fields required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Product image required" });
       }
 
       const product = await Product.create({
         name,
         price,
         stock,
-        image: req.file?.filename || null,
+        image: req.file.filename,
         category,
         subcategory: subcategory || null,
         vendor: null
       });
 
-      const populated = await Product.findById(product._id)
-        .populate("category", "name")
-        .populate("subcategory", "name");
+      res.json(product);
 
-      res.json(populated);
     } catch (err) {
       console.error("CREATE PRODUCT ERROR:", err);
-      res.status(500).json({ message: "Product creation failed" });
+      res.status(500).json({ message: err.message });
     }
   }
 );
