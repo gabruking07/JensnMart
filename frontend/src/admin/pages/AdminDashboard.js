@@ -1467,7 +1467,6 @@ export default function AdminDashboard() {
             </div>
           )}
 
-
           {/* ===================== ORDERS ===================== */}
           {activeTab === "orders" && (
             <div className="orders-container">
