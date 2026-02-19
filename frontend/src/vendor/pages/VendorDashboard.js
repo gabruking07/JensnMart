@@ -65,7 +65,12 @@ export default function VendorDashboard() {
   }, []);
 
   const fetchProducts = async (sort = "") => {
-    const res = await api.get(`/products?sort=${sort}`);
+    const res = await api.get("/products", {
+      params: {
+        sort,
+        t: Date.now(),
+      },
+    });
     setProducts(res.data || []);
   };
 
@@ -123,6 +128,41 @@ export default function VendorDashboard() {
     setSortBy(value);
     fetchProducts(value);
   };
+
+  useEffect(() => {
+    fetchProducts(sortBy);
+  }, [location.key]);
+
+  useEffect(() => {
+    const refreshProducts = async () => {
+      try {
+        await fetchProducts(sortBy);
+      } catch (err) {
+        console.error("Auto refresh failed", err);
+      }
+    };
+
+    const intervalId = setInterval(refreshProducts, 5000);
+
+    const onFocus = () => {
+      refreshProducts();
+    };
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) {
+        refreshProducts();
+      }
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [sortBy]);
 
   const increaseQty = (id) => {
     setCartQty((prev) => ({ ...prev, [id]: (prev[id] || 1) + 1 }));

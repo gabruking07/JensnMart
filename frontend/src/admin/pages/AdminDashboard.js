@@ -61,6 +61,8 @@ export default function AdminDashboard() {
   // Inventory edit
   const [editPriceId, setEditPriceId] = useState(null);
   const [newPrice, setNewPrice] = useState("");
+  const [editNameId, setEditNameId] = useState(null);
+  const [newName, setNewName] = useState("");
   const [editStockId, setEditStockId] = useState(null);
   const [newStock, setNewStock] = useState("");
   const [editCategoryProductId, setEditCategoryProductId] = useState(null);
@@ -458,6 +460,42 @@ export default function AdminDashboard() {
     }
   };
 
+  const updateProductName = async (id) => {
+    const product = products.find(p => p._id === id);
+    if (!product) return;
+
+    const trimmedName = newName.trim();
+    if (!trimmedName) {
+      toast.error("Product name required");
+      return;
+    }
+
+    if (trimmedName === product.name) {
+      toast("Name unchanged", { icon: "ℹ️" });
+      return;
+    }
+
+    try {
+      const res = await api.put(`/products/${id}`, { name: trimmedName });
+      const updatedProduct = res.data;
+
+      setProducts(prev =>
+        prev.map(p =>
+          p._id === id
+            ? (updatedProduct?._id ? updatedProduct : { ...p, name: trimmedName })
+            : p
+        )
+      );
+
+      toast.success("Product name updated");
+      setEditNameId(null);
+      setNewName("");
+      fetchProducts(selectedCategory);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Name update failed");
+    }
+  };
+
   const updateStockValue = async (id) => {
     const product = products.find(p => p._id === id);
     if (!product) return;
@@ -667,7 +705,8 @@ export default function AdminDashboard() {
 
     try {
       await api.put(`/products/${productId}`, {
-        category: newCategoryId
+        category: newCategoryId,
+        subcategory: null
       });
 
       toast.success("Category updated");
@@ -675,7 +714,7 @@ export default function AdminDashboard() {
       setProducts(prev =>
         prev.map(p =>
           p._id === productId
-            ? { ...p, category: categoryObj }
+            ? { ...p, category: categoryObj, subcategory: null }
             : p
         )
       );
@@ -943,7 +982,45 @@ export default function AdminDashboard() {
                       alt={p.name}
                     />
 
-                    <h5 className="product-name">{p.name}</h5>
+                    {editNameId === p._id ? (
+                      <div className="inline-edit">
+                        <input
+                          type="text"
+                          value={newName}
+                          onChange={(e) => setNewName(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => updateProductName(p._id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditNameId(null);
+                            setNewName("");
+                          }}
+                        >
+                          x
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="row-between">
+                        <h5 className="product-name">{p.name}</h5>
+                        <button
+                          type="button"
+                          className="edit-icon"
+                          onClick={() => {
+                            setEditNameId(p._id);
+                            setNewName(p.name);
+                          }}
+                          title="Edit name"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
                     {/* ================= CATEGORY + SUBCATEGORY PREMIUM ================= */}
 
                     <div className="category-block">
