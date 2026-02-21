@@ -1,17 +1,27 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import Login from "./pages/Login";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
-import AdminDashboard from "./admin/pages/AdminDashboard";
-import VendorDashboard from "./vendor/pages/VendorDashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRegister from "./pages/AdminRegister";
 import VendorRegister from "./pages/VendorRegister";
+
+import VendorDashboard from "./vendor/pages/VendorDashboard";
 import VendorProfile from "./vendor/pages/VendorProfile";
 import VendorOrders from "./vendor/pages/VendorOrders";
+
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import AdminLayout from "./admin/AdminLayout";
+import InventoryTab from "./admin/pages/InventoryTab";
+import VendorsTab from "./admin/pages/VendorsTab";
+import AdminsTab from "./admin/pages/AdminsTab";
+import OrdersTab from "./admin/pages/OrdersTab";
+import AddProductTab from "./admin/pages/AddProductTab";
+import CategoryTab from "./admin/pages/CategoryTab";
+import ReportsTab from "./admin/pages/ReportsTab";
 
 function App() {
   const [darkMode, setDarkMode] = useState(
@@ -30,29 +40,32 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            fontSize: "14px",
-          },
-        }}
-      />
+      <Toaster position="top-right" />
 
       <Routes>
+        {/* ADMIN PANEL */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute role={["admin", "manager"]}>
-              <AdminDashboard
+              <AdminLayout
                 darkMode={darkMode}
                 setDarkMode={setDarkMode}
               />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="inventory" replace />} />
+          <Route path="inventory" element={<InventoryTab />} />
+          <Route path="vendors" element={<VendorsTab />} />
+          <Route path="admins" element={<AdminsTab />} />
+          <Route path="orders" element={<OrdersTab />} />
+          <Route path="add-product" element={<AddProductTab />} />
+          <Route path="categories" element={<CategoryTab />} />
+          <Route path="reports" element={<ReportsTab />} />
+        </Route>
 
+        {/* VENDOR */}
         <Route
           path="/vendor/orders"
           element={
@@ -87,59 +100,11 @@ function App() {
           }
         />
 
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute role="vendor">
-              <Cart
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
-              />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/"
-          element={
-            <Login
-              darkMode={darkMode}
-              setDarkMode={setDarkMode}
-            />
-          }
-        />
-
-        <Route
-          path="/admin-register"
-          element={
-            <AdminRegister
-              darkMode={darkMode}
-              setDarkMode={setDarkMode}
-            />
-          }
-        />
-
-        <Route
-          path="/vendor-register"
-          element={
-            <VendorRegister
-              darkMode={darkMode}
-              setDarkMode={setDarkMode}
-            />
-          }
-        />
-
-        <Route
-          path="/products"
-          element={
-            <Products
-              darkMode={darkMode}
-              setDarkMode={setDarkMode}
-            />
-          }
-        />
-
-        <Route path="*" element={<Login />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/" element={<Login />} />
+        <Route path="/admin-register" element={<AdminRegister />} />
+        <Route path="/vendor-register" element={<VendorRegister />} />
+        <Route path="/products" element={<Products />} />
       </Routes>
     </BrowserRouter>
   );

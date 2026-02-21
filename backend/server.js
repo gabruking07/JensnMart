@@ -20,7 +20,6 @@ app.use(express.json());
 
 /* ================= STATIC ================= */
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/uploads", express.static("uploads"));
 
 /* ================= AUTH ROUTES ================= */
 app.use("/api/admin", adminAuthRoutes);
