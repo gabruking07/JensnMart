@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import {
+    UserCircle,
     LayoutDashboard,
     Package,
     PlusCircle,
@@ -27,9 +28,33 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
 
     const menu = [
         {
+            name: "Profile",
+            path: "/admin/profile",
+            icon: UserCircle,
+            roles: ["admin", "manager"]
+        },
+        {
             name: "Inventory",
             path: "/admin/inventory",
             icon: Package,
+            roles: ["admin", "manager"]
+        },
+        {
+            name: "Admins",
+            path: "/admin/admins",
+            icon: Users,
+            roles: ["admin"] // ADMIN ONLY
+        },
+        {
+            name: "Vendors",
+            path: "/admin/vendors",
+            icon: Store,
+            roles: ["admin"] // ADMIN ONLY
+        },
+        {
+            name: "Orders",
+            path: "/admin/orders",
+            icon: Receipt,
             roles: ["admin", "manager"]
         },
         {
@@ -43,24 +68,6 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
             path: "/admin/categories",
             icon: FolderTree,
             roles: ["admin", "manager"]
-        },
-        {
-            name: "Orders",
-            path: "/admin/orders",
-            icon: Receipt,
-            roles: ["admin", "manager"]
-        },
-        {
-            name: "Vendors",
-            path: "/admin/vendors",
-            icon: Store,
-            roles: ["admin"] // ADMIN ONLY
-        },
-        {
-            name: "Admins",
-            path: "/admin/admins",
-            icon: Users,
-            roles: ["admin"] // ADMIN ONLY
         },
         {
             name: "Reports",

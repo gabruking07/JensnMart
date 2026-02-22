@@ -8,10 +8,8 @@ export default function AdminsTab() {
   const [pending, setPending] = useState([]);
 
   const [form, setForm] = useState({
-    name: "",
     email: "",
     password: "",
-    phone: "",
     role: "manager"
   });
 
@@ -39,16 +37,21 @@ export default function AdminsTab() {
 
   /* ================= CREATE ================= */
   const createAdmin = async () => {
+    if (!form.email || !form.password) {
+      toast.error("Email & password required");
+      return;
+    }
+
     try {
       await api.post("/admin/create-admin", form);
-      toast.success("Admin created. Await approval.");
+      toast.success("Created. Await approval.");
+
       setForm({
-        name: "",
         email: "",
         password: "",
-        phone: "",
         role: "manager"
       });
+
       loadAdmins();
       loadPending();
     } catch (err) {
@@ -90,14 +93,6 @@ export default function AdminsTab() {
         <h3>Create Admin / Manager</h3>
 
         <input
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) =>
-            setForm({ ...form, name: e.target.value })
-          }
-        />
-
-        <input
           placeholder="Email"
           value={form.email}
           onChange={(e) =>
@@ -111,14 +106,6 @@ export default function AdminsTab() {
           value={form.password}
           onChange={(e) =>
             setForm({ ...form, password: e.target.value })
-          }
-        />
-
-        <input
-          placeholder="Phone"
-          value={form.phone}
-          onChange={(e) =>
-            setForm({ ...form, phone: e.target.value })
           }
         />
 
@@ -139,7 +126,7 @@ export default function AdminsTab() {
       <div className="card">
         <h3>Pending Approvals</h3>
 
-        {pending.length === 0 && <p>No pending admins</p>}
+        {pending.length === 0 && <p>No pending</p>}
 
         {pending.map((p) => (
           <div key={p._id} className="table-row">

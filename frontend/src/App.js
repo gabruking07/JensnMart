@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -15,6 +15,7 @@ import VendorOrders from "./vendor/pages/VendorOrders";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import AdminLayout from "./admin/AdminLayout";
+import ProfileTab from "./admin/pages/ProfileTab";
 import InventoryTab from "./admin/pages/InventoryTab";
 import VendorsTab from "./admin/pages/VendorsTab";
 import AdminsTab from "./admin/pages/AdminsTab";
@@ -56,6 +57,7 @@ function App() {
           }
         >
           <Route index element={<Navigate to="inventory" replace />} />
+          <Route path="profile" element={<ProfileTab />} />
           <Route path="inventory" element={<InventoryTab />} />
           <Route path="vendors" element={<VendorsTab />} />
           <Route path="admins" element={<AdminsTab />} />
