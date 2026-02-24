@@ -135,7 +135,6 @@ router.post(
     try {
       const { email, password, role } = req.body;
 
-      /* ===== VALIDATION ===== */
       if (!email || !password || !role) {
         return res.status(400).json({
           message: "Email, password and role required"
@@ -168,7 +167,7 @@ router.post(
       const newAdmin = await Admin.create({
         email: email.toLowerCase(),
         password: hash,
-        role: role,      // admin or manager
+        role: role,
         approved: false
       });
 
@@ -182,6 +181,39 @@ router.post(
     }
   }
 );
+
+/* ================= GET PROFILE ================= */
+router.get("/profile", authMiddleware, async (req, res) => {
+  if (!["admin", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const admin = await Admin.findById(req.user.id).select("-password");
+  res.json(admin);
+});
+
+/* ================= UPDATE PROFILE ================= */
+router.put("/profile", authMiddleware, async (req, res) => {
+  if (!["admin", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const { name, phone, password } = req.body;
+
+  const admin = await Admin.findById(req.user.id);
+  if (!admin) return res.status(404).json({ message: "User not found" });
+
+  if (name) admin.name = name;
+  if (phone) admin.phone = phone;
+
+  if (password && password.length >= 4) {
+    admin.password = await bcrypt.hash(password, 10);
+  }
+
+  await admin.save();
+
+  res.json({ message: "Profile updated" });
+});
 
 /* GET PENDING ADMINS & MANAGERS (ADMIN ONLY) */
 router.get(
