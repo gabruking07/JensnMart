@@ -105,6 +105,14 @@ export default function Login() {
               <button className="btn-sign-in" onClick={login} disabled={loading}>
                 {loading ? "Signing in..." : "SIGN IN"}
               </button>
+
+              <button
+                type="button"
+                className="forgot-password-link"
+                onClick={() => navigate(`/forgot-password?role=${role}`)}
+              >
+                Forgot Password?
+              </button>
             </div>
 
             <div className="auth-footer">

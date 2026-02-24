@@ -5,6 +5,7 @@ const auth = require("../middleware/authMiddleware");
 const bcrypt = require("bcryptjs");
 const upload = require("../config/upload");
 const jwt = require("jsonwebtoken");
+const { sendOtpEmail } = require("../utils/mailer");
 
 /* =====================================================
    REGISTER VENDOR
@@ -119,6 +120,118 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     console.log("VENDOR LOGIN ERROR:", err);
     res.status(500).json({ message: "Vendor login failed" });
+  }
+});
+
+/* =====================================================
+   FORGOT PASSWORD (VENDOR)
+===================================================== */
+router.post("/forgot-password/request-otp", async (req, res) => {
+  try {
+    const email = String(req.body.email || "").toLowerCase().trim();
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const vendor = await Vendor.findOne({ email });
+    if (vendor) {
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const otpHash = await bcrypt.hash(otp, 10);
+
+      vendor.passwordResetOtp = otpHash;
+      vendor.passwordResetOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+      await vendor.save();
+
+      try {
+        await sendOtpEmail({ to: vendor.email, name: vendor.name, otp });
+      } catch (mailErr) {
+        console.error("VENDOR OTP EMAIL ERROR:", mailErr.message);
+      }
+    }
+
+    res.json({ message: "If the email exists, OTP has been sent" });
+  } catch (err) {
+    console.log("VENDOR OTP REQUEST ERROR:", err);
+    res.json({ message: "If the email exists, OTP has been sent" });
+  }
+});
+
+router.post("/forgot-password/verify-otp", async (req, res) => {
+  try {
+    const email = String(req.body.email || "").toLowerCase().trim();
+    const otp = String(req.body.otp || "").trim();
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const vendor = await Vendor.findOne({ email });
+    if (!vendor || !vendor.passwordResetOtp || !vendor.passwordResetOtpExpires) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    if (vendor.passwordResetOtpExpires.getTime() < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    const isOtpMatch = await bcrypt.compare(otp, vendor.passwordResetOtp);
+    if (!isOtpMatch) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const resetToken = jwt.sign(
+      { id: vendor._id, email: vendor.email, role: "vendor", purpose: "password_reset" },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.json({ message: "OTP verified", resetToken });
+  } catch (err) {
+    console.log("VENDOR OTP VERIFY ERROR:", err);
+    res.status(500).json({ message: "Failed to verify OTP" });
+  }
+});
+
+router.post("/forgot-password/reset", async (req, res) => {
+  try {
+    const email = String(req.body.email || "").toLowerCase().trim();
+    const newPassword = String(req.body.newPassword || "");
+    const resetToken = String(req.body.resetToken || "");
+
+    if (!email || !newPassword || !resetToken) {
+      return res.status(400).json({ message: "Email, reset token and new password are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    if (payload.purpose !== "password_reset" || payload.email !== email) {
+      return res.status(400).json({ message: "Invalid reset request" });
+    }
+
+    const vendor = await Vendor.findOne({ _id: payload.id, email });
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    vendor.password = await bcrypt.hash(newPassword, 10);
+    vendor.passwordResetOtp = "";
+    vendor.passwordResetOtpExpires = null;
+    await vendor.save();
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.log("VENDOR RESET PASSWORD ERROR:", err);
+    res.status(500).json({ message: "Failed to reset password" });
   }
 });
 
