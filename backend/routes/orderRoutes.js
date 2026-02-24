@@ -37,8 +37,8 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Insufficient stock" });
     }
 
-    product.stock -= item.quantity;
-    product.sold += item.quantity; 
+    product.stock -= qty;
+    product.sold = (product.sold || 0) + qty;
     await product.save();
 
     const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
@@ -201,13 +201,44 @@ router.put("/status/:id", authMiddleware, async (req, res) => {
     return res.status(403).json({ message: "Access denied" });
   }
 
+  const allowedStatuses = [
+    "Placed",
+    "Processing",
+    "Shipped",
+    "Delivered",
+    "Returned",
+    "Cancelled"
+  ];
+
   const { status } = req.body;
 
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    { status },
-    { new: true }
-  );
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(404).json({ message: "Order not found" });
+  }
+
+  if (
+    (status === "Cancelled" || status === "Returned") &&
+    order.status !== "Cancelled" &&
+    order.status !== "Returned"
+  ) {
+    for (const item of order.products) {
+      const product = await Product.findById(item.productId);
+      if (product) {
+        product.stock += item.qty;
+        await product.save();
+      }
+    }
+  }
+
+  order.status = status;
+  order.statusHistory.push({ status });
+  await order.save();
 
   res.json(order);
 });
