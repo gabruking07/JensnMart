@@ -7,6 +7,8 @@ export default function VendorsTab() {
   const [vendors, setVendors] = useState([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const loadVendors = async () => {
     try {
@@ -20,6 +22,21 @@ export default function VendorsTab() {
   useEffect(() => {
     loadVendors();
   }, []);
+
+  const totalPages = Math.max(1, Math.ceil(vendors.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedVendors = vendors.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
 
   /* ================= CREATE ================= */
   const createVendor = async () => {
@@ -81,18 +98,39 @@ export default function VendorsTab() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button onClick={createVendor}>Create</button>
+        <button className="create-vendor-btn" onClick={createVendor}>
+          Create
+        </button>
       </div>
 
       {/* LIST */}
       <div className="table">
+        <div className="table-toolbar">
+          <p className="table-count">
+            Showing {vendors.length === 0 ? 0 : startIndex + 1}-
+            {Math.min(endIndex, vendors.length)} of {vendors.length} vendors
+          </p>
+          <div className="table-page-size">
+            <label htmlFor="vendors-page-size">Items per page</label>
+            <select
+              id="vendors-page-size"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+            </select>
+          </div>
+        </div>
+
         <div className="table-head">
           <span>Email</span>
           <span>Status</span>
           <span>Action</span>
         </div>
 
-        {vendors.map((v) => (
+        {paginatedVendors.map((v) => (
           <div key={v._id} className="table-row">
             <span>{v.email}</span>
             <span>{v.approved ? "Active" : "Pending"}</span>
@@ -116,6 +154,36 @@ export default function VendorsTab() {
             </span>
           </div>
         ))}
+
+        {vendors.length > 0 && (
+          <div className="pagination-bar">
+            <button
+              className="page-btn"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                className={`page-btn ${currentPage === page ? "active" : ""}`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              className="page-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

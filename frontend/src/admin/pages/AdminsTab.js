@@ -6,6 +6,8 @@ import "../admin.css";
 export default function AdminsTab() {
   const [admins, setAdmins] = useState([]);
   const [pending, setPending] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const [form, setForm] = useState({
     email: "",
@@ -34,6 +36,21 @@ export default function AdminsTab() {
     loadAdmins();
     loadPending();
   }, []);
+
+  const totalPages = Math.max(1, Math.ceil(admins.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAdmins = admins.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
 
   /* ================= CREATE ================= */
   const createAdmin = async () => {
@@ -119,7 +136,9 @@ export default function AdminsTab() {
           <option value="admin">Admin</option>
         </select>
 
-        <button onClick={createAdmin}>Create</button>
+        <button className="create-admin-btn" onClick={createAdmin}>
+          Create
+        </button>
       </div>
 
       {/* PENDING */}
@@ -145,13 +164,32 @@ export default function AdminsTab() {
 
       {/* ALL ADMINS */}
       <div className="table">
+        <div className="table-toolbar">
+          <p className="table-count">
+            Showing {admins.length === 0 ? 0 : startIndex + 1}-
+            {Math.min(endIndex, admins.length)} of {admins.length} admins
+          </p>
+          <div className="table-page-size">
+            <label htmlFor="admins-page-size">Items per page</label>
+            <select
+              id="admins-page-size"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+            </select>
+          </div>
+        </div>
+
         <div className="table-head">
           <span>Email</span>
           <span>Role</span>
           <span>Action</span>
         </div>
 
-        {admins.map((a) => (
+        {paginatedAdmins.map((a) => (
           <div key={a._id} className="table-row">
             <span>{a.email}</span>
             <span>{a.role}</span>
@@ -164,6 +202,36 @@ export default function AdminsTab() {
             </button>
           </div>
         ))}
+
+        {admins.length > 0 && (
+          <div className="pagination-bar">
+            <button
+              className="page-btn"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                className={`page-btn ${currentPage === page ? "active" : ""}`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              className="page-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

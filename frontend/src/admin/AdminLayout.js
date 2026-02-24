@@ -1,8 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
     UserCircle,
-    LayoutDashboard,
     Package,
     PlusCircle,
     FolderTree,
@@ -12,14 +11,12 @@ import {
     BarChart3,
     ChevronLeft,
     ChevronRight,
-    Moon,
-    Sun,
     LogOut
 } from "lucide-react";
 import logo from "../assets/logo.png";
 import "./AdminLayout.css";
 
-export default function AdminLayout({ darkMode, setDarkMode }) {
+export default function AdminLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const [collapsed, setCollapsed] = useState(false);
@@ -83,7 +80,7 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
     };
 
     return (
-        <div className={`admin-root ${darkMode ? "dark" : ""}`}>
+        <div className="admin-root">
             {/* SIDEBAR */}
             <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
                 <div className="sidebar-header">

@@ -18,7 +18,7 @@
 }
 
 /* =========================
-   GRID
+   GRId
 ========================= */
 .profile-grid{
   display:grid;
@@ -208,29 +208,6 @@ input:focus{
 
 @keyframes spin{
   to{transform:rotate(360deg);}
-}
-
-/* =========================
-   DARK MODE
-========================= */
-.dark-mode{
-  background:#111;
-}
-
-.dark-mode .admin-card{
-  background:#1b1b1b;
-  color:#fff;
-  border:1px solid #2a2a2a;
-}
-
-.dark-mode input{
-  background:#111;
-  color:#fff;
-  border:1px solid #333;
-}
-
-.dark-mode .profile-email{
-  opacity:0.5;
 }
 
 /* =========================

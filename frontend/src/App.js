@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import Login from "./pages/Login";
@@ -25,20 +24,6 @@ import CategoryTab from "./admin/pages/CategoryTab";
 import ReportsTab from "./admin/pages/ReportsTab";
 
 function App() {
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark"
-  );
-
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.body.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [darkMode]);
-
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
@@ -49,10 +34,7 @@ function App() {
           path="/admin"
           element={
             <ProtectedRoute role={["admin", "manager"]}>
-              <AdminLayout
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
-              />
+              <AdminLayout />
             </ProtectedRoute>
           }
         >
@@ -72,10 +54,7 @@ function App() {
           path="/vendor/orders"
           element={
             <ProtectedRoute role="vendor">
-              <VendorOrders
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
-              />
+              <VendorOrders />
             </ProtectedRoute>
           }
         />
@@ -83,10 +62,7 @@ function App() {
         <Route
           path="/vendor/profile"
           element={
-            <VendorProfile
-              darkMode={darkMode}
-              setDarkMode={setDarkMode}
-            />
+            <VendorProfile />
           }
         />
 
@@ -94,10 +70,7 @@ function App() {
           path="/vendor"
           element={
             <ProtectedRoute role="vendor">
-              <VendorDashboard
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
-              />
+              <VendorDashboard />
             </ProtectedRoute>
           }
         />

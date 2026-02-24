@@ -24,6 +24,8 @@ export default function VendorDashboard() {
   const [qtyValue, setQtyValue] = useState("");
 
   const [sortBy, setSortBy] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
 
   useEffect(() => {
     const init = async () => {
@@ -109,6 +111,21 @@ export default function VendorDashboard() {
   if (sortBy === "bestsell") {
     filteredProducts.sort((a, b) => (b.sold || 0) - (a.sold || 0));
   }
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedSubcategory, searchTerm, sortBy, itemsPerPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const saveQty = (productId, stock) => {
     let val = Number(qtyValue);
@@ -259,9 +276,29 @@ export default function VendorDashboard() {
           </div>
         </div>
 
+        <div className="vendor-pagination-toolbar">
+          <p className="vendor-pagination-count">
+            Showing {filteredProducts.length === 0 ? 0 : startIndex + 1}-
+            {Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
+          </p>
+          <div className="vendor-page-size">
+            <label htmlFor="vendor-page-size">Items per page</label>
+            <select
+              id="vendor-page-size"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={4}>4</option>
+              <option value={8}>8</option>
+              <option value={12}>12</option>
+              <option value={16}>16</option>
+            </select>
+          </div>
+        </div>
+
         {/* PRODUCTS */}
         <div className="vendor-product-grid">
-          {filteredProducts.map(p => (
+          {paginatedProducts.map(p => (
             <div className="vendor-product-card" key={p._id}>
               <div className="v-card-img">
                 <img src={`http://localhost:5000/uploads/${p.image}`} alt={p.name} />
@@ -291,6 +328,36 @@ export default function VendorDashboard() {
             </div>
           ))}
         </div>
+
+        {filteredProducts.length > 0 && (
+          <div className="vendor-pagination">
+            <button
+              className="vendor-page-btn"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                className={`vendor-page-btn ${currentPage === page ? "active" : ""}`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              className="vendor-page-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+            >
+              Next
+            </button>
+          </div>
+        )}
 
         <Footer />
       </main>

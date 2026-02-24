@@ -33,62 +33,6 @@ input {
   border: 1px solid #ccc;
 }
 
-/* ================= DARK MODE ================= */
-body.dark {
-  background: #0f172a;
-  color: #e5e7eb;
-}
-
-/* CARDS */
-body.dark .product-card,
-body.dark .vendor-card,
-body.dark .cart-item,
-body.dark .modal {
-  background: #1e293b;
-  color: #e5e7eb;
-  box-shadow: none;
-}
-
-/* BUTTONS */
-body.dark button {
-  background: #1e293b;
-  color: #e5e7eb;
-  border: 1px solid #334155;
-}
-
-body.dark button:hover {
-  background: #334155;
-}
-
-/* INPUTS */
-body.dark input {
-  background: #020617;
-  color: #e5e7eb;
-  border: 1px solid #334155;
-}
-
-/* HEADERS */
-body.dark h1,
-body.dark h2,
-body.dark h3 {
-  color: #f8fafc;
-}
-
-/* STATS / INFO BOX */
-body.dark .admin-stats {
-  background: #020617;
-  border-left: 4px solid #38bdf8;
-}
-
-/* DELETE BUTTON */
-body.dark .delete-btn {
-  background: #7f1d1d;
-}
-
-body.dark .delete-btn:hover {
-  background: #991b1b;
-}
-
 /* ===== GLOBAL PAGE HEADER ===== */
 .page-header {
   display: flex;
@@ -97,19 +41,6 @@ body.dark .delete-btn:hover {
   margin-bottom: 20px;
 }
 
-/* ===== THEME TOGGLE ===== */
-.theme-toggle {
-  font-size: 18px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: transparent;
-  border: 1px solid #ccc;
-}
-
-body.dark .theme-toggle {
-  border-color: #475569;
-}
-
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -117,26 +48,9 @@ body.dark .theme-toggle {
   margin-bottom: 20px;
 }
 
-.theme-toggle {
-  font-size: 18px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: transparent;
-  border: 1px solid #ccc;
-}
-
-body.dark .theme-toggle {
-  border-color: #475569;
-}
-
 .modal {
   background: #ffffff;
   color: #000;
-}
-
-body.dark .modal {
-  background: #1e293b;
-  color: #e5e7eb;
 }
 
 .btn-danger {
