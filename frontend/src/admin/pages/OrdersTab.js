@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
+import OrderTimeline from "../../components/OrderTimeline";
 import "../admin.css";
 
 export default function OrdersTab() {
   const [orders, setOrders] = useState([]);
   const [commission, setCommission] = useState(0);
-
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [vendorFilter, setVendorFilter] = useState("all");
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const loadOrders = async () => {
     try {
@@ -24,7 +28,7 @@ export default function OrdersTab() {
     try {
       const res = await api.get("/orders/commission");
       setCommission(res.data?.total || 0);
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -32,7 +36,6 @@ export default function OrdersTab() {
     loadCommission();
   }, []);
 
-  /* ================= UPDATE STATUS ================= */
   const updateStatus = async (id, status) => {
     try {
       await api.put(`/orders/status/${id}`, { status });
@@ -44,7 +47,6 @@ export default function OrdersTab() {
     }
   };
 
-  /* ================= FILTERS ================= */
   const vendors = useMemo(() => {
     const map = new Map();
     orders.forEach((o) => {
@@ -54,147 +56,123 @@ export default function OrdersTab() {
   }, [orders]);
 
   const filtered = useMemo(() => {
+    setCurrentPage(1); // Reset page on filter change
     return orders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
-
-      if (
-        search &&
-        !String(o.orderNumber || "")
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      )
-        return false;
-
-      if (vendorFilter !== "all" && o.vendor?._id !== vendorFilter)
-        return false;
-
+      if (search && !String(o.orderNumber || "").toLowerCase().includes(search.toLowerCase())) return false;
+      if (vendorFilter !== "all" && o.vendor?._id !== vendorFilter) return false;
       return true;
     });
   }, [orders, statusFilter, search, vendorFilter]);
 
+  // Pagination Math
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
   const stats = useMemo(() => {
-    const processing = orders.filter((o) => o.status === "Placed").length;
-    const completed = orders.filter((o) => o.status === "Completed").length;
-    const cancelled = orders.filter((o) => o.status === "Cancelled").length;
-    return { processing, completed, cancelled };
+    return {
+      placed: orders.filter(o => o.status === "Placed").length,
+      processing: orders.filter(o => o.status === "Processing").length,
+      shipped: orders.filter(o => o.status === "Shipped").length,
+      delivered: orders.filter(o => o.status === "Delivered").length,
+      returned: orders.filter(o => o.status === "Returned").length,
+      cancelled: orders.filter(o => o.status === "Cancelled").length
+    };
   }, [orders]);
 
   return (
-    <div>
-      <h1>Orders</h1>
+    <div className="admin-container">
+      <h1 className="admin-title">Orders</h1>
 
-      {/* SUMMARY */}
       <div className="stats-row">
-        <div className="stat-card">
-          <span>Processing</span>
-          <h3>{stats.processing}</h3>
-        </div>
-
-        <div className="stat-card">
-          <span>Completed</span>
-          <h3>{stats.completed}</h3>
-        </div>
-
-        <div className="stat-card">
-          <span>Cancelled</span>
-          <h3>{stats.cancelled}</h3>
-        </div>
-
-        <div className="stat-card">
+        {['Placed', 'Processing', 'Shipped', 'Delivered', 'Returned', 'Cancelled'].map(s => (
+          <div className="stat-card" key={s}>
+            <span>{s}</span>
+            <h3>{stats[s.toLowerCase()]}</h3>
+          </div>
+        ))}
+        <div className="stat-card highlight">
           <span>Commission</span>
           <h3>₹{commission}</h3>
         </div>
       </div>
 
-      {/* FILTER BAR */}
       <div className="filter-bar">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="all">All Status</option>
-          <option value="Placed">Processing</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
+          <option value="Placed">Placed</option>
+          <option value="Processing">Processing</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Delivered">Delivered</option>
         </select>
 
-        <input
-          placeholder="Search Order #"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <input placeholder="Search Order #" value={search} onChange={(e) => setSearch(e.target.value)} />
 
-        <select
-          value={vendorFilter}
-          onChange={(e) => setVendorFilter(e.target.value)}
-        >
+        <select value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)}>
           <option value="all">All Vendors</option>
-          {vendors.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.email}
-            </option>
-          ))}
+          {vendors.map((v) => <option key={v.id} value={v.id}>{v.email}</option>)}
         </select>
 
-        <button
-          className="reset-btn"
-          onClick={() => {
-            setStatusFilter("all");
-            setSearch("");
-            setVendorFilter("all");
-          }}
-        >
+        <button className="reset-btn" onClick={() => { setStatusFilter("all"); setSearch(""); setVendorFilter("all"); }}>
           Reset
         </button>
       </div>
 
-      {/* ORDERS LIST */}
       <div className="orders-list">
-        {filtered.map((o) => (
+        {paginatedOrders.map((o) => (
           <div key={o._id} className="order-card">
-            <div className="order-header">
-              <span>Order #{o.orderNumber}</span>
-              <span>{o.vendor?.email}</span>
+            <div className="order-main-content">
+              <div className="order-header">
+                <h3>Order #{o.orderNumber}</h3>
+                <p className="vendor-email">{o.vendor?.email}</p>
+                <select className="status-select-minimal" value={o.status} onChange={(e) => updateStatus(o._id, e.target.value)}>
+                  <option value="Placed">Placed</option>
+                  <option value="Processing">Processing</option>
+                  <option value="Shipped">Shipped</option>
+                  <option value="Delivered">Delivered</option>
+                </select>
+              </div>
 
-              <select
-                value={o.status}
-                onChange={(e) =>
-                  updateStatus(o._id, e.target.value)
-                }
-              >
-                <option value="Placed">Processing</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            {/* PRODUCTS */}
-            <div className="order-products">
-              {o.products?.map((p, i) => (
-                <div key={i} className="order-item">
-                  {p.image && (
-                    <img
-                      src={`http://localhost:5000/uploads/${p.image}`}
-                      alt=""
-                    />
-                  )}
-
-                  <div>
-                    <strong>{p.name}</strong>
-                    <div>
-                      Qty: {p.qty} | ₹{p.price}
+              <div className="order-products">
+                {o.products?.map((p, i) => (
+                  <div key={i} className="product-chip">
+                    <img src={`http://localhost:5000/uploads/${p.image}`} alt="" />
+                    <div className="product-info">
+                      <span className="p-name">{p.name}</span>
+                      <span className="p-details">Qty: {p.qty} | ₹{p.price}</span>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              <div className="order-footer">
+                <span className="label">TOTAL AMOUNT</span>
+                <span className="total-price">Total: ₹{o.total}</span>
+              </div>
             </div>
 
-            <div className="order-footer">
-              Total: ₹{o.total}
+            <div className="timeline-box-dark">
+              <OrderTimeline status={o.status} />
+              <div className="order-address-mini">📍 {o.deliveryAddress}</div>
             </div>
           </div>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="pagination-container">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="pag-btn">Prev</button>
+          {[...Array(totalPages)].map((_, i) => (
+            <button key={i} onClick={() => setCurrentPage(i + 1)} className={`page-num ${currentPage === i + 1 ? 'active' : ''}`}>
+              {i + 1}
+            </button>
+          ))}
+          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="pag-btn">Next</button>
+        </div>
+      )}
     </div>
   );
 }
