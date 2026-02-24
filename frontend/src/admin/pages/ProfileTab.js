@@ -1,9 +1,11 @@
+
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
 
 export default function ProfileTab() {
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -11,6 +13,8 @@ export default function ProfileTab() {
     role: "",
     password: ""
   });
+
+  const [showPass, setShowPass] = useState(false);
 
   const loadProfile = async () => {
     try {
@@ -40,8 +44,8 @@ export default function ProfileTab() {
     rawPhone.length === 0
       ? ""
       : !isPhoneValid
-      ? "Enter valid 10-digit Indian mobile number"
-      : "";
+        ? "Enter valid 10-digit Indian mobile number"
+        : "";
 
   /* ================= UPDATE ================= */
   const update = async () => {
@@ -69,7 +73,6 @@ export default function ProfileTab() {
   return (
     <div className="profile-wrapper">
       <div className="profile-card-premium">
-        {/* HEADER */}
         <div className="profile-header">
           <div className="avatar-circle">
             {form.name.charAt(0).toUpperCase()}
@@ -83,9 +86,7 @@ export default function ProfileTab() {
           </div>
         </div>
 
-        {/* FORM */}
         <div className="profile-form-grid">
-          {/* NAME */}
           <div className="field">
             <label>Full Name</label>
             <input
@@ -96,13 +97,11 @@ export default function ProfileTab() {
             />
           </div>
 
-          {/* EMAIL */}
           <div className="field">
             <label>Email</label>
             <input value={form.email} disabled />
           </div>
 
-          {/* PHONE */}
           <div className="field">
             <label>Phone</label>
             <input
@@ -125,11 +124,9 @@ export default function ProfileTab() {
             )}
           </div>
 
-          {/* PASSWORD */}
-          <div className="field">
-            <label>New Password</label>
+          <div className="password-wrap">
             <input
-              type="password"
+              type={showPass ? "text" : "password"}
               placeholder="Leave empty to keep same"
               value={form.password}
               onChange={(e) =>
