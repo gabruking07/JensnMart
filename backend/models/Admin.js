@@ -5,6 +5,8 @@ const adminSchema = new mongoose.Schema(
     name: { type: String},
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    passwordResetOtp: { type: String, default: "" },
+    passwordResetOtpExpires: { type: Date, default: null },
     phone: {
       type: String,
       match: /^[0-9]{10}$/
