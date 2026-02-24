@@ -65,6 +65,42 @@
   border-color:#111;
 }
 
+.vendor-pagination-toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin:-6px 0 18px;
+  flex-wrap:wrap;
+}
+
+.vendor-pagination-count{
+  margin:0;
+  color:#475569;
+  font-size:14px;
+  font-weight:500;
+}
+
+.vendor-page-size{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.vendor-page-size label{
+  font-size:13px;
+  font-weight:600;
+  color:#64748b;
+}
+
+.vendor-page-size select{
+  height:34px;
+  padding:0 10px;
+  border-radius:8px;
+  border:1px solid #e5e7eb;
+  background:#fff;
+}
+
 /* ===== PRICE SLIDER ===== */
 .price-pill-row{
   display:flex;
@@ -214,6 +250,41 @@
 
 .v-add-btn:disabled{
   background:#bbb;
+  cursor:not-allowed;
+}
+
+.vendor-pagination{
+  margin-top:20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+}
+
+.vendor-page-btn{
+  border:1px solid #d1d5db;
+  background:#fff;
+  color:#111827;
+  border-radius:8px;
+  padding:6px 12px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.vendor-page-btn:hover:not(:disabled){
+  background:#eef2ff;
+  border-color:#a5b4fc;
+}
+
+.vendor-page-btn.active{
+  background:#1d4ed8;
+  border-color:#1d4ed8;
+  color:#fff;
+}
+
+.vendor-page-btn:disabled{
+  opacity:0.45;
   cursor:not-allowed;
 }
 

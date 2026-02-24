@@ -12,6 +12,7 @@
     "bootstrap": "^5.3.8",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
+    "lucide-react": "^0.575.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-hot-toast": "^2.6.0",

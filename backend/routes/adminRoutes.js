@@ -10,8 +10,8 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly");
 
 /* GET ALL VENDORS (ADMIN ONLY) */
-router.get("/vendors", authMiddleware, roleOnly("admin","manager"), async (req,res)=>{
-  const vendors = await Vendor.find().sort({createdAt:-1});
+router.get("/vendors", authMiddleware, roleOnly("admin", "manager"), async (req, res) => {
+  const vendors = await Vendor.find().sort({ createdAt: -1 });
   res.json(vendors);
 });
 
@@ -121,7 +121,7 @@ router.delete(
 // GET ALL ADMINS
 router.get("/all-admins", async (req, res) => {
   const admins = await Admin.find({
-    role: { $in: ["admin","manager"] }
+    role: { $in: ["admin", "manager"] }
   });
   res.json(admins);
 });
@@ -133,40 +133,42 @@ router.post(
   roleOnly("admin"),
   async (req, res) => {
     try {
-      const { name, email, password, role, phone } = req.body;
+      const { email, password, role } = req.body;
 
-      if (!email || !password || !phone) {
-        return res.status(400).json({ message: "All fields required" });
+      /* ===== VALIDATION ===== */
+      if (!email || !password || !role) {
+        return res.status(400).json({
+          message: "Email, password and role required"
+        });
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
       if (!emailRegex.test(email)) {
-        return res.status(400).json({ message: "Invalid email format" });
-      }
-
-      if (!/^\d{10}$/.test(phone)) {
-        return res.status(400).json({ message: "Phone must be 10 digits" });
+        return res.status(400).json({
+          message: "Invalid email format"
+        });
       }
 
       if (password.length < 6) {
-        return res.status(400).json({ message: "Password must be at least 6 chars" });
+        return res.status(400).json({
+          message: "Password must be at least 6 characters"
+        });
       }
 
       const exists = await Admin.findOne({ email });
       if (exists) {
-        return res.status(400).json({ message: "Admin already exists" });
+        return res.status(400).json({
+          message: "Admin already exists"
+        });
       }
 
-      // ================= CREATE =================
-
+      /* ===== CREATE ===== */
       const hash = await bcrypt.hash(password, 10);
 
       const newAdmin = await Admin.create({
-        name: name || "Admin",
         email: email.toLowerCase(),
         password: hash,
-        role: role || "manager",
-        phone,
+        role: role,      // admin or manager
         approved: false
       });
 
@@ -174,7 +176,9 @@ router.post(
 
     } catch (err) {
       console.error("CREATE ADMIN ERROR:", err);
-      res.status(500).json({ message: "Server error creating admin" });
+      res.status(500).json({
+        message: "Server error creating admin"
+      });
     }
   }
 );
@@ -238,7 +242,6 @@ router.delete(
         return res.status(404).json({ message: "Admin not found" });
       }
 
-      // Prevent deleting yourself
       if (admin._id.toString() === req.user.id) {
         return res.status(400).json({ message: "Cannot delete yourself" });
       }
@@ -270,7 +273,7 @@ router.put(
       const product = await Product.findByIdAndUpdate(
         req.params.id,
         { price },
-        { new: true } // 👈 IMPORTANT
+        { new: true }
       );
 
       if (!product) {
@@ -329,6 +332,26 @@ router.put(
       res.json(product);
     } catch (err) {
       res.status(500).json({ message: "Failed to update category" });
+    }
+  }
+);
+
+/* ================= GET LOGGED IN ADMIN PROFILE ================= */
+router.get(
+  "/me",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const admin = await Admin.findById(req.user.id).select("-password");
+
+      if (!admin) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(admin);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Profile fetch failed" });
     }
   }
 );

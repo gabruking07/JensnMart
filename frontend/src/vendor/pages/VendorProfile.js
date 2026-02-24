@@ -5,7 +5,7 @@ import Footer from "../../components/Footer";
 import "./VendorProfile.css";
 import VendorLayout from "./VendorLayout";
 
-export default function VendorProfile({ darkMode, setDarkMode }) {
+export default function VendorProfile() {
   const [vendor, setVendor] = useState(null);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
