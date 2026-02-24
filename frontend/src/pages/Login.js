@@ -52,7 +52,7 @@ export default function Login() {
   return (
     <div className="auth-page-root" style={{ backgroundImage: `url(${bg})` }}>
       <div className="auth-overlay">
-        <Header title="Portal Access" />
+        <Header title=" " />
 
         <div className="login-container">
           <div className="auth-card">
