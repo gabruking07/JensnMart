@@ -177,10 +177,11 @@
 }
 
 /* Orders Tab  */
-/* STATS */
+
 .stats-row {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
   margin-bottom: 20px;
 }
 
@@ -188,10 +189,26 @@
   background: white;
   padding: 16px;
   border-radius: 10px;
-  min-width: 150px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
 }
 
-/* FILTER */
+.stat-card span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.stat-card h3 {
+  margin-top: 5px;
+  font-size: 20px;
+}
+
+.stat-card.highlight {
+  background: rgb(131, 156, 254);
+  color: white;
+}
+
 .filter-bar {
   display: flex;
   gap: 10px;
@@ -213,7 +230,6 @@
   border-radius: 6px;
 }
 
-/* ORDERS */
 .orders-list {
   display: flex;
   flex-direction: column;
@@ -255,9 +271,198 @@
   font-weight: bold;
 }
 
-/* AddProduct Tab  */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
 
-/* CENTER WRAPPER */
+.status-badge.placed {
+  background: #e5e7eb;
+}
+
+.status-badge.processing {
+  background: #fde68a;
+}
+
+.status-badge.shipped {
+  background: #93c5fd;
+}
+
+.status-badge.delivered {
+  background: #86efac;
+}
+
+.status-badge.returned {
+  background: #fca5a5;
+}
+
+.status-badge.cancelled {
+  background: #ef4444;
+  color: white;
+}
+
+.order-address {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.timeline {
+  margin-top: 10px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 8px;
+}
+
+.timeline-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+/* CARD GRID STRUCTURE */
+.order-card {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  background: #ffffff;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.06);
+  transition: 0.25s ease;
+}
+
+.order-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.09);
+}
+
+/* LEFT SIDE */
+.order-main-content {
+  padding: 28px;
+  border-right: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.order-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.vendor-email {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+
+/* PRODUCTS */
+.order-products {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-chip {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-chip img {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+}
+
+/* TOTAL */
+.order-footer {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-price {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.timeline-box-dark {
+  background: #ffffff;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.order-address-mini {
+  margin-top: 18px;
+  font-size: 15px;
+  opacity: 1;
+  font-weight: 900;
+  color: black;
+}
+
+.orders-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(720px, 1fr));
+  gap: 22px;
+}
+
+/* PAGINATION */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 40px 0;
+}
+
+.page-num {
+  border: none;
+  background: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.page-num.active {
+  background: #0f172a;
+  color: white;
+}
+
+.pag-btn {
+  background: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* MOBILE */
+@media (max-width:900px) {
+  .order-card {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-box-dark {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* AddProduct Tab  */
 .add-product-wrapper {
   display: flex;
   justify-content: center;
@@ -603,7 +808,7 @@
   padding: 24px;
   border-radius: 12px;
   margin-top: 20px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 .profile-row {

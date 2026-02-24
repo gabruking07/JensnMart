@@ -6,6 +6,7 @@ const OrderSchema = new mongoose.Schema(
       type: Number,
       unique: true
     },
+
     deliveryAddress: String,
 
     vendor: {
@@ -39,13 +40,25 @@ const OrderSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Placed", "Completed", "Cancelled"],
+      enum: [
+        "Placed",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Returned",
+        "Cancelled"
+      ],
       default: "Placed"
-    }
+    },
+
+    statusHistory: [
+      {
+        status: String,
+        changedAt: { type: Date, default: Date.now }
+      }
+    ]
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Order", OrderSchema);
