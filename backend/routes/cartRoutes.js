@@ -109,42 +109,46 @@ router.delete(
 
 /* ================= QUANTITY CHANGE ================= */
 
-router.put("/update/:productId", authMiddleware, async (req, res) => {
-  try {
-    const { quantity } = req.body;
-    const { productId } = req.params;
+router.put(
+  "/update/:productId",
+  authMiddleware,
+  approvedVendorOnly,
+  async (req, res) => {
+    try {
+      const { quantity } = req.body;
+      const { productId } = req.params;
 
-    if (!quantity || quantity < 1) {
-      return res.status(400).json({ message: "Invalid quantity" });
+      if (!quantity || quantity < 1) {
+        return res.status(400).json({ message: "Invalid quantity" });
+      }
+
+      const cart = await Cart.findOne({
+        vendor: req.user.id,
+        status: "active"
+      }).populate("items.product");
+
+      if (!cart) {
+        return res.status(404).json({ message: "Cart not found" });
+      }
+
+      const item = cart.items.find(
+        i => i.product._id.toString() === productId
+      );
+
+      if (!item) {
+        return res.status(404).json({ message: "Item not in cart" });
+      }
+
+      item.quantity = quantity;
+
+      await cart.save();
+
+      res.json({ message: "Qty updated", cart });
+    } catch (err) {
+      console.log("UPDATE QTY ERROR:", err);
+      res.status(500).json({ message: "Update failed" });
     }
-
-    const cart = await Cart.findOne({
-      vendor: req.user.id,
-      status: "active"
-    }).populate("items.product");
-
-    if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
-    }
-
-    const item = cart.items.find(
-      i => i.product._id.toString() === productId
-    );
-
-    if (!item) {
-      return res.status(404).json({ message: "Item not in cart" });
-    }
-
-    item.quantity = quantity;
-
-    await cart.save();
-
-    res.json({ message: "Qty updated", cart });
-  } catch (err) {
-    console.log("UPDATE QTY ERROR:", err);
-    res.status(500).json({ message: "Update failed" });
-  }
-});
+  });
 
 // // FOR ADDRESSES 
 

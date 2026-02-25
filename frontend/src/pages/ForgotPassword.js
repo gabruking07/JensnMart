@@ -99,7 +99,7 @@ export default function ForgotPassword() {
   return (
     <div className="auth-page-root" style={{ backgroundImage: `url(${bg})` }}>
       <div className="auth-overlay">
-        <Header title="Password Recovery" />
+        <Header title=" " />
 
         <div className="login-container">
           <div className="auth-card forgot-card">

@@ -188,6 +188,13 @@ router.get("/admin", authMiddleware, async (req, res) => {
 
   const orders = await Order.find()
     .populate("vendor", "name email phone address")
+    .populate({
+      path: "products.productId",
+      populate: {
+        path: "category",
+        select: "name"
+      }
+    })
     .sort({ createdAt: -1 });
 
   res.json(orders);
