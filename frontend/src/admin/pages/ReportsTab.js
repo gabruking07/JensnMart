@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
+
 import {
   LineChart,
   Line,
@@ -12,53 +13,26 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend
+  BarChart,
+  Bar,
+  Legend,
+  LabelList
 } from "recharts";
+
 import "../admin.css";
 
-const COLORS = ["#6366f1", "#22c55e", "#ef4444"];
+const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6"];
 
-function startOfWeek(d) {
-  const date = new Date(d);
-  const day = date.getDay(); // 0-6
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // ISO week start (Mon)
-  const res = new Date(date.setDate(diff));
-  res.setHours(0, 0, 0, 0);
-  return res;
-}
-function endOfWeek(d) {
-  const s = startOfWeek(d);
-  const e = new Date(s);
-  e.setDate(s.getDate() + 6);
-  e.setHours(23, 59, 59, 999);
-  return e;
-}
-function startOfMonth(d) {
-  const res = new Date(d.getFullYear(), d.getMonth(), 1);
-  res.setHours(0, 0, 0, 0);
-  return res;
-}
-function endOfMonth(d) {
-  const res = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  res.setHours(23, 59, 59, 999);
-  return res;
-}
-function startOfYear(d) {
-  const res = new Date(d.getFullYear(), 0, 1);
-  res.setHours(0, 0, 0, 0);
-  return res;
-}
-function endOfYear(d) {
-  const res = new Date(d.getFullYear(), 11, 31);
-  res.setHours(23, 59, 59, 999);
-  return res;
-}
+const BAR_COLORS = [
+  "#3b82f6",
+  "#22c55e",
+  "#f59e0b",
+  "#8b5cf6",
+  "#ffe731"
+];
 
 export default function ReportsTab() {
   const [orders, setOrders] = useState([]);
-  const [rangeType, setRangeType] = useState("month"); // week | month | year | custom
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -71,220 +45,358 @@ export default function ReportsTab() {
     })();
   }, []);
 
-  // ----------- Compute active range -----------
-  const now = new Date();
-  const { start, end } = useMemo(() => {
-    if (rangeType === "week") {
-      return { start: startOfWeek(now), end: endOfWeek(now) };
-    }
-    if (rangeType === "month") {
-      return { start: startOfMonth(now), end: endOfMonth(now) };
-    }
-    if (rangeType === "year") {
-      return { start: startOfYear(now), end: endOfYear(now) };
-    }
-    if (rangeType === "custom" && customStart && customEnd) {
-      const s = new Date(customStart);
-      const e = new Date(customEnd);
-      s.setHours(0, 0, 0, 0);
-      e.setHours(23, 59, 59, 999);
-      return { start: s, end: e };
-    }
-    // default month
-    return { start: startOfMonth(now), end: endOfMonth(now) };
-  }, [rangeType, customStart, customEnd]);
+  /* ---------------- KPI ---------------- */
 
-  // ----------- Filtered orders -----------
-  const filtered = useMemo(() => {
-    return orders.filter(o => {
-      const t = new Date(o.createdAt).getTime();
-      return t >= start.getTime() && t <= end.getTime();
-    });
-  }, [orders, start, end]);
+  const startOfDay = (d) => {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x;
+  };
 
-  // ----------- KPIs -----------
-  const totalRevenue = useMemo(
-    () => filtered.reduce((sum, o) => sum + (o.total || 0), 0),
-    [filtered]
-  );
-  const totalOrders = filtered.length;
-  const totalCommission = useMemo(
-    () => filtered.reduce((sum, o) => sum + (o.adminCommission || 0), 0),
-    [filtered]
-  );
+  const todayRevenue = useMemo(() => {
+    const today = startOfDay(new Date());
 
-  // ----------- Status donut -----------
+    return orders
+      .filter(o => startOfDay(o.createdAt).getTime() === today.getTime())
+      .reduce((s, o) => s + (o.total || 0), 0);
+  }, [orders]);
+
+  const yesterdayRevenue = useMemo(() => {
+    const y = startOfDay(new Date());
+    y.setDate(y.getDate() - 1);
+
+    return orders
+      .filter(o => startOfDay(o.createdAt).getTime() === y.getTime())
+      .reduce((s, o) => s + (o.total || 0), 0);
+  }, [orders]);
+
+  const change = yesterdayRevenue === 0
+    ? 0
+    : (((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100).toFixed(1);
+
+  const totalRevenueAllTime = useMemo(() => {
+    return orders.reduce((s, o) => s + (o.total || 0), 0);
+  }, [orders]);
+
+  const totalVendors = useMemo(() => {
+    const set = new Set(
+      orders.map(o => o.vendor?._id || o.vendor?.email)
+    );
+    return set.size;
+  }, [orders]);
+
+  /* ---------------- PIE STATUS (4 ONLY) ---------------- */
+
   const statusData = useMemo(() => {
-    const placed = filtered.filter(o => o.status === "Placed").length;
-    const completed = filtered.filter(o => o.status === "Completed").length;
-    const cancelled = filtered.filter(o => o.status === "Cancelled").length;
-    return [
-      { name: "Processing", value: placed },
-      { name: "Completed", value: completed },
-      { name: "Cancelled", value: cancelled }
-    ];
-  }, [filtered]);
+    const placed = orders.filter(o => o.status === "Placed").length;
+    const processing = orders.filter(o => o.status === "Processing").length;
+    const shipped = orders.filter(o => o.status === "Shipped").length;
+    const delivered = orders.filter(o => o.status === "Delivered").length;
 
-  // ----------- Revenue by day (or month if year view) -----------
+    return [
+      { name: "Placed", value: placed },
+      { name: "Processing", value: processing },
+      { name: "Shipped", value: shipped },
+      { name: "Delivered", value: delivered }
+    ];
+  }, [orders]);
+
+  /* ---------------- LINE CHART ---------------- */
+
   const revenueData = useMemo(() => {
     const map = {};
-    filtered.forEach(o => {
+
+    orders.forEach(o => {
       const d = new Date(o.createdAt);
-      const key =
-        rangeType === "year"
-          ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
-          : d.toLocaleDateString();
+      const key = d.toLocaleString("default", {
+        month: "short",
+        year: "numeric"
+      });
+
       map[key] = (map[key] || 0) + (o.total || 0);
     });
-    return Object.entries(map).map(([date, total]) => ({ date, total }));
-  }, [filtered, rangeType]);
 
-  // ----------- Top 5 vendors -----------
-  const topVendors = useMemo(() => {
-    const map = {};
-    filtered.forEach(o => {
-      const name = o.vendor?.email || o.vendor?.name || "Unknown";
-      map[name] = (map[name] || 0) + (o.total || 0);
-    });
-    return Object.entries(map)
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
-  }, [filtered]);
+    return Object.entries(map).map(([date, total]) => ({
+      date,
+      total
+    }));
+  }, [orders]);
 
-  // ----------- Top 5 products -----------
+  /* ---------------- TOP PRODUCTS ---------------- */
+
   const topProducts = useMemo(() => {
     const map = {};
-    filtered.forEach(o => {
+
+    orders.forEach(o => {
       (o.products || []).forEach(p => {
-        const key = p.productId || p.name;
-        const label = p.name;
-        map[key] = map[key] || { name: label, qty: 0, revenue: 0 };
+        const key = p.productId?._id || p.name;
+
+        if (!map[key]) {
+          map[key] = {
+            name: p.name,
+            qty: 0,
+            image: p.image,
+            category: p.productId?.category || "General"
+          };
+        }
+
         map[key].qty += p.qty || 0;
-        map[key].revenue += (p.price || 0) * (p.qty || 0);
       });
     });
+
     return Object.values(map)
       .sort((a, b) => b.qty - a.qty)
       .slice(0, 5);
-  }, [filtered]);
+  }, [orders]);
+
+  // ---------- THIS MONTH SALES ----------
+  const thisMonthSales = useMemo(() => {
+    const now = new Date();
+
+    return orders
+      .filter(o => {
+        const d = new Date(o.createdAt);
+        return (
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        );
+      })
+      .reduce((sum, o) => sum + (o.total || 0), 0);
+  }, [orders]);
+
+  // ---------- TOTAL ORDERS ----------
+  const totalOrdersPlaced = orders.length;
+
+  // ---------- TOP SELLING PRODUCT ----------
+  const topProduct = topProducts?.[0]?.name || "-";
 
   return (
     <div className="reports-page">
-      <div className="reports-header">
-        <h1>Reports & Analytics</h1>
 
-        {/* FILTER BAR */}
-        <div className="filters">
-          <div className="pill-group">
-            {["week", "month", "year", "custom"].map(t => (
-              <button
-                key={t}
-                className={`pill ${rangeType === t ? "active" : ""}`}
-                onClick={() => setRangeType(t)}
-              >
-                {t[0].toUpperCase() + t.slice(1)}
-              </button>
-            ))}
+      {/* KPI */}
+      <div className="kpi-row">
+        <div className="kpi-card">
+          <div className="kpi-title">Today's Revenue</div>
+          <div className="kpi-value">₹{todayRevenue.toLocaleString()}</div>
+          <div className={`kpi-change ${change >= 0 ? "up" : "down"}`}>
+            {change >= 0 ? "▲" : "▼"} {Math.abs(change)}% from yesterday
           </div>
+        </div>
 
-          {rangeType === "custom" && (
-            <div className="custom-range">
-              <input
-                type="date"
-                value={customStart}
-                onChange={e => setCustomStart(e.target.value)}
-              />
-              <span>to</span>
-              <input
-                type="date"
-                value={customEnd}
-                onChange={e => setCustomEnd(e.target.value)}
-              />
-            </div>
-          )}
+        <div className="kpi-card">
+          <div className="kpi-title">Total Vendors</div>
+          <div className="kpi-value">{totalVendors}</div>
+        </div>
+
+        <div className="kpi-card">
+          <div className="kpi-title">Revenue (Total)</div>
+          <div className="kpi-value">
+            ₹{totalRevenueAllTime.toLocaleString()}
+          </div>
         </div>
       </div>
 
-      {/* KPI CARDS */}
-      <div className="reports-stats">
-        <div className="report-card">
-          <span>Revenue</span>
-          <h2>₹{totalRevenue}</h2>
-        </div>
-        <div className="report-card">
-          <span>Orders</span>
-          <h2>{totalOrders}</h2>
-        </div>
-        <div className="report-card">
-          <span>Commission</span>
-          <h2>₹{totalCommission}</h2>
-        </div>
-      </div>
-
-      {/* CHARTS */}
+      {/* CHART ROW */}
       <div className="charts-row">
         <div className="chart-card">
-          <h3>Revenue Trend</h3>
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
+          <div className="card-title">Monthly Sales</div>
+
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={revenueData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+              <CartesianGrid stroke="#9d9d9d" strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="date"
+                axisLine={true}
+                tickLine={false}
+                tick={{ fill: '#000000', fontSize: 12 }}
+                dy={10}
+              />
+              <YAxis
+                axisLine={true}
+                tickLine={false}
+                tick={{ fill: '#000000', fontSize: 12 }}
+                tickFormatter={(value) => `₹${value >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : value.toLocaleString()}`}
+              />
+              <Tooltip
+                contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
               <Line
                 type="monotone"
                 dataKey="total"
-                stroke="#6366f1"
-                strokeWidth={3}
+                stroke="#10b981"
+                strokeWidth={4}
+                dot={{ r: 6, fill: "#10b981", strokeWidth: 2, stroke: "#fff" }}
+                activeDot={{ r: 8 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         <div className="chart-card">
-          <h3>Order Status</h3>
-          <ResponsiveContainer width="100%" height={320}>
+          <div className="card-title">Order Status</div>
+
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie
                 data={statusData}
                 dataKey="value"
-                outerRadius={110}
-                label
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={5}
+                stroke="none"
               >
-                {statusData.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i]} />
+                {/* LabelList for Pie Chart */}
+                <LabelList
+                  dataKey="value"
+                  position="outside"
+                  offset={15}
+                  style={{ fill: '#4b5563', fontSize: '14px', fontWeight: 'bold' }}
+                />
+                {statusData.map((entry, index) => (
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Legend />
-              <Tooltip />
+              <Tooltip
+                contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Legend verticalAlign="bottom" align="center" iconType="circle" />
             </PieChart>
           </ResponsiveContainer>
         </div>
-      </div>
 
-      {/* LISTS */}
-      <div className="lists-row">
-        <div className="list-card">
-          <h3>Top 5 Vendors</h3>
-          {topVendors.map((v, i) => (
-            <div key={i} className="list-row">
-              <span>{v.name}</span>
-              <strong>₹{v.total}</strong>
-            </div>
-          ))}
-          {topVendors.length === 0 && <p className="muted">No data</p>}
+        <div className="chart-card">
+          <div className="card-title">Top Selling Products</div>
+
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart
+              layout="vertical"
+              data={topProducts}
+              margin={{ top: 5, right: 40, left: 40, bottom: 5 }} // Increased right margin so numbers don't cut off
+            >
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
+              <XAxis type="number" hide />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={100}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }}
+              />
+              <Tooltip
+                cursor={{ fill: 'transparent' }}
+                contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Bar dataKey="qty" barSize={20} radius={[0, 10, 10, 0]}>
+                {/* This displays the quantity number at the end of each bar */}
+                <LabelList dataKey="qty" position="right" style={{ fill: '#4b5563', fontSize: 12, fontWeight: 'bold' }} />
+                {topProducts.map((entry, index) => (
+                  <Cell key={index} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
-        <div className="list-card">
-          <h3>Top 5 Products</h3>
-          {topProducts.map((p, i) => (
-            <div key={i} className="list-row">
-              <span>{p.name}</span>
-              <strong>{p.qty} pcs</strong>
+        {/* ================= BOTTOM ROW ================= */}
+        <div className="bottom-row">
+
+          {/* ---------- TOP PRODUCTS TABLE ---------- */}
+          <div className="card table-card">
+            <h3>Top Products</h3>
+            <p className="sub">Products having most sales</p>
+
+            <table className="products-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Total Sold</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {topProducts.map((p, i) => (
+                  <tr key={i}>
+                    <td>
+                      <img
+                        src={`http://localhost:5000/uploads/${p.image}`}
+                        alt=""
+                      />
+                    </td>
+
+                    <td>{p.name}</td>
+                    <td>{p.category?.name}</td>
+
+                    <td className="bold">{p.qty}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ---------- SUMMARY PANEL ---------- */}
+          <div className="card summary-card">
+            <h3>Summary</h3>
+            <p className="sub">
+              Summary of key metrics for the current month
+            </p>
+
+            {/* SALES */}
+            <div className="summary-item">
+              <span className="icon green">💰</span>
+              <div>
+                <b>Total Sales this Month</b>
+                <p>₹{thisMonthSales.toLocaleString()}</p>
+              </div>
             </div>
-          ))}
-          {topProducts.length === 0 && <p className="muted">No data</p>}
+
+            {/* ORDERS */}
+            <div className="summary-item">
+              <span className="icon blue">📦</span>
+              <div>
+                <b>Total Orders Placed</b>
+                <p>{totalOrdersPlaced} orders</p>
+              </div>
+            </div>
+
+            {/* TOP PRODUCT */}
+            <div className="summary-item">
+              <span className="icon orange">🏆</span>
+              <div>
+                <b>Top Selling Product</b>
+                <p>{topProduct}</p>
+              </div>
+            </div>
+
+            {/* TOTAL VENDORS */}
+            <div className="summary-item">
+              <span className="icon purple">🏪</span>
+              <div>
+                <b>Total Vendors</b>
+                <p>{totalVendors}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card recent-card">
+            <h3>Recent Orders</h3>
+
+            {orders.slice(0, 5).map(o => (
+              <div key={o.orderNumber} className="recent-row">
+                <div>
+                  <b>#{o.orderNumber}</b>
+                  <p>₹{o.total}</p>
+                </div>
+
+                <span className={`status ${o.status.toLowerCase()}`}>
+                  {o.status}
+                </span>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
     </div>
