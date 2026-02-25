@@ -145,7 +145,7 @@ export default function VendorsTab() {
                 </button>
               )}
 
-              <button
+              <button 
                 className="delete-btn"
                 onClick={() => rejectVendor(v._id)}
               >
