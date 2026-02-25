@@ -320,23 +320,6 @@ router.put(
   }
 );
 
-/* DELETE PRODUCT */
-router.delete(
-  "/product/:id",
-  authMiddleware,
-  roleOnly("admin", "manager"),
-  async (req, res) => {
-    const product = await Product.findById(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    await product.deleteOne();
-    res.json({ message: "Product deleted successfully" });
-  }
-);
-
 /* ================= UPDATE PRODUCT CATEGORY ================= */
 /* ADMIN + MANAGER */
 router.put(
