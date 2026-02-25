@@ -982,70 +982,45 @@
 .status.delivered { background: #dcfce7; color: #166534; }
 
 /* Profile Tab  */
-.profile-page {
-  max-width: 500px;
+/* Container to center the card properly */
+.profile-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 20px;
+  min-height: 100%;
 }
 
-.profile-card {
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.profile-card label {
-  font-size: 13px;
-  margin-top: 10px;
-  display: block;
-}
-
-.profile-card input {
+/* The Premium Card */
+.profile-card-premium {
   width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  max-width: 700px; /* Slightly wider for the 2-column layout */
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
 }
 
-.save-btn {
-  margin-top: 20px;
-  width: 100%;
-  padding: 12px;
-  background: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 10px;
+/* Header Section */
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 40px;
 }
 
-.role-badge {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  color: white;
-  padding: 8px 14px;
-  border-radius: 8px;
-  width: fit-content;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #4f46e5;
+.avatar-inner {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px; /* Modern squircle */
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 32px;
   font-weight: bold;
-  margin-bottom: 15px;
-}
-
-.error-text {
-  color: #ef4444;
-  font-size: 12px;
-  margin-top: 5px;
 }
 
 .save-btn:disabled {
@@ -1069,16 +1044,10 @@
 
 .profile-header {
   display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 25px;
+  flex-direction: column;
 }
 
-.avatar-circle {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+.input-group label {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1093,17 +1062,21 @@
   border-radius: 8px;
   font-size: 12px;
   width: fit-content;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 8px;
 }
 
-.role-chip.admin {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
-.role-chip.manager {
-  background: #ede9fe;
-  color: #6d28d9;
+.input-group input {
+  height: 48px;
+  padding: 0 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: all 0.2s;
 }
 
 .profile-form-grid {
@@ -1113,50 +1086,117 @@
   margin-bottom: 25px;
 }
 
-.field label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
+/* Password Field specific alignment */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.field input {
+.password-input-wrapper input {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  margin-top: 6px;
-  font-size: 14px;
+  padding-right: 45px; /* Space for the eye icon */
 }
 
-.field input:focus {
-  outline: none;
-  border: 1px solid #6366f1;
+.toggle-visibility {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
 }
 
 .error-text {
   font-size: 12px;
-  color: #ef4444;
-  margin-top: 5px;
+  color: #9ca3af;
+  margin-top: 8px;
+  line-height: 1.4;
 }
 
+/* Save Button Positioning */
 .save-btn-premium {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  margin-top: 40px;
+  height: 50px;
+  width: 200px; /* Don't make it full width if the card is wide */
+  background: #6366f1;
   color: white;
+  border: none;
+  border-radius: 12px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   cursor: pointer;
-  font-size: 15px;
   transition: 0.2s;
 }
 
 .save-btn-premium:hover {
-  opacity: 0.9;
+  background: #4f46e5;
+  transform: translateY(-1px);
 }
 
-.save-btn-premium:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* --- Base Chip Style --- */
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 99px; /* Pill Shape */
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Admin: Authority Blue --- */
+.role-chip.admin {
+  background: #e0f2fe; /* Light sky blue */
+  color: #0369a1;      /* Deep navy blue */
+  border: 1.5px solid rgba(3, 105, 161, 0.2);
+  box-shadow: 0 2px 10px rgba(3, 105, 161, 0.05);
+}
+
+/* --- Manager: Professional Violet --- */
+.role-chip.manager {
+  background: #f5f3ff; /* Light lavender */
+  color: #7c3aed;      /* Vivid violet */
+  border: 1.5px solid rgba(124, 58, 237, 0.2);
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.05);
+}
+
+/* Hover Effect for both */
+.role-chip:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.95);
+}
+
+/* Better spacing for the error message */
+.error-text {
+  display: block;
+  margin-top: 8px;
+  padding-left: 4px;
+  font-weight: 500;
+  color: #ef4444;
+  font-size: 12px;
+}
+
+/* Fix the Security Field Icon */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-visibility {
+  position: absolute;
+  right: 12px;
+  color: #9ca3af;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  padding: 0;
 }

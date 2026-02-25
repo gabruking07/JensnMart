@@ -52,7 +52,7 @@ export default function Login() {
   return (
     <div className="auth-page-root" style={{ backgroundImage: `url(${bg})` }}>
       <div className="auth-overlay">
-        <Header title="Portal Access" />
+        <Header title=" " />
 
         <div className="login-container">
           <div className="auth-card">
@@ -104,6 +104,14 @@ export default function Login() {
 
               <button className="btn-sign-in" onClick={login} disabled={loading}>
                 {loading ? "Signing in..." : "SIGN IN"}
+              </button>
+
+              <button
+                type="button"
+                className="forgot-password-link"
+                onClick={() => navigate(`/forgot-password?role=${role}`)}
+              >
+                Forgot Password?
               </button>
             </div>
 

@@ -9,6 +9,8 @@ const vendorSchema = new mongoose.Schema(
       unique: true
     },
     password: { type: String, required: true },
+    passwordResetOtp: { type: String, default: "" },
+    passwordResetOtpExpires: { type: Date, default: null },
     phone: {
       type: String,
       required: true,

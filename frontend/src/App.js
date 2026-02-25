@@ -6,6 +6,7 @@ import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import AdminRegister from "./pages/AdminRegister";
 import VendorRegister from "./pages/VendorRegister";
+import ForgotPassword from "./pages/ForgotPassword";
 
 import VendorDashboard from "./vendor/pages/VendorDashboard";
 import VendorProfile from "./vendor/pages/VendorProfile";
@@ -79,6 +80,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/admin-register" element={<AdminRegister />} />
         <Route path="/vendor-register" element={<VendorRegister />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/products" element={<Products />} />
       </Routes>
     </BrowserRouter>
