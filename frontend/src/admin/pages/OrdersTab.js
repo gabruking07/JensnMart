@@ -10,10 +10,10 @@ export default function OrdersTab() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [vendorFilter, setVendorFilter] = useState("all");
-  
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const [itemsPerPage, setItemsPerPage] = useState(6);
 
   const loadOrders = async () => {
     try {
@@ -56,7 +56,6 @@ export default function OrdersTab() {
   }, [orders]);
 
   const filtered = useMemo(() => {
-    setCurrentPage(1); // Reset page on filter change
     return orders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (search && !String(o.orderNumber || "").toLowerCase().includes(search.toLowerCase())) return false;
@@ -66,11 +65,21 @@ export default function OrdersTab() {
   }, [orders, statusFilter, search, vendorFilter]);
 
   // Pagination Math
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const paginatedOrders = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filtered.slice(start, start + itemsPerPage);
-  }, [filtered, currentPage]);
+  }, [filtered, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, search, vendorFilter, itemsPerPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const stats = useMemo(() => {
     return {
@@ -119,6 +128,21 @@ export default function OrdersTab() {
         <button className="reset-btn" onClick={() => { setStatusFilter("all"); setSearch(""); setVendorFilter("all"); }}>
           Reset
         </button>
+      </div>
+      <div className="orders-page-toolbar">
+        <div className="orders-page-size">
+          <label htmlFor="orders-page-size">Items per page</label>
+          <select
+            id="orders-page-size"
+            value={itemsPerPage}
+            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+          >
+            <option value={4}>4</option>
+            <option value={6}>6</option>
+            <option value={8}>8</option>
+            <option value={12}>12</option>
+          </select>
+        </div>
       </div>
 
       <div className="orders-list">
