@@ -155,7 +155,7 @@ export default function VendorOrders() {
             )}
 
             <button className="btn-secondary" onClick={() => navigate("/vendor")}>
-              Back to Shop
+              Back to Shop 
             </button>
 
             <Footer />
