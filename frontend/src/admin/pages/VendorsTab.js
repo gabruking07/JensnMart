@@ -135,7 +135,7 @@ export default function VendorsTab() {
             <span>{v.email}</span>
             <span>{v.approved ? "Active" : "Pending"}</span>
 
-            <span className="actions">
+            <div className="actions">
               {!v.approved && (
                 <button
                   className="approve"
@@ -145,13 +145,13 @@ export default function VendorsTab() {
                 </button>
               )}
 
-              <button
+              <button 
                 className="delete-btn"
                 onClick={() => rejectVendor(v._id)}
               >
                 Remove
               </button>
-            </span>
+            </div>
           </div>
         ))}
 

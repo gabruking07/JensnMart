@@ -10,8 +10,8 @@ export default function OrdersTab() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [vendorFilter, setVendorFilter] = useState("all");
-
-  // Pagination State
+  
+  // Pagination State 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
 

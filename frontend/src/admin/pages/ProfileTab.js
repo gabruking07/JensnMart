@@ -80,7 +80,7 @@ export default function ProfileTab() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="profile-container"
+      className="profile-wrapper"
     >
       <div className="profile-card-premium">
         {/* Header Section */}
