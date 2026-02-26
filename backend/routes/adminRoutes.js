@@ -291,6 +291,37 @@ router.delete(
 /* UPDATE PRODUCT STOCK (ADMIN + MANAGER) */
 /* ================= UPDATE STOCK ================= */
 router.put(
+  "/update-product-name/:id",
+  authMiddleware,
+  roleOnly("admin", "manager"),
+  async (req, res) => {
+    try {
+      const name = String(req.body.name || "").trim();
+
+      if (!name) {
+        return res.status(400).json({ message: "Product name is required" });
+      }
+
+      const product = await Product.findByIdAndUpdate(
+        req.params.id,
+        { name },
+        { new: true }
+      );
+
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      res.json({ message: "Product name updated", name: product.name });
+    } catch (err) {
+      console.error("UPDATE PRODUCT NAME ERROR:", err);
+      res.status(500).json({ message: "Failed to update product name" });
+    }
+  }
+);
+
+/* ================= UPDATE PRICE ================= */
+router.put(
   "/update-price/:id",
   authMiddleware,
   roleOnly("admin", "manager"),

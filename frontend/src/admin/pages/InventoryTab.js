@@ -108,6 +108,24 @@ export default function InventoryTab() {
     }
   };
 
+  /* ================= UPDATE NAME ================= */
+  const updateName = async (id, name) => {
+    const trimmedName = String(name || "").trim();
+    if (!trimmedName) {
+      toast.error("Product name cannot be empty");
+      loadProducts();
+      return;
+    }
+    try {
+      await api.put(`/admin/update-product-name/${id}`, { name: trimmedName });
+      toast.success("Product name updated");
+      loadProducts();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Name update failed");
+      loadProducts();
+    }
+  };
+
   return (
     <div>
       <h1>Inventory</h1>
@@ -139,7 +157,13 @@ export default function InventoryTab() {
               alt=""
             />
 
-            <h3>{p.name}</h3>
+            <div className="field">
+              <label>Name</label>
+              <input
+                defaultValue={p.name}
+                onBlur={(e) => updateName(p._id, e.target.value)}
+              />
+            </div>
 
             {/* PRICE */}
             <div className="field">
