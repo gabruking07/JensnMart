@@ -10,7 +10,7 @@ const STEPS = [
 
 export default function OrderTimeline({ status }) {
     const idx = STEPS.findIndex(s => s.key === status);
-    const current = idx === -1 ? 0 : idx;
+    const current = idx;
 
     return (
         <div className="timeline-card">
@@ -24,8 +24,8 @@ export default function OrderTimeline({ status }) {
             <div className="timeline-row">
                 {STEPS.map((step, i) => {
                     const Icon = step.icon;
-                    const active = i <= current;
-                    const done = i < current;
+                    const active = current >= 0 && i <= current;
+                    const done = current >= 0 && i < current;
 
                     return (
                         <div key={step.key} className="timeline-step">
