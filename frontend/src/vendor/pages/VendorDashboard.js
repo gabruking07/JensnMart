@@ -25,7 +25,7 @@ export default function VendorDashboard() {
 
   const [sortBy, setSortBy] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [itemsPerPage, setItemsPerPage] = useState(4);
 
   useEffect(() => {
     const init = async () => {
