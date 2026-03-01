@@ -5,10 +5,17 @@ const Product = require("../models/Product");
 const Order = require("../models/Order");
 const Vendor = require("../models/Vendor");
 const Cart = require("../models/Cart");
+const Payment = require("../models/Payment");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const approvedVendorOnly = require("../middleware/approveVendorOnly");
 const roleOnly = require("../middleware/adminOnly");
+
+const getRazorpayCredentials = () => {
+  const keyId = (process.env.RAZORPAY_KEY_ID || "").trim();
+  const keySecret = ((process.env.RAZORPAY_SECRET || process.env.RAZORPAY_KEY_SECRET) || "").trim();
+  return { keyId, keySecret };
+};
 
 /* =====================================================
    PLACE SINGLE PRODUCT ORDER (VENDOR)
@@ -20,6 +27,7 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
     }
 
     const { qty } = req.body;
+    const { paymentMethod } = req.body;
     const { productId } = req.params;
 
     if (!qty || qty <= 0) {
@@ -64,6 +72,16 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
       status: "Placed"
     });
 
+    if (paymentMethod === "COD") {
+      await Payment.create({
+        order: order._id,
+        vendor: req.user.id,
+        amount: total,
+        method: "COD",
+        status: "Pending"
+      });
+    }
+
     res.json({ message: "Order placed successfully", order });
   } catch (err) {
     console.error("BUY ERROR:", err);
@@ -79,16 +97,19 @@ router.get("/vendor/orders", authMiddleware, async (req, res) => {
     return res.status(403).json({ message: "Access denied" });
   }
 
-  const orders = await Order.find({ vendor: req.user.id }).sort({ createdAt: -1 });
+  const orders = await Order.find({
+    vendor: req.user.id,
+    status: { $ne: "PendingPayment" }
+  }).sort({ createdAt: -1 });
   res.json(orders);
 });
 
 /* =====================================================
-   CART CHECKOUT  (MAIN FIXED ROUTE)
+   CART CHECKOUT 
 ===================================================== */
 router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) => {
   try {
-    const { address } = req.body;
+    const { address, paymentMethod } = req.body;
     const normalizeAddress = (raw) => {
       if (!raw) return "";
       if (typeof raw === "string") return raw.trim();
@@ -140,9 +161,6 @@ router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) =>
         });
       }
 
-      product.stock -= item.quantity;
-      await product.save();
-
       total += product.price * item.quantity;
 
       products.push({
@@ -157,6 +175,8 @@ router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) =>
 
     const adminCommission = total * 0.1;
 
+    const initialStatus = paymentMethod === "Online" ? "PendingPayment" : "Placed";
+
     const order = await Order.create({
       orderNumber: newNumber,
       vendor: req.user.id,
@@ -164,8 +184,79 @@ router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) =>
       total,
       adminCommission,
       deliveryAddress,
-      status: "Placed"
+      status: initialStatus
     });
+
+    if (paymentMethod === "COD") {
+      for (const item of cart.items) {
+        const product = item.product;
+        product.stock -= item.quantity;
+        await product.save();
+      }
+
+      await Payment.create({
+        order: order._id,
+        vendor: req.user.id,
+        amount: total,
+        method: "COD",
+        status: "Pending"
+      });
+
+      cart.status = "ordered";
+      await cart.save();
+
+      return res.json({ message: "Order placed successfully", order });
+    }
+
+    if (paymentMethod === "Online") {
+
+      const Razorpay = require("razorpay");
+      const { keyId, keySecret } = getRazorpayCredentials();
+
+      if (!keyId || !keySecret) {
+        return res.status(500).json({
+          message: "Razorpay credentials are not configured on server"
+        });
+      }
+
+      const razorpay = new Razorpay({
+        key_id: keyId,
+        key_secret: keySecret,
+      });
+
+      let razorpayOrder;
+      try {
+        razorpayOrder = await razorpay.orders.create({
+          amount: total * 100,
+          currency: "INR",
+          receipt: `receipt_${order._id}`
+        });
+      } catch (rzpErr) {
+        const isAuthError = rzpErr?.statusCode === 401 || rzpErr?.error?.code === "BAD_REQUEST_ERROR";
+        if (isAuthError) {
+          return res.status(500).json({
+            message: "Invalid Razorpay credentials on server. Update RAZORPAY_KEY_ID and RAZORPAY_SECRET."
+          });
+        }
+        throw rzpErr;
+      }
+
+      await Payment.create({
+        order: order._id,
+        vendor: req.user.id,
+        amount: total,
+        method: "UPI",
+        status: "Pending",
+        razorpayOrderId: razorpayOrder.id
+      });
+
+      return res.json({
+        message: "Order created",
+        order,
+        razorpayOrder,
+        razorpayKeyId: keyId
+      });
+    }
 
     cart.status = "ordered";
     await cart.save();
@@ -209,6 +300,7 @@ router.put("/status/:id", authMiddleware, async (req, res) => {
   }
 
   const allowedStatuses = [
+    "PendingPayment",
     "Placed",
     "Processing",
     "Shipped",
@@ -244,6 +336,13 @@ router.put("/status/:id", authMiddleware, async (req, res) => {
   }
 
   order.status = status;
+  if (status === "Delivered") {
+    await Payment.findOneAndUpdate(
+      { order: order._id },
+      { status: "Paid" }
+    );
+  }
+
   order.statusHistory.push({ status });
   await order.save();
 

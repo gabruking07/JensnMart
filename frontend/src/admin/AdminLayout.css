@@ -10,14 +10,12 @@
   --success: #22c55e;
 }
 
-/* ROOT */
 .admin-root {
   display: flex;
   height: 100vh;
   background: #f1f5f9;
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 240px;
   background: linear-gradient(180deg, var(--bg), var(--panel));
@@ -33,7 +31,6 @@
   width: 72px;
 }
 
-/* TOP */
 .sidebar-top {
   display: flex;
   align-items: center;
@@ -56,7 +53,6 @@
   cursor: pointer;
 }
 
-/* MENU */
 .menu {
   display: flex;
   flex-direction: column;
@@ -94,7 +90,6 @@
   display: none;
 }
 
-/* ACTIVE RAIL */
 .active-rail {
   position: absolute;
   left: -14px;
@@ -109,7 +104,6 @@
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
 }
 
-/* TOOLTIP */
 .tooltip {
   position: absolute;
   left: 60px;
@@ -130,7 +124,6 @@
   transform: translateX(0);
 }
 
-/* BOTTOM */
 .sidebar-bottom {
   margin-top: auto;
   display: flex;
@@ -158,7 +151,6 @@
   display: none;
 }
 
-/* CONTENT */
 .content {
   flex: 1;
   overflow-y: auto;
@@ -166,7 +158,6 @@
   background: transparent;
 }
 
-/* HEADER */
 .sidebar-header {
   position: relative;
   display: flex;
@@ -175,20 +166,13 @@
   padding: 16px 10px 20px;
 }
 
-.brand {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
 .logo-img {
   height: 150px;
   width: auto;
   object-fit: contain;
   display: block;
   margin: 0 auto;
-  filter: drop-shadow(0 6px 14px rgba(255,115,0,0.35));
+  filter: drop-shadow(0 0 12px rgb(255, 255, 255));
   transition: 0.25s ease;
 }
 
@@ -211,4 +195,74 @@
 
 .collapse-btn:hover {
   background: rgba(255,255,255,0.06);
+}
+
+@media (max-width:1024px){
+  .sidebar{
+    width:88px;
+    padding:12px 10px;
+  }
+
+  .sidebar .label{
+    display:none;
+  }
+
+  .logo-img{
+    height:56px;
+  }
+
+  .content{
+    padding:18px 16px;
+  }
+}
+
+@media (max-width:768px){
+  .admin-root{
+    flex-direction:column;
+    height:auto;
+    min-height:100vh;
+  }
+
+  .sidebar,
+  .sidebar.collapsed{
+    width:100%;
+    height:auto;
+    position:sticky;
+    top:0;
+    z-index:1000;
+  }
+
+  .sidebar-header{
+    justify-content:flex-start;
+    padding:10px 6px;
+  }
+
+  .logo-img{
+    height:44px;
+  }
+
+  .menu{
+    flex-direction:row;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    gap:8px;
+    padding-bottom:6px;
+  }
+
+  .menu-item{
+    white-space:nowrap;
+    min-width:max-content;
+  }
+
+  .sidebar .label{
+    display:inline;
+  }
+
+  .sidebar-bottom{
+    margin-top:8px;
+  }
+
+  .content{
+    padding:12px 10px;
+  }
 }

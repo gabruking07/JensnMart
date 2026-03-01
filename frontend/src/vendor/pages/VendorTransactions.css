@@ -1,0 +1,133 @@
+.vendor-transactions-root {
+  padding: 24px;
+}
+
+.vendor-transaction-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.summary-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.summary-card h4 {
+  margin: 0 0 8px;
+  color: #334155;
+}
+
+.summary-card p {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.summary-card.paid p {
+  color: #15803d;
+}
+
+.summary-card.pending p {
+  color: #d97706;
+}
+
+.summary-card.total p {
+  color: #1d4ed8;
+}
+
+.vendor-transaction-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.vendor-transaction-filters input,
+.vendor-transaction-filters select {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.vendor-transaction-filters input {
+  flex: 1;
+}
+
+.vendor-transaction-table {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.vendor-transaction-table .table-head,
+.vendor-transaction-table .table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 2fr 1fr;
+  gap: 8px;
+  padding: 12px 14px;
+  align-items: center;
+  min-width: 760px;
+}
+
+.vendor-transaction-table .table-head {
+  background: #f8fafc;
+  font-weight: 700;
+  color: #334155;
+}
+
+.vendor-transaction-table .table-row {
+  border-top: 1px solid #eef2f7;
+}
+
+.vendor-transaction-table .table-empty {
+  padding: 18px 14px;
+  color: #64748b;
+}
+
+.vendor-transaction-table .status {
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vendor-transaction-table .status.paid {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.vendor-transaction-table .status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.vendor-transaction-table .status.failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 900px) {
+  .vendor-transactions-root {
+    padding: 14px;
+  }
+
+  .vendor-transaction-filters {
+    flex-direction: column;
+  }
+
+  .vendor-transaction-filters input,
+  .vendor-transaction-filters select {
+    width: 100%;
+  }
+
+  .vendor-transaction-summary {
+    grid-template-columns: 1fr;
+  }
+}
