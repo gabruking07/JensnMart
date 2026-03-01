@@ -11,6 +11,7 @@ import {
     BarChart3,
     ChevronLeft,
     ChevronRight,
+    CreditCard,
     LogOut
 } from "lucide-react";
 import logo from "../assets/logo.png";
@@ -53,6 +54,12 @@ export default function AdminLayout() {
             path: "/admin/orders",
             icon: Receipt,
             roles: ["admin", "manager"]
+        },
+        {
+            name: "Payments",
+            path: "/admin/payments",
+            icon: Receipt,
+            roles: ["admin"]   // ADMIN ONLY
         },
         {
             name: "Add Product",

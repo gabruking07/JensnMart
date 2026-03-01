@@ -196,3 +196,73 @@
 .collapse-btn:hover {
   background: rgba(255,255,255,0.06);
 }
+
+@media (max-width:1024px){
+  .sidebar{
+    width:88px;
+    padding:12px 10px;
+  }
+
+  .sidebar .label{
+    display:none;
+  }
+
+  .logo-img{
+    height:56px;
+  }
+
+  .content{
+    padding:18px 16px;
+  }
+}
+
+@media (max-width:768px){
+  .admin-root{
+    flex-direction:column;
+    height:auto;
+    min-height:100vh;
+  }
+
+  .sidebar,
+  .sidebar.collapsed{
+    width:100%;
+    height:auto;
+    position:sticky;
+    top:0;
+    z-index:1000;
+  }
+
+  .sidebar-header{
+    justify-content:flex-start;
+    padding:10px 6px;
+  }
+
+  .logo-img{
+    height:44px;
+  }
+
+  .menu{
+    flex-direction:row;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    gap:8px;
+    padding-bottom:6px;
+  }
+
+  .menu-item{
+    white-space:nowrap;
+    min-width:max-content;
+  }
+
+  .sidebar .label{
+    display:inline;
+  }
+
+  .sidebar-bottom{
+    margin-top:8px;
+  }
+
+  .content{
+    padding:12px 10px;
+  }
+}

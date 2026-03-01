@@ -1,11 +1,145 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import "./VendorDashboard.css";
 import VendorLayout from "./VendorLayout";
+
+const SEARCH_ALIASES = {
+  cheap: ["cheap", "cheapest", "chepes", "chepest", "budget", "low", "affordable", "economy"],
+  premium: ["premium", "expensive", "costly", "highend", "luxury"],
+  popular: ["best", "top", "popular", "bestseller", "trending"],
+  latest: ["new", "latest", "recent", "fresh"]
+};
+
+const INTENT_PRIMARY = {
+  cheap: "cheapest",
+  premium: "premium",
+  popular: "best",
+  latest: "latest"
+};
+
+const normalizeText = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const tokenize = (value) => normalizeText(value).split(" ").filter(Boolean);
+
+const isNearMatch = (needle, hayWord) => {
+  if (!needle || !hayWord) return false;
+  if (hayWord.includes(needle) || needle.includes(hayWord)) return true;
+  if (needle.length < 4 || hayWord.length < 4) return false;
+  return hayWord.startsWith(needle.slice(0, Math.max(needle.length - 1, 3)));
+};
+
+const levenshtein = (a, b) => {
+  const s = String(a || "");
+  const t = String(b || "");
+  const dp = Array.from({ length: s.length + 1 }, () => Array(t.length + 1).fill(0));
+
+  for (let i = 0; i <= s.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= t.length; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= s.length; i++) {
+    for (let j = 1; j <= t.length; j++) {
+      const cost = s[i - 1] === t[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
+    }
+  }
+
+  return dp[s.length][t.length];
+};
+
+const hasIntent = (tokens, aliases) => {
+  return tokens.some((token) =>
+    aliases.some((alias) =>
+      token === alias || token.includes(alias) || alias.includes(token) || levenshtein(token, alias) <= 2
+    )
+  );
+};
+
+const getClosestWord = (word, dictionary) => {
+  if (!word) return word;
+  let bestWord = word;
+  let bestScore = Number.MAX_SAFE_INTEGER;
+
+  for (const candidate of dictionary) {
+    const score = levenshtein(word, candidate);
+    if (score < bestScore) {
+      bestScore = score;
+      bestWord = candidate;
+    }
+  }
+
+  if (bestScore <= 2) return bestWord;
+  return word;
+};
+
+const getAiScore = (product, searchTerm, lowPrice, highPrice) => {
+  const query = normalizeText(searchTerm);
+  if (!query) return 0;
+
+  const tokens = tokenize(query);
+  const name = normalizeText(product.name);
+  const category = normalizeText(product.category?.name);
+  const subcategory = normalizeText(product.subcategory?.name);
+  const fullText = `${name} ${category} ${subcategory}`.trim();
+  const words = fullText.split(" ").filter(Boolean);
+
+  let score = 0;
+  let keywordScore = 0;
+
+  if (fullText.includes(query)) {
+    score += 20;
+    keywordScore += 20;
+  }
+
+  for (const token of tokens) {
+    if (name.includes(token)) {
+      score += 8;
+      keywordScore += 8;
+    }
+    if (category.includes(token)) {
+      score += 4;
+      keywordScore += 4;
+    }
+    if (subcategory.includes(token)) {
+      score += 4;
+      keywordScore += 4;
+    }
+    if (words.some((w) => isNearMatch(token, w))) {
+      score += 2;
+      keywordScore += 2;
+    }
+  }
+
+  // Do not allow intent-only matches (cheap/premium/etc) without product keyword relevance.
+  if (keywordScore === 0) return 0;
+
+  const hasCheapIntent = hasIntent(tokens, SEARCH_ALIASES.cheap);
+  const hasPremiumIntent = hasIntent(tokens, SEARCH_ALIASES.premium);
+  const hasPopularIntent = hasIntent(tokens, SEARCH_ALIASES.popular);
+  const hasLatestIntent = hasIntent(tokens, SEARCH_ALIASES.latest);
+
+  if (hasCheapIntent && Number(product.price) <= lowPrice) score += 6;
+  if (hasPremiumIntent && Number(product.price) >= highPrice) score += 6;
+  if (hasPopularIntent) score += Math.min(8, Math.floor((product.sold || 0) / 5));
+  if (hasLatestIntent) {
+    const ageDays = (Date.now() - new Date(product.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+    if (ageDays <= 30) score += 5;
+  }
+
+  return score;
+};
 
 export default function VendorDashboard() {
   const navigate = useNavigate();
@@ -20,8 +154,6 @@ export default function VendorDashboard() {
   const [subcategories, setSubcategories] = useState([]);
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingQty, setEditingQty] = useState(null);
-  const [qtyValue, setQtyValue] = useState("");
 
   const [sortBy, setSortBy] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -81,18 +213,108 @@ export default function VendorDashboard() {
     setCategories(res.data || []);
   };
 
-  let filteredProducts = products.filter((p) => {
-    const matchCategory =
-      !selectedCategory || p.category?._id === selectedCategory;
+  const sortedPrices = [...products].map((p) => Number(p.price || 0)).sort((a, b) => a - b);
+  const lowPrice = sortedPrices.length
+    ? sortedPrices[Math.floor((sortedPrices.length - 1) * 0.35)]
+    : 0;
+  const highPrice = sortedPrices.length
+    ? sortedPrices[Math.floor((sortedPrices.length - 1) * 0.7)]
+    : 0;
 
-    const matchSubcategory =
-      !selectedSubcategory || p.subcategory?._id === selectedSubcategory;
+  const hasSearch = Boolean(normalizeText(searchTerm));
+  const queryTokens = tokenize(searchTerm);
+  const queryHasCheapIntent = hasIntent(queryTokens, SEARCH_ALIASES.cheap);
+  const queryHasPremiumIntent = hasIntent(queryTokens, SEARCH_ALIASES.premium);
+  const queryHasPopularIntent = hasIntent(queryTokens, SEARCH_ALIASES.popular);
+  const queryHasLatestIntent = hasIntent(queryTokens, SEARCH_ALIASES.latest);
 
-    const matchSearch =
-      p.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const suggestionDictionary = [
+    ...new Set([
+      ...SEARCH_ALIASES.cheap,
+      ...SEARCH_ALIASES.premium,
+      ...SEARCH_ALIASES.popular,
+      ...SEARCH_ALIASES.latest,
+      ...products.flatMap((p) => tokenize(p.name)),
+      ...products.flatMap((p) => tokenize(p.category?.name)),
+      ...products.flatMap((p) => tokenize(p.subcategory?.name))
+    ])
+  ];
 
-    return matchCategory && matchSubcategory && matchSearch;
-  });
+  const searchSuggestions = (() => {
+    if (!hasSearch) return [];
+
+    const tokens = tokenize(searchTerm);
+    const correctedTokens = tokens.map((t) => getClosestWord(t, suggestionDictionary));
+    const correctedText = correctedTokens.join(" ");
+    const suggestions = [];
+
+    if (correctedText && correctedText !== normalizeText(searchTerm)) {
+      suggestions.push(`Did you mean: ${correctedText}`);
+    }
+
+    const hasCheap = hasIntent(tokens, SEARCH_ALIASES.cheap);
+    const hasPremium = hasIntent(tokens, SEARCH_ALIASES.premium);
+    const hasPopular = hasIntent(tokens, SEARCH_ALIASES.popular);
+    const hasLatest = hasIntent(tokens, SEARCH_ALIASES.latest);
+
+    if (!hasCheap && !hasPremium && !hasPopular && !hasLatest) {
+      const productHint = products.find((p) =>
+        tokenize(p.name).some((w) => tokens.some((t) => levenshtein(t, w) <= 2))
+      );
+      if (productHint?.name) suggestions.push(`best ${productHint.name.toLowerCase()}`);
+      if (productHint?.name) suggestions.push(`cheapest ${productHint.name.toLowerCase()}`);
+    } else {
+      const primaryIntent = hasCheap
+        ? INTENT_PRIMARY.cheap
+        : hasPremium
+          ? INTENT_PRIMARY.premium
+          : hasPopular
+            ? INTENT_PRIMARY.popular
+            : INTENT_PRIMARY.latest;
+
+      const nonIntentTokens = tokens.filter(
+        (t) =>
+          !Object.values(SEARCH_ALIASES)
+            .flat()
+            .some((alias) => alias === t || levenshtein(alias, t) <= 2)
+      );
+
+      if (nonIntentTokens.length > 0) {
+        suggestions.push(`${primaryIntent} ${nonIntentTokens.join(" ")}`);
+      }
+    }
+
+    return [...new Set(suggestions)].slice(0, 3);
+  })();
+
+  let filteredProducts = products
+    .filter((p) => {
+      const matchCategory = !selectedCategory || p.category?._id === selectedCategory;
+      const matchSubcategory = !selectedSubcategory || p.subcategory?._id === selectedSubcategory;
+      return matchCategory && matchSubcategory;
+    })
+    .map((p) => ({
+      product: p,
+      aiScore: getAiScore(p, searchTerm, lowPrice, highPrice)
+    }))
+    .filter((entry) => !hasSearch || entry.aiScore > 0)
+    .sort((a, b) => {
+      if (!hasSearch) return 0;
+      if (queryHasCheapIntent) {
+        return Number(a.product.price || 0) - Number(b.product.price || 0);
+      }
+      if (queryHasPremiumIntent) {
+        return Number(b.product.price || 0) - Number(a.product.price || 0);
+      }
+      if (queryHasPopularIntent) {
+        return Number(b.product.sold || 0) - Number(a.product.sold || 0);
+      }
+      if (queryHasLatestIntent) {
+        return new Date(b.product.createdAt).getTime() - new Date(a.product.createdAt).getTime();
+      }
+      return b.aiScore - a.aiScore;
+    })
+    .map((entry) => entry.product);
 
   if (sortBy === "priceHigh") {
     filteredProducts.sort((a, b) => b.price - a.price);
@@ -126,20 +348,6 @@ export default function VendorDashboard() {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
-
-  const saveQty = (productId, stock) => {
-    let val = Number(qtyValue);
-
-    if (isNaN(val) || val < 1) val = 1;
-    if (val > stock) val = stock;
-
-    setCartQty(prev => ({
-      ...prev,
-      [productId]: val
-    }));
-
-    setEditingQty(null);
-  };
 
   const handleSortChange = (value) => {
     setSortBy(value);
@@ -200,11 +408,6 @@ export default function VendorDashboard() {
     }
   };
 
-  const logout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
-
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
@@ -257,7 +460,23 @@ export default function VendorDashboard() {
             <input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Try: cheap headphones, latest phone, best earbuds"
             />
+            <small className="ai-search-hint">AI search understands intent and typos.</small>
+            {searchSuggestions.length > 0 && (
+              <div className="ai-suggestion-wrap">
+                {searchSuggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className="ai-suggestion-chip"
+                    onClick={() => setSearchTerm(s.replace(/^Did you mean:\s*/i, ""))}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* SORT */}

@@ -11,6 +11,7 @@ export default function Cart() {
 
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState("Online");
 
   useEffect(() => {
     fetchCart();
@@ -92,18 +93,76 @@ export default function Cart() {
 
     const address = await getCheckoutAddress();
     if (!address) {
-      alert("No saved address found. Please add address in profile first.");
+      alert("No saved address found.");
       navigate("/profile");
       return;
     }
 
     try {
-      await api.post("/orders/checkout", { address });
-      alert("Order placed");
-      fetchCart();
+      const res = await api.post("/orders/checkout", {
+        address,
+        paymentMethod
+      });
+
+      if (paymentMethod === "COD") {
+        alert("Order placed with Cash on Delivery");
+        fetchCart();
+        navigate("/vendor/orders");
+        return;
+      }
+
+      const { order, razorpayOrder, razorpayKeyId } = res.data;
+      if (!razorpayOrder || !razorpayKeyId) {
+        alert("Razorpay is not configured on server.");
+        return;
+      }
+
+      openRazorpay(razorpayOrder, order, razorpayKeyId);
+
     } catch (err) {
+      console.log(err.response);
       alert(err.response?.data?.message || "Checkout failed");
     }
+  };
+
+  const openRazorpay = (razorpayOrder, order, razorpayKeyId) => {
+    if (!window.Razorpay) {
+      alert("Razorpay SDK failed to load. Please refresh and try again.");
+      return;
+    }
+
+    const razorpayPublicKey = razorpayKeyId || process.env.REACT_APP_RAZORPAY_KEY_ID;
+    if (!razorpayPublicKey) {
+      alert("Razorpay key is missing. Contact support.");
+      return;
+    }
+
+    const options = {
+      key: razorpayPublicKey,
+      amount: razorpayOrder.amount,
+      currency: "INR",
+      order_id: razorpayOrder.id,
+
+      handler: async function (response) {
+        try {
+          await api.post("/payments/verify", {
+            ...response,
+            orderId: order._id,
+            amount: order.total,
+          });
+
+          alert("Payment Successful");
+          fetchCart();
+          navigate("/vendor/orders");
+
+        } catch (err) {
+          alert("Payment verification failed");
+        }
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
   if (loading) {
@@ -204,8 +263,33 @@ export default function Cart() {
                     <span>Rs {total}</span>
                   </div>
 
+                  <div className="payment-method-box">
+                    <p className="payment-method-title">Payment Method</p>
+                    <label className="payment-method-option">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="Online"
+                        checked={paymentMethod === "Online"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <span>Online (Razorpay)</span>
+                    </label>
+
+                    <label className="payment-method-option">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="COD"
+                        checked={paymentMethod === "COD"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <span>Cash on Delivery (COD)</span>
+                    </label>
+                  </div>
+
                   <button className="btn-checkout" onClick={placeOrder}>
-                    Proceed to Checkout
+                    {paymentMethod === "COD" ? "Place COD Order" : "Proceed to Checkout"}
                   </button>
                 </div>
               </aside>

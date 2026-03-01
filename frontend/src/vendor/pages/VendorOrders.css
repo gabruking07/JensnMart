@@ -200,6 +200,7 @@
 
 .orders-filter-bar{
   display:flex;
+  flex-wrap:wrap;
   gap:12px;
   margin-bottom:20px;
 }
@@ -250,5 +251,38 @@
   .orders-filter-bar select,
   .orders-filter-bar input{
     width:100%;
+  }
+}
+
+@media (max-width:1024px){
+  .vendor-orders-root .order-content{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "meta"
+      "tracking";
+  }
+
+  .vendor-orders-root .order-tracking .timeline-card{
+    min-height:auto;
+  }
+}
+
+@media (max-width:560px){
+  .vendor-orders-root{
+    padding:0;
+  }
+
+  .vendor-orders-root .order-card{
+    padding:12px;
+    margin-bottom:12px;
+  }
+
+  .order-product-row{
+    align-items:flex-start;
+  }
+
+  .order-product-row img{
+    width:52px;
+    height:52px;
   }
 }
