@@ -9,6 +9,8 @@ export default function InventoryTab() {
   const [subcategories, setSubcategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(4);
+  const [editingId, setEditingId] = useState(null);
+  const [draft, setDraft] = useState({ name: "", price: "", stock: "" });
 
   const loadProducts = async () => {
     try {
@@ -67,28 +69,6 @@ export default function InventoryTab() {
     }
   };
 
-  /* ================= UPDATE PRICE ================= */
-  const updatePrice = async (id, price) => {
-    try {
-      await api.put(`/admin/update-price/${id}`, { price });
-      toast.success("Price updated");
-      loadProducts();
-    } catch {
-      toast.error("Update failed");
-    }
-  };
-
-  /* ================= UPDATE STOCK ================= */
-  const updateStock = async (id, stock) => {
-    try {
-      await api.put(`/products/${id}`, { stock });
-      toast.success("Stock updated");
-      loadProducts();
-    } catch {
-      toast.error("Stock update failed");
-    }
-  };
-
   /* ================= UPDATE CATEGORY ================= */
   const updateCategory = async (id, category) => {
     try {
@@ -108,21 +88,51 @@ export default function InventoryTab() {
     }
   };
 
-  /* ================= UPDATE NAME ================= */
-  const updateName = async (id, name) => {
-    const trimmedName = String(name || "").trim();
+  const startEdit = (product) => {
+    setEditingId(product._id);
+    setDraft({
+      name: product.name || "",
+      price: String(product.price ?? ""),
+      stock: String(product.stock ?? ""),
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setDraft({ name: "", price: "", stock: "" });
+  };
+
+  const saveEdit = async (id) => {
+    const trimmedName = String(draft.name || "").trim();
+    const price = Number(draft.price);
+    const stock = Number(draft.stock);
+
     if (!trimmedName) {
       toast.error("Product name cannot be empty");
-      loadProducts();
       return;
     }
+
+    if (Number.isNaN(price) || price < 0) {
+      toast.error("Price must be a valid number");
+      return;
+    }
+
+    if (!Number.isInteger(stock) || stock < 0) {
+      toast.error("Stock must be a valid whole number");
+      return;
+    }
+
     try {
-      await api.put(`/admin/update-product-name/${id}`, { name: trimmedName });
-      toast.success("Product name updated");
+      await api.put(`/products/${id}`, {
+        name: trimmedName,
+        price,
+        stock,
+      });
+      toast.success("Product updated");
+      cancelEdit();
       loadProducts();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Name update failed");
-      loadProducts();
+      toast.error(err?.response?.data?.message || "Update failed");
     }
   };
 
@@ -150,91 +160,140 @@ export default function InventoryTab() {
       </div>
 
       <div className="inventory-grid">
-        {visibleProducts.map((p) => (
-          <div key={p._id} className="product-card">
-            <img
-              src={`http://localhost:5000/uploads/${p.image}`}
-              alt=""
-            />
+        {visibleProducts.map((p) => {
+          const isEditing = editingId === p._id;
+          const stockState = p.stock === 0 ? "out" : p.stock < 6 ? "low" : "ok";
+          const stockLabel = p.stock === 0 ? "Out of stock" : p.stock < 6 ? "Low stock" : "In stock";
 
-            <div className="field">
-              <label>Name</label>
-              <input
-                defaultValue={p.name}
-                onBlur={(e) => updateName(p._id, e.target.value)}
-              />
+          return (
+            <div key={p._id} className="product-card premium-product-card">
+              <div className="product-media-wrap">
+                <img
+                  src={`http://localhost:5000/uploads/${p.image}`}
+                  alt={p.name}
+                />
+                <span className={`stock-pill ${stockState}`}>{stockLabel}</span>
+              </div>
+
+              <div className="field">
+                <label>Name</label>
+                {isEditing ? (
+                  <input
+                    value={draft.name}
+                    onChange={(e) =>
+                      setDraft((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="field-value">{p.name}</p>
+                )}
+              </div>
+
+              <div className="field">
+                <label>Price</label>
+                {isEditing ? (
+                  <input
+                    type="number"
+                    min="0"
+                    value={draft.price}
+                    onChange={(e) =>
+                      setDraft((prev) => ({ ...prev, price: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="field-value">Rs {Number(p.price || 0).toLocaleString()}</p>
+                )}
+              </div>
+
+              <div className="field">
+                <label>Stock</label>
+                {isEditing ? (
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={draft.stock}
+                    onChange={(e) =>
+                      setDraft((prev) => ({ ...prev, stock: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="field-value">{p.stock}</p>
+                )}
+              </div>
+
+              <div className="field">
+                <label>Category</label>
+                {isEditing ? (
+                  <select
+                    value={p.category?._id || ""}
+                    onChange={(e) =>
+                      updateCategory(p._id, e.target.value)
+                    }
+                  >
+                    {categories.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="field-value">{p.category?.name || "-"}</p>
+                )}
+              </div>
+
+              <div className="field">
+                <label>Sub</label>
+                {isEditing ? (
+                  <select
+                    value={p.subcategory?._id || ""}
+                    onChange={(e) =>
+                      updateSub(p._id, e.target.value)
+                    }
+                  >
+                    <option value="">None</option>
+                    {subcategories
+                      .filter(
+                        (s) =>
+                          s.category?._id === p.category?._id
+                      )
+                      .map((s) => (
+                        <option key={s._id} value={s._id}>
+                          {s.name}
+                        </option>
+                      ))}
+                  </select>
+                ) : (
+                  <p className="field-value">{p.subcategory?.name || "None"}</p>
+                )}
+              </div>
+
+              <div className="actions inventory-actions">
+                {isEditing ? (
+                  <button
+                    className="edit-btn"
+                    onClick={() => saveEdit(p._id)}
+                  >
+                    Save
+                  </button>
+                ) : (
+                  <button
+                    className="edit-btn"
+                    onClick={() => startEdit(p)}
+                  >
+                    Edit
+                  </button>
+                )}
+                <button
+                  className="delete-btn"
+                  onClick={() => deleteProduct(p._id)}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-
-            {/* PRICE */}
-            <div className="field">
-              <label>Price</label>
-              <input
-                defaultValue={p.price}
-                onBlur={(e) =>
-                  updatePrice(p._id, e.target.value)
-                }
-              />
-            </div>
-
-            {/* STOCK */}
-            <div className="field">
-              <label>Stock</label>
-              <input
-                defaultValue={p.stock}
-                onBlur={(e) =>
-                  updateStock(p._id, e.target.value)
-                }
-              />
-            </div>
-
-            {/* CATEGORY */}
-            <div className="field">
-              <label>Category</label>
-              <select
-                value={p.category?._id || ""}
-                onChange={(e) =>
-                  updateCategory(p._id, e.target.value)
-                }
-              >
-                {categories.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* SUBCATEGORY */}
-            <div className="field">
-              <label>Sub</label>
-              <select
-                value={p.subcategory?._id || ""}
-                onChange={(e) =>
-                  updateSub(p._id, e.target.value)
-                }
-              >
-                <option value="">None</option>
-                {subcategories
-                  .filter(
-                    (s) =>
-                      s.category?._id === p.category?._id
-                  )
-                  .map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <button
-              className="delete-btn"
-              onClick={() => deleteProduct(p._id)}
-            >
-              Delete
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {products.length > 0 && (

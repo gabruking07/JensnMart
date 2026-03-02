@@ -70,4 +70,31 @@ const sendOtpEmail = async ({ to, name, otp }) => {
   return { delivered: true, mode: "smtp" };
 };
 
-module.exports = { sendOtpEmail };
+const sendNotificationEmail = async ({ to, subject, title, message }) => {
+  const transporter = createTransporter();
+  if (!transporter) {
+    console.log(`[NOTIFY DEV MODE] Email to ${to}: ${subject} | ${message}`);
+    return { delivered: false, mode: "dev_console" };
+  }
+
+  const fromAddress =
+    process.env.MAIL_FROM ||
+    process.env.SMTP_USER ||
+    process.env.MAIL_USER ||
+    "no-reply@jensnmart.local";
+
+  await transporter.sendMail({
+    from: fromAddress,
+    to,
+    subject,
+    text: `${title}\n\n${message}`,
+    html: `
+      <p><strong>${title}</strong></p>
+      <p>${message}</p>
+    `,
+  });
+
+  return { delivered: true, mode: "smtp" };
+};
+
+module.exports = { sendOtpEmail, sendNotificationEmail };

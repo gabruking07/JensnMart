@@ -96,6 +96,7 @@ export default function AdminsTab() {
       await api.delete(`/admin/remove-admin/${id}`);
       toast.success("Removed");
       loadAdmins();
+      loadPending();
     } catch {
       toast.error("Remove failed");
     }
@@ -151,13 +152,20 @@ export default function AdminsTab() {
           <div key={p._id} className="table-row">
             <span>{p.email}</span>
             <span>{p.role}</span>
-
-            <button
-              className="approve"
-              onClick={() => approveAdmin(p._id)}
-            >
-              Approve
-            </button>
+            <div className="actions">
+              <button
+                className="approve"
+                onClick={() => approveAdmin(p._id)}
+              >
+                Approve
+              </button>
+              <button
+                className="delete-btn"
+                onClick={() => removeAdmin(p._id)}
+              >
+                Remove
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -9,6 +9,7 @@ const Product = require("../models/Product");
 const Cart = require("../models/Cart");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly");
+const { notifyVendor, notifyAdmins } = require("../utils/notificationService");
 
 const RAZORPAY_KEY_ID = (process.env.RAZORPAY_KEY_ID || "").trim();
 const RAZORPAY_SECRET = ((process.env.RAZORPAY_SECRET || process.env.RAZORPAY_KEY_SECRET) || "").trim();
@@ -133,6 +134,33 @@ router.post("/verify", authMiddleware, async (req, res) => {
     await cart.save();
   }
 
+  await notifyVendor({
+    vendorId: req.user.id,
+    type: "payment",
+    title: `Payment received for Order #${order.orderNumber}`,
+    message: `Your online payment of Rs ${amount} is successful.`,
+    meta: {
+      orderId: order._id,
+      paymentId: payment._id,
+      orderNumber: order.orderNumber,
+      status: "Paid",
+    },
+    sendEmail: true,
+  });
+
+  await notifyAdmins({
+    type: "payment",
+    title: "Online payment received",
+    message: `Order #${order.orderNumber} was paid online (Rs ${amount}).`,
+    meta: {
+      orderId: order._id,
+      paymentId: payment._id,
+      orderNumber: order.orderNumber,
+      status: "Paid",
+    },
+    sendEmail: true,
+  });
+
   res.json({ message: "Payment successful", payment });
 });
 
@@ -141,11 +169,27 @@ router.post("/verify", authMiddleware, async (req, res) => {
 router.put("/:id", authMiddleware, roleOnly("admin"), async (req, res) => {
   const { status } = req.body;
 
-  const payment = await Payment.findByIdAndUpdate(
-    req.params.id,
-    { status },
-    { new: true }
-  );
+  const payment = await Payment.findById(req.params.id).populate("order", "orderNumber");
+  if (!payment) {
+    return res.status(404).json({ message: "Payment not found" });
+  }
+
+  payment.status = status;
+  await payment.save();
+
+  await notifyVendor({
+    vendorId: payment.vendor,
+    type: "payment",
+    title: `Payment status updated for Order #${payment.order?.orderNumber || "-"}`,
+    message: `Payment status is now "${status}".`,
+    meta: {
+      orderId: payment.order?._id,
+      paymentId: payment._id,
+      orderNumber: payment.order?.orderNumber,
+      status,
+    },
+    sendEmail: true,
+  });
 
   res.json({ message: "Payment updated", payment });
 });

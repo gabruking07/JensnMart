@@ -170,6 +170,29 @@ export default function ReportsTab() {
   // ---------- TOP SELLING PRODUCT ----------
   const topProduct = topProducts?.[0]?.name || "-";
 
+  // ---------- TOP VENDORS BY REVENUE ----------
+  const topVendors = useMemo(() => {
+    const map = {};
+
+    orders.forEach((o) => {
+      const key = o.vendor?._id || o.vendor?.email || "unknown";
+      const label = o.vendor?.email || "Unknown vendor";
+
+      if (!map[key]) {
+        map[key] = { name: label, revenue: 0, orders: 0 };
+      }
+
+      map[key].revenue += Number(o.total || 0);
+      map[key].orders += 1;
+    });
+
+    return Object.values(map)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+  }, [orders]);
+
+  const maxVendorRevenue = topVendors[0]?.revenue || 1;
+
   return (
     <div className="reports-page">
 
@@ -381,20 +404,33 @@ export default function ReportsTab() {
           </div>
 
           <div className="card recent-card">
-            <h3>Recent Orders</h3>
+            <h3>Top Vendors by Revenue</h3>
 
-            {orders.slice(0, 5).map(o => (
-              <div key={o.orderNumber} className="recent-row">
-                <div>
-                  <b>#{o.orderNumber}</b>
-                  <p>₹{o.total}</p>
+            {topVendors.length === 0 ? (
+              <p className="sub">No vendor sales data yet.</p>
+            ) : (
+              topVendors.map((v, idx) => (
+                <div key={`${v.name}-${idx}`} className="recent-row vendor-rank-row">
+                  <div className="vendor-rank-left">
+                    <span className="rank-badge">{idx + 1}</span>
+                    <div className="vendor-meta">
+                      <b>{v.name}</b>
+                      <p>{v.orders} orders</p>
+                      <div className="vendor-progress">
+                        <span
+                          className="vendor-progress-fill"
+                          style={{ width: `${Math.max(8, (v.revenue / maxVendorRevenue) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="status delivered revenue-chip">
+                    Rs {v.revenue.toLocaleString()}
+                  </span>
                 </div>
-
-                <span className={`status ${o.status.toLowerCase()}`}>
-                  {o.status}
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
         </div>
@@ -402,3 +438,4 @@ export default function ReportsTab() {
     </div>
   );
 }
+
