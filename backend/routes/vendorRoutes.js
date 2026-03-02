@@ -67,7 +67,7 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
         country: (country || "India").trim()
       },
 
-      profileImage: req.file?.filename || "",
+      profileImage: req.file?.filename ? `vendorProfile/${req.file.filename}` : "",
       approved: false,
       role: "vendor"
     });
@@ -322,7 +322,7 @@ router.put("/profile", auth, upload.single("profileImage"), async (req, res) => 
     }
 
     if (req.file?.filename) {
-      update.profileImage = req.file.filename;
+      update.profileImage = `vendorProfile/${req.file.filename}`;
     }
 
     const vendor = await Vendor.findByIdAndUpdate(
