@@ -248,7 +248,7 @@ export default function VendorProfile() {
                         placeholder="Leave blank to keep"
                       />
                     </div>
-
+                    
                     <button
                       className="btn-save-profile"
                       onClick={updateProfile}
