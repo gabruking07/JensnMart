@@ -6,6 +6,7 @@ const Order = require("../models/Order");
 const Vendor = require("../models/Vendor");
 const Cart = require("../models/Cart");
 const Payment = require("../models/Payment");
+const { notifyVendor, notifyAdmins } = require("../utils/notificationService");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const approvedVendorOnly = require("../middleware/approveVendorOnly");
@@ -202,6 +203,14 @@ router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) =>
         status: "Pending"
       });
 
+      await notifyAdmins({
+        type: "order",
+        title: "New COD order placed",
+        message: `Order #${order.orderNumber} was placed with COD.`,
+        meta: { orderId: order._id, orderNumber: order.orderNumber, status: order.status },
+        sendEmail: true,
+      });
+
       cart.status = "ordered";
       await cart.save();
 
@@ -345,6 +354,15 @@ router.put("/status/:id", authMiddleware, async (req, res) => {
 
   order.statusHistory.push({ status });
   await order.save();
+
+  await notifyVendor({
+    vendorId: order.vendor,
+    type: "order",
+    title: `Order #${order.orderNumber} status updated`,
+    message: `Your order #${order.orderNumber} is now "${status}".`,
+    meta: { orderId: order._id, orderNumber: order.orderNumber, status },
+    sendEmail: true,
+  });
 
   res.json(order);
 });
