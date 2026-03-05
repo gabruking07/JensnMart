@@ -42,6 +42,18 @@ export default function AdminLayout() {
             roles: ["admin", "manager"]
         },
         {
+            name: "Add Product",
+            path: "/admin/add-product",
+            icon: PlusCircle,
+            roles: ["admin", "manager"]
+        },
+        {
+            name: "Categories",
+            path: "/admin/categories",
+            icon: FolderTree,
+            roles: ["admin", "manager"]
+        },
+        {
             name: "Admins",
             path: "/admin/admins",
             icon: Users,
@@ -66,15 +78,9 @@ export default function AdminLayout() {
             roles: ["admin"]   // ADMIN ONLY
         },
         {
-            name: "Add Product",
-            path: "/admin/add-product",
-            icon: PlusCircle,
-            roles: ["admin", "manager"]
-        },
-        {
-            name: "Categories",
-            path: "/admin/categories",
-            icon: FolderTree,
+            name: "Notifications",
+            path: "/admin/notifications",
+            icon: Bell,
             roles: ["admin", "manager"]
         },
         {
@@ -82,7 +88,7 @@ export default function AdminLayout() {
             path: "/admin/reports",
             icon: BarChart3,
             roles: ["admin", "manager"]
-        }
+        },
     ];
 
     const logout = () => {
@@ -96,7 +102,7 @@ export default function AdminLayout() {
                 api.get("/notifications?limit=8"),
                 api.get("/notifications/unread-count"),
             ]);
-            setNotifications(listRes.data || []);
+            setNotifications((listRes.data || []).filter((n) => !n.isRead));
             setUnreadCount(countRes.data?.count || 0);
         } catch (err) {
             console.error("Load notifications failed", err);
@@ -106,9 +112,7 @@ export default function AdminLayout() {
     const markOneRead = async (id) => {
         try {
             await api.put(`/notifications/${id}/read`);
-            setNotifications((prev) =>
-                prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
-            );
+            setNotifications((prev) => prev.filter((n) => n._id !== id));
             setUnreadCount((prev) => Math.max(0, prev - 1));
         } catch (err) {
             console.error("Mark read failed", err);
@@ -118,7 +122,7 @@ export default function AdminLayout() {
     const markAllRead = async () => {
         try {
             await api.put("/notifications/read-all");
-            setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+            setNotifications([]);
             setUnreadCount(0);
         } catch (err) {
             console.error("Mark all read failed", err);

@@ -25,6 +25,8 @@ import PaymentsTab from "./admin/pages/PaymentsTab";
 import AddProductTab from "./admin/pages/AddProductTab";
 import CategoryTab from "./admin/pages/CategoryTab";
 import ReportsTab from "./admin/pages/ReportsTab";
+import NotificationsTab from "./admin/pages/NotificationsTab";
+import VendorNotifications from "./vendor/pages/VendorNotifications";
 
 function App() {
   return (
@@ -51,6 +53,7 @@ function App() {
           <Route path="add-product" element={<AddProductTab />} />
           <Route path="categories" element={<CategoryTab />} />
           <Route path="reports" element={<ReportsTab />} />
+          <Route path="notifications" element={<NotificationsTab />} />
         </Route>
 
         {/* VENDOR */}
@@ -76,6 +79,15 @@ function App() {
           path="/vendor/profile"
           element={
             <VendorProfile />
+          }
+        />
+
+        <Route
+          path="/vendor/notifications"
+          element={
+            <ProtectedRoute role="vendor">
+              <VendorNotifications />
+            </ProtectedRoute>
           }
         />
 

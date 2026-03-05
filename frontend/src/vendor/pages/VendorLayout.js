@@ -23,7 +23,7 @@ export default function VendorLayout({ children }) {
         api.get("/notifications?limit=8"),
         api.get("/notifications/unread-count"),
       ]);
-      setNotifications(listRes.data || []);
+      setNotifications((listRes.data || []).filter((n) => !n.isRead));
       setUnreadCount(countRes.data?.count || 0);
     } catch (err) {
       console.error("Vendor notifications load failed", err);
@@ -33,9 +33,7 @@ export default function VendorLayout({ children }) {
   const markOneRead = async (id) => {
     try {
       await api.put(`/notifications/${id}/read`);
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
-      );
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error("Vendor mark read failed", err);
@@ -45,7 +43,7 @@ export default function VendorLayout({ children }) {
   const markAllRead = async () => {
     try {
       await api.put("/notifications/read-all");
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setNotifications([]);
       setUnreadCount(0);
     } catch (err) {
       console.error("Vendor mark all read failed", err);
@@ -94,6 +92,18 @@ export default function VendorLayout({ children }) {
         </button>
 
         <button
+          onClick={() => navigate("/vendor/notifications")}
+          className={`side-link ${location.pathname === "/vendor/notifications" ? "active" : ""}`}
+        >
+          Notifications
+          {unreadCount > 0 && (
+            <span className="vendor-route-badge">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => navigate("/cart")}
           className={`side-link ${location.pathname === "/cart" ? "active" : ""}`}
         >
@@ -107,7 +117,7 @@ export default function VendorLayout({ children }) {
             className="side-link vendor-notify-btn"
           >
             <Bell size={16} />
-            <span>Notifications</span>
+            <span>Quick Alerts</span>
             {unreadCount > 0 && (
               <span className="vendor-notify-badge">
                 {unreadCount > 99 ? "99+" : unreadCount}
