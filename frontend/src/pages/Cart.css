@@ -218,6 +218,36 @@
   opacity:0.6;
 }
 
+.payment-method-box{
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-method-title{
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.payment-method-option{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #111827;
+}
+
+.payment-method-option input{
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
 /* ================================
    EMPTY CART
 ================================ */
@@ -311,8 +341,18 @@
    RESPONSIVE
 ================================ */
 @media (max-width:900px){
+  .cart-page-root{
+    padding:0;
+  }
+
+  .cart-page-root .page-title{
+    font-size:20px;
+    margin-bottom:14px;
+  }
+
   .cart-grid{
     grid-template-columns:1fr;
+    gap:14px;
   }
 
   .cart-summary-sidebar{
@@ -329,6 +369,31 @@
     flex-direction:row;
     justify-content:space-between;
     align-items:center;
+  }
+}
+
+@media (max-width:560px){
+  .cart-item-card{
+    padding:12px;
+    gap:12px;
+  }
+
+  .cart-item-img{
+    width:84px;
+    height:84px;
+  }
+
+  .cart-item-details{
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .summary-card{
+    padding:14px;
+  }
+
+  .btn-checkout{
+    padding:10px;
   }
 }
 

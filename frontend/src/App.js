@@ -11,6 +11,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import VendorDashboard from "./vendor/pages/VendorDashboard";
 import VendorProfile from "./vendor/pages/VendorProfile";
 import VendorOrders from "./vendor/pages/VendorOrders";
+import VendorTransactions from "./vendor/pages/VendorTransactions";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -20,6 +21,7 @@ import InventoryTab from "./admin/pages/InventoryTab";
 import VendorsTab from "./admin/pages/VendorsTab";
 import AdminsTab from "./admin/pages/AdminsTab";
 import OrdersTab from "./admin/pages/OrdersTab";
+import PaymentsTab from "./admin/pages/PaymentsTab";
 import AddProductTab from "./admin/pages/AddProductTab";
 import CategoryTab from "./admin/pages/CategoryTab";
 import ReportsTab from "./admin/pages/ReportsTab";
@@ -45,6 +47,7 @@ function App() {
           <Route path="vendors" element={<VendorsTab />} />
           <Route path="admins" element={<AdminsTab />} />
           <Route path="orders" element={<OrdersTab />} />
+          <Route path="payments" element={<PaymentsTab />} />
           <Route path="add-product" element={<AddProductTab />} />
           <Route path="categories" element={<CategoryTab />} />
           <Route path="reports" element={<ReportsTab />} />
@@ -56,6 +59,15 @@ function App() {
           element={
             <ProtectedRoute role="vendor">
               <VendorOrders />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/vendor/transactions"
+          element={
+            <ProtectedRoute role="vendor">
+              <VendorTransactions />
             </ProtectedRoute>
           }
         />
