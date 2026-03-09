@@ -43,7 +43,7 @@ const createTransporter = () => {
 const sendOtpEmail = async ({ to, name, otp }) => {
   const transporter = createTransporter();
   if (!transporter) {
-    console.log(`[OTP DEV MODE] Unable to send email to ${to}. OTP: ${otp}`);
+    console.log(`Unable to send email to ${to}. OTP: ${otp}`);
     return { delivered: false, mode: "dev_console" };
   }
 
@@ -73,7 +73,7 @@ const sendOtpEmail = async ({ to, name, otp }) => {
 const sendNotificationEmail = async ({ to, subject, title, message }) => {
   const transporter = createTransporter();
   if (!transporter) {
-    console.log(`[NOTIFY DEV MODE] Email to ${to}: ${subject} | ${message}`);
+    console.log(`Email to ${to}: ${subject} | ${message}`);
     return { delivered: false, mode: "dev_console" };
   }
 
