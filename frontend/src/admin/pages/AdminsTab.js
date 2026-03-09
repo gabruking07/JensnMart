@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
+import { confirmToast } from "../../utils/confirmToast";
 
 export default function AdminsTab() {
   const [admins, setAdmins] = useState([]);
@@ -90,7 +91,12 @@ export default function AdminsTab() {
 
   /* ================= REMOVE ================= */
   const removeAdmin = async (id) => {
-    if (!window.confirm("Remove admin?")) return;
+    const confirmed = await confirmToast({
+      title: "Remove admin?",
+      message: "This account will lose admin access immediately.",
+      confirmLabel: "Remove"
+    });
+    if (!confirmed) return;
 
     try {
       await api.delete(`/admin/remove-admin/${id}`);

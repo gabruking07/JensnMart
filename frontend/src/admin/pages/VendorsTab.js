@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
+import { confirmToast } from "../../utils/confirmToast";
 
 export default function VendorsTab() {
   const [vendors, setVendors] = useState([]);
@@ -66,7 +67,12 @@ export default function VendorsTab() {
 
   /* ================= REJECT ================= */
   const rejectVendor = async (id) => {
-    if (!window.confirm("Reject vendor?")) return;
+    const confirmed = await confirmToast({
+      title: "Remove vendor?",
+      message: "This vendor account will be deleted from the admin panel.",
+      confirmLabel: "Remove"
+    });
+    if (!confirmed) return;
 
     try {
       await api.delete(`/admin/reject-vendor/${id}`);
