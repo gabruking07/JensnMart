@@ -21,6 +21,7 @@ export default function Cart() {
     try {
       const res = await api.get("/cart");
       setCartItems(res.data.items || []);
+      window.dispatchEvent(new Event("cart-updated"));
     } catch (err) {
       console.error("Fetch cart failed", err);
     } finally {
@@ -30,6 +31,7 @@ export default function Cart() {
 
   const removeItem = async (productId) => {
     await api.delete(`/cart/remove/${productId}`);
+    window.dispatchEvent(new Event("cart-updated"));
     fetchCart();
   };
 
@@ -47,6 +49,7 @@ export default function Cart() {
 
     try {
       await api.put(`/cart/update/${productId}`, { quantity: qty });
+      window.dispatchEvent(new Event("cart-updated"));
     } catch {
       fetchCart();
     }
@@ -56,6 +59,8 @@ export default function Cart() {
     if (!item.product) return sum;
     return sum + item.product.price * item.quantity;
   }, 0);
+  const totalUnits = cartItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+  const inStockItems = cartItems.filter((item) => Number(item.product?.stock || 0) > 0).length;
 
   const getCheckoutAddress = async () => {
     try {
@@ -107,6 +112,7 @@ export default function Cart() {
       if (paymentMethod === "COD") {
         alert("Order placed with Cash on Delivery");
         fetchCart();
+        window.dispatchEvent(new Event("cart-updated"));
         navigate("/vendor/orders");
         return;
       }
@@ -153,6 +159,7 @@ export default function Cart() {
 
           alert("Payment Successful");
           fetchCart();
+          window.dispatchEvent(new Event("cart-updated"));
           navigate("/vendor/orders");
 
         } catch (err) {
@@ -179,7 +186,30 @@ export default function Cart() {
 
       <main className="vendor-main">
         <div className="cart-page-root">
-          <h2 className="page-title">Your Cart ({cartItems.length} items)</h2>
+          <section className="cart-hero">
+            <div className="cart-hero-copy">
+              <p className="cart-eyebrow">Purchase desk</p>
+              <h2 className="page-title">Your Cart</h2>
+              <p className="cart-hero-text">
+                Review selected products, fine-tune quantities and complete checkout with a cleaner buying flow.
+              </p>
+            </div>
+
+            <div className="cart-hero-stats">
+              <div className="cart-hero-stat">
+                <span>Items</span>
+                <strong>{cartItems.length}</strong>
+              </div>
+              <div className="cart-hero-stat">
+                <span>Units</span>
+                <strong>{totalUnits}</strong>
+              </div>
+              <div className="cart-hero-stat">
+                <span>Ready</span>
+                <strong>{inStockItems}</strong>
+              </div>
+            </div>
+          </section>
 
           {cartItems.length === 0 ? (
             <div className="empty-cart-state">
@@ -258,6 +288,10 @@ export default function Cart() {
               <aside className="cart-summary-sidebar">
                 <div className="admin-card summary-card">
                   <h3>Order Summary</h3>
+                  <div className="summary-chip-row">
+                    <span className="summary-chip">{cartItems.length} products</span>
+                    <span className="summary-chip">{totalUnits} units</span>
+                  </div>
                   <div className="summary-row total">
                     <span>Total</span>
                     <span>Rs {total}</span>

@@ -61,6 +61,37 @@ export default function VendorNotifications() {
       <Header title="Notifications" />
       <main className="vendor-main">
         <div className="vendor-notifications-root">
+          <section className="vendor-notifications-hero">
+            <div className="vendor-notifications-copy">
+              <p className="vendor-notifications-eyebrow">Alerts and updates</p>
+              <h1>Keep track of orders, payments and platform activity.</h1>
+              <p className="vendor-notifications-subtext">
+                Review unread updates, clear your queue, and stay on top of changes that affect your vendor workflow.
+              </p>
+            </div>
+
+            <div className="vendor-notifications-summary">
+              <span>Notification status</span>
+              <strong>{unreadCount > 0 ? "Active" : "Clear"}</strong>
+              <p>
+                {unreadCount > 0
+                  ? `${unreadCount} unread updates need your attention right now.`
+                  : "Your notification queue is clear for now."}
+              </p>
+
+              <div className="vendor-notifications-stats-grid">
+                <div className="vendor-notifications-stat">
+                  <span>Unread</span>
+                  <strong>{unreadCount}</strong>
+                </div>
+                <div className="vendor-notifications-stat">
+                  <span>Total</span>
+                  <strong>{notifications.length}</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <div className="vendor-notifications-top">
             <div className="vendor-notifications-unread">
               {unreadCount} unread
@@ -86,7 +117,10 @@ export default function VendorNotifications() {
                   key={n._id}
                   className={`vendor-notification-card ${n.isRead ? "read" : "unread"}`}
                 >
-                  <div>
+                  <div className="vendor-notification-content">
+                    <span className="vendor-notification-tag">
+                      {n.type || "system"}
+                    </span>
                     <h4>{n.title}</h4>
                     <p>{n.message}</p>
                     <small>{new Date(n.createdAt).toLocaleString()}</small>
