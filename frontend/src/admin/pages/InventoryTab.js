@@ -9,8 +9,15 @@ export default function InventoryTab() {
   const [subcategories, setSubcategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(4);
+  const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({ name: "", price: "", stock: "" });
+
+  const formatDisplayName = (value) => {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (!normalized) return "-";
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  };
 
   const loadProducts = async () => {
     try {
@@ -43,12 +50,25 @@ export default function InventoryTab() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage]);
+  }, [itemsPerPage, searchTerm]);
 
-  const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredProducts = products.filter((product) => {
+    if (!normalizedSearch) return true;
+
+    return [
+      product.name,
+      product.category?.name,
+      product.subcategory?.name,
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(normalizedSearch));
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const visibleProducts = products.slice(startIndex, endIndex);
+  const visibleProducts = filteredProducts.slice(startIndex, endIndex);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -141,21 +161,35 @@ export default function InventoryTab() {
       <h1>Inventory</h1>
       <div className="inventory-toolbar">
         <p className="inventory-count">
-          Showing {products.length === 0 ? 0 : startIndex + 1}-
-          {Math.min(endIndex, products.length)} of {products.length} products
+          Showing {filteredProducts.length === 0 ? 0 : startIndex + 1}-
+          {Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
         </p>
-        <div className="inventory-page-size">
-          <label htmlFor="inventory-page-size">Items per page</label>
-          <select
-            id="inventory-page-size"
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-          >
-            <option value={4}>4</option>
-            <option value={8}>8</option>
-            <option value={12}>12</option>
-            <option value={16}>16</option>
-          </select>
+        <div className="inventory-toolbar-controls">
+          <div className="inventory-search">
+            <label htmlFor="inventory-search" className="sr-only">
+              Search products
+            </label>
+            <input
+              id="inventory-search"
+              type="search"
+              placeholder="Search products, category, subcategory"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="inventory-page-size">
+            <label htmlFor="inventory-page-size">Items per page</label>
+            <select
+              id="inventory-page-size"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={4}>4</option>
+              <option value={8}>8</option>
+              <option value={12}>12</option>
+              <option value={16}>16</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -233,17 +267,19 @@ export default function InventoryTab() {
                   >
                     {categories.map((c) => (
                       <option key={c._id} value={c._id}>
-                        {c.name}
+                        {formatDisplayName(c.name)}
                       </option>
                     ))}
                   </select>
                 ) : (
-                  <p className="field-value">{p.category?.name || "-"}</p>
+                  <p className="field-value">
+                    {formatDisplayName(p.category?.name)}
+                  </p>
                 )}
               </div>
 
               <div className="field">
-                <label>Sub</label>
+                <label>Sub Category</label>
                 {isEditing ? (
                   <select
                     value={p.subcategory?._id || ""}
@@ -259,12 +295,16 @@ export default function InventoryTab() {
                       )
                       .map((s) => (
                         <option key={s._id} value={s._id}>
-                          {s.name}
+                          {formatDisplayName(s.name)}
                         </option>
                       ))}
                   </select>
                 ) : (
-                  <p className="field-value">{p.subcategory?.name || "None"}</p>
+                  <p className="field-value">
+                    {p.subcategory?.name
+                      ? formatDisplayName(p.subcategory.name)
+                      : "None"}
+                  </p>
                 )}
               </div>
 
@@ -296,7 +336,11 @@ export default function InventoryTab() {
         })}
       </div>
 
-      {products.length > 0 && (
+      {filteredProducts.length === 0 && (
+        <p className="inventory-empty-state">No products match your search.</p>
+      )}
+
+      {filteredProducts.length > 0 && (
         <div className="pagination-bar">
           <button
             className="page-btn"

@@ -1,0 +1,119 @@
+.admin-notifications-root {
+  max-width: 980px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-notifications-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #0f172a;
+}
+
+.admin-notifications-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-notifications-count {
+  font-size: 13px;
+  color: #475569;
+  background: #e2e8f0;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.admin-notifications-mark-all {
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-notifications-mark-all:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-notification-card {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+}
+
+.admin-notification-card.unread {
+  border-color: #60a5fa;
+  background: #eff6ff;
+}
+
+.admin-notification-card.read {
+  opacity: 0.9;
+}
+
+.admin-notification-main h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.admin-notification-main p {
+  margin: 0 0 6px;
+  color: #334155;
+}
+
+.admin-notification-main small {
+  color: #64748b;
+}
+
+.admin-notification-card button {
+  height: fit-content;
+  border: none;
+  background: #0f172a;
+  color: #fff;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.admin-notifications-empty,
+.admin-notifications-loading {
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 20px;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .admin-notifications-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-notification-card {
+    flex-direction: column;
+  }
+}
