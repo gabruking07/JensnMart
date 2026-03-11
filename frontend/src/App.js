@@ -14,6 +14,7 @@ import VendorOrders from "./vendor/pages/VendorOrders";
 import VendorTransactions from "./vendor/pages/VendorTransactions";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChatbotWidget from "./components/ChatbotWidget";
 
 import AdminLayout from "./admin/AdminLayout";
 import ProfileTab from "./admin/pages/ProfileTab";
@@ -32,6 +33,7 @@ function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
+      <ChatbotWidget />
 
       <Routes>
         {/* ADMIN PANEL */}
