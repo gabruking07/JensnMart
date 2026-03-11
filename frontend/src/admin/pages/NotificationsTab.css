@@ -1,9 +1,10 @@
 .admin-notifications-root {
-  max-width: 980px;
+  max-width: 1100px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
 }
 
 .admin-notifications-header {
@@ -15,8 +16,10 @@
 
 .admin-notifications-header h2 {
   margin: 0;
-  font-size: 24px;
-  color: #0f172a;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #083a47;
 }
 
 .admin-notifications-actions {
@@ -27,20 +30,25 @@
 
 .admin-notifications-count {
   font-size: 13px;
-  color: #475569;
-  background: #e2e8f0;
+  color: #334155;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   padding: 6px 10px;
   border-radius: 999px;
 }
 
 .admin-notifications-mark-all {
   border: none;
-  background: #2563eb;
+  background: linear-gradient(135deg, #082e4f, #1f6ea7);
   color: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 700;
   cursor: pointer;
+}
+
+.admin-notifications-mark-all:hover {
+  background: linear-gradient(135deg, #e16a2f, #bc4917);
 }
 
 .admin-notifications-mark-all:disabled {
@@ -55,18 +63,21 @@
 }
 
 .admin-notification-card {
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 20px;
   padding: 12px;
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  background: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 248, 240, 0.84));
+  box-shadow: 0 22px 44px rgba(40, 28, 17, 0.1);
 }
 
 .admin-notification-card.unread {
-  border-color: #60a5fa;
-  background: #eff6ff;
+  border-color: rgba(225, 106, 47, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(244, 187, 80, 0.16), transparent 48%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 240, 0.9));
 }
 
 .admin-notification-card.read {
@@ -76,7 +87,7 @@
 .admin-notification-main h4 {
   margin: 0 0 4px;
   font-size: 15px;
-  color: #0f172a;
+  color: #083a47;
 }
 
 .admin-notification-main p {
@@ -91,18 +102,22 @@
 .admin-notification-card button {
   height: fit-content;
   border: none;
-  background: #0f172a;
+  background: linear-gradient(135deg, #082e4f, #1f6ea7);
   color: #fff;
-  border-radius: 8px;
-  padding: 7px 10px;
+  border-radius: 999px;
+  padding: 7px 12px;
   cursor: pointer;
+}
+
+.admin-notification-card button:hover {
+  background: linear-gradient(135deg, #e16a2f, #bc4917);
 }
 
 .admin-notifications-empty,
 .admin-notifications-loading {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
   border: 1px dashed #cbd5e1;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 20px;
   color: #64748b;
 }

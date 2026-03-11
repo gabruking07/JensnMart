@@ -71,8 +71,6 @@ export default function PaymentsTab() {
 
   return (
     <div className="payments-container">
-      <h1>Payment Management</h1>
-
       <div className="summary-cards">
         <div className="card revenue">
           <h3>Total Revenue</h3>

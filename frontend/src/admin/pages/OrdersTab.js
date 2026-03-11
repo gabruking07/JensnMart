@@ -94,8 +94,6 @@ export default function OrdersTab() {
 
   return (
     <div className="admin-container">
-      <h1 className="admin-title">Orders</h1>
-
       <div className="stats-row">
         {['Placed', 'Processing', 'Shipped', 'Delivered', 'Returned', 'Cancelled'].map(s => (
           <div className="stat-card" key={s}>

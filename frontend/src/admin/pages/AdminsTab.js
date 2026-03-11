@@ -110,8 +110,6 @@ export default function AdminsTab() {
 
   return (
     <div>
-      <h1>Admins</h1>
-
       {/* CREATE */}
       <div className="card">
         <h3>Create Admin / Manager</h3>
