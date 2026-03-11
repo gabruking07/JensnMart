@@ -404,6 +404,13 @@ export default function VendorDashboard() {
     fetchProducts(value);
   };
 
+  const handleItemsPerPageChange = (event) => {
+    const nextSize = Number.parseInt(event.target.value, 10);
+    const safeSize = [4, 8, 12, 16].includes(nextSize) ? nextSize : 4;
+    setItemsPerPage(safeSize);
+    setCurrentPage(1);
+  };
+
   useEffect(() => {
     fetchProducts(sortBy);
   }, [location.key]);
@@ -463,11 +470,7 @@ export default function VendorDashboard() {
 
   return (
     <VendorLayout>
-
-      <Header title="Inventory" />
-
       <Header title="" />
-
 
       <main className="vendor-main">
         {!approved && (
@@ -476,21 +479,6 @@ export default function VendorDashboard() {
           </div>
         )}
 
-
-        <div className="filter-row-container">
-          {/* CATEGORY */}
-          <div className="filter-item">
-            <label>Category</label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="">All</option>
-              {categories.map(c => (
-                <option key={c._id} value={c._id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
         <section className="vendor-storefront-strip">
           <div className="vendor-storefront-bar">
             <div className="vendor-storefront-brand">JensnMart</div>
@@ -620,23 +608,7 @@ export default function VendorDashboard() {
               </div>
             </div>
           )}
-
-          {/* SORT */}
-          <div className="filter-item">
-            <label>Sort By</label>
-            <select
-              value={sortBy}
-              onChange={(e) => handleSortChange(e.target.value)}
-            >
-              <option value="">Default</option>
-              <option value="bestsell">Most Sold</option>
-              <option value="priceHigh">Price High to Low</option>
-              <option value="priceLow">Price Low to High</option>
-              <option value="new">New Arrivals</option>
-            </select>
-          </div>
         </section>
-        </div>
 
         {/* PAGINATION BAR */}
         <div className="vendor-pagination-toolbar">
@@ -649,7 +621,7 @@ export default function VendorDashboard() {
             <select
               id="vendor-page-size"
               value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              onChange={handleItemsPerPageChange}
             >
               <option value={4}>4</option>
               <option value={8}>8</option>
@@ -659,7 +631,31 @@ export default function VendorDashboard() {
           </div>
         </div>
 
-        
+        {/* PRODUCTS */}
+        <div className="vendor-product-grid">
+          {paginatedProducts.map(p => (
+            <div className="vendor-product-card" key={p._id}>
+              <div className="v-card-img">
+                <img src={`http://localhost:5000/uploads/${p.image}`} alt={p.name} />
+                <span className="stock-label">{p.stock} in stock</span>
+              </div>
+
+              <div className="v-card-body">
+                <h4>{p.name}</h4>
+                <p>₹{p.price}</p>
+
+                <div className="v-purchase-zone">
+                  <div className="v-qty-selector">
+                    <button onClick={() => decreaseQty(p._id)}>−</button>
+                    <span>{cartQty[p._id] || 1}</span>
+                    <button onClick={() => increaseQty(p._id)}>+</button>
+                  </div>
+
+                  <button
+                    className="v-add-btn"
+                    disabled={!approved}
+                    onClick={() => addToCart(p._id)}
+                  >
                     Add to Cart
                   </button>
                 </div>
@@ -703,5 +699,3 @@ export default function VendorDashboard() {
     </VendorLayout>
   );
 }
-
-
