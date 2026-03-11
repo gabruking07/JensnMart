@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Header from "../../components/Header";
@@ -178,6 +178,7 @@ const getAiScore = (product, searchTerm, lowPrice, highPrice) => {
 export default function VendorDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [approved, setApproved] = useState(false);
 
   const [products, setProducts] = useState([]);
@@ -192,6 +193,13 @@ export default function VendorDashboard() {
   const [sortBy, setSortBy] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(4);
+
+  useEffect(() => {
+    const linkedSearch = String(searchParams.get("search") || "").trim();
+    if (linkedSearch) {
+      setSearchTerm(linkedSearch);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const init = async () => {
@@ -323,6 +331,10 @@ export default function VendorDashboard() {
     return [...new Set(suggestions)].slice(0, 3);
   })();
 
+  const visibleSubcategoryChips = selectedCategory
+    ? subcategories.filter((subcategory) => subcategory.category?._id === selectedCategory)
+    : [];
+
   let filteredProducts = products
     .filter((p) => {
       const matchCategory = !selectedCategory || p.category?._id === selectedCategory;
@@ -439,6 +451,7 @@ export default function VendorDashboard() {
     try {
       const qty = cartQty[productId] || 1;
       await api.post("/cart/add", { productId, quantity: qty });
+      window.dispatchEvent(new Event("cart-updated"));
       alert("Added to cart successfully!");
       fetchProducts();
     } catch (err) {
@@ -450,13 +463,19 @@ export default function VendorDashboard() {
 
   return (
     <VendorLayout>
+
       <Header title="Inventory" />
+
+      <Header title="" />
+
+
       <main className="vendor-main">
         {!approved && (
           <div className="status-banner warning">
             Pending approval — cart disabled
           </div>
         )}
+
 
         <div className="filter-row-container">
           {/* CATEGORY */}
@@ -469,49 +488,132 @@ export default function VendorDashboard() {
               <option value="">All</option>
               {categories.map(c => (
                 <option key={c._id} value={c._id}>{c.name}</option>
+=======
+        <section className="vendor-storefront-strip">
+          <div className="vendor-storefront-bar">
+            <div className="vendor-storefront-brand">JensnMart</div>
+            <div className="vendor-storefront-search">
+              <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search for Grocery, Stores, Vegetable or Meat"
+              />
+            </div>
+
+            <div className="vendor-dashboard-tools">
+              <div className="filter-item vendor-dashboard-sort-card">
+                <label>Sort By</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                >
+                  <option value="">Default</option>
+                  <option value="bestsell">Most Sold</option>
+                  <option value="priceHigh">Price High to Low</option>
+                  <option value="priceLow">Price Low to High</option>
+                  <option value="new">New Arrivals</option>
+                </select>
+              </div>
+
+              <div className="filter-item filter-item-search ai-chat-search-card">
+                <div className="ai-chat-search-header">
+                  <span className="ai-chat-search-badge">AI Search</span>
+                  <label htmlFor="vendor-ai-search">Ask inventory assistant</label>
+                </div>
+
+                <div className="ai-chat-thread">
+                  <div className="ai-chat-message ai-chat-message-bot">
+                    Try prompts like "cheap headphones", "latest grocery items", or "best electronics".
+                  </div>
+                  {searchTerm && (
+                    <div className="ai-chat-message ai-chat-message-user">
+                      {searchTerm}
+                    </div>
+                  )}
+                </div>
+
+                <div className="ai-chat-input-row">
+                  <input
+                    id="vendor-ai-search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Ask AI to find products for your store"
+                  />
+                </div>
+
+                <small className="ai-search-hint">
+                  AI search understands product intent, pricing hints, popularity and typos.
+                </small>
+
+                {searchSuggestions.length > 0 && (
+                  <div className="ai-suggestion-wrap">
+                    {searchSuggestions.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className="ai-suggestion-chip"
+                        onClick={() => setSearchTerm(s.replace(/^Did you mean:\s*/i, ""))}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="vendor-storefront-categories">
+            <h2>Categories</h2>
+            <div className="vendor-storefront-chip-row">
+              <button
+                type="button"
+                className={`vendor-storefront-chip ${selectedCategory === "" ? "active" : ""}`}
+                onClick={() => {
+                  setSelectedCategory("");
+                  setSelectedSubcategory("");
+                }}
+              >
+                All
+              </button>
+
+              {categories.map((category) => (
+                <button
+                  key={category._id}
+                  type="button"
+                  className={`vendor-storefront-chip ${selectedCategory === category._id ? "active" : ""}`}
+                  onClick={() => {
+                    setSelectedCategory(category._id);
+                    setSelectedSubcategory("");
+                  }}
+                >
+                  {category.name}
+                </button>
+>>>>>>> aad69643a5ec465254504c3347d26747827a46cd
               ))}
-            </select>
+            </div>
           </div>
 
-          {/* SUBCATEGORY */}
-          <div className="filter-item">
-            <label>Sub Category</label>
-            <select
-              value={selectedSubcategory}
-              onChange={(e) => setSelectedSubcategory(e.target.value)}
-              disabled={!selectedCategory}
-            >
-              <option value="">All</option>
-              {subcategories
-                .filter(s => !selectedCategory || s.category?._id === selectedCategory)
-                .map(s => (
-                  <option key={s._id} value={s._id}>{s.name}</option>
-                ))}
-            </select>
-          </div>
+          {selectedCategory && (
+            <div className="vendor-storefront-categories">
+              <h2>Subcategories</h2>
+              <div className="vendor-storefront-chip-row">
+                <button
+                  type="button"
+                  className={`vendor-storefront-chip ${selectedSubcategory === "" ? "active" : ""}`}
+                  onClick={() => setSelectedSubcategory("")}
+                >
+                  All
+                </button>
 
-          {/* SEARCH */}
-          <div className="filter-item filter-item-search">
-            <label>Search</label>
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Try: cheap * / latest * / premium * "
-            />
-            <small className="ai-search-hint">
-              * refers to (product name) <br />
-              AI search understands intent and typos.
-            </small>
-            {searchSuggestions.length > 0 && (
-              <div className="ai-suggestion-wrap">
-                {searchSuggestions.map((s) => (
+                {visibleSubcategoryChips.map((subcategory) => (
                   <button
-                    key={s}
+                    key={subcategory._id}
                     type="button"
-                    className="ai-suggestion-chip"
-                    onClick={() => setSearchTerm(s.replace(/^Did you mean:\s*/i, ""))}
+                    className={`vendor-storefront-chip ${selectedSubcategory === subcategory._id ? "active" : ""}`}
+                    onClick={() => setSelectedSubcategory(subcategory._id)}
                   >
-                    {s}
+                    {subcategory.name}
                   </button>
                 ))}
               </div>
@@ -534,6 +636,7 @@ export default function VendorDashboard() {
           </div>
         </div>
 
+        {/* PAGINATION BAR */}
         <div className="vendor-pagination-toolbar">
           <p className="vendor-pagination-count">
             Showing {filteredProducts.length === 0 ? 0 : startIndex + 1}-

@@ -52,9 +52,8 @@ export default function VendorProfile() {
       setState(v.address?.state || v.state || fallbackAddress.state || "");
       setPincode(v.address?.pincode || v.pincode || fallbackAddress.pincode || "");
       setCountry(v.address?.country || v.country || "India");
-
-
     } catch (err) {
+      console.error("Vendor profile load failed", err);
     }
   };
 
@@ -123,14 +122,10 @@ export default function VendorProfile() {
       formData.append("profileImage", file);
       await api.put("/vendor/profile", formData);
       await loadProfile();
-
     } catch (err) {
       alert("Image upload failed");
     }
   };
-
-  const profileImageSrc = getProfileImageUrl(vendor?.profileImage);
-  const avatarLabel = (name || vendor?.name || "V").charAt(0).toUpperCase();
 
   if (!vendor) {
     return (
@@ -144,122 +139,156 @@ export default function VendorProfile() {
     <VendorLayout>
       <Header title="Profile" />
       <main className="vendor-main">
-        <div className="profile-page-root" >
-            <div className="profile-grid">
+        <div className="profile-page-root">
+          <section className="profile-hero">
+              <div className="profile-hero-copy">
+                <p className="profile-eyebrow">Vendor identity</p>
+                <h1>
+                  Manage your storefront profile
+                  <br />
+                  with a cleaner control panel.
+                </h1>
+                <p className="profile-hero-text">
+                  Keep your contact details, delivery address, and account credentials up to date so
+                  orders and payments stay aligned.
+                </p>
+              </div>
 
-              {/* LEFT */}
-              <section className="profile-sidebar">
-                <div className="admin-card user-info-card">
+            <div className="profile-hero-status">
+              <span>Account status</span>
+              <strong>{vendor.approved ? "Verified" : "Pending"}</strong>
+              <p>
+                {vendor.approved
+                  ? "Your vendor account is active and verified."
+                  : "Your account is awaiting approval review."}
+              </p>
+            </div>
+          </section>
 
-                  <div className="profile-avatar-wrap">
-                    {vendor?.profileImage ? (
-                      <img
-                        src={getProfileImageUrl(vendor.profileImage)}
-                        className="profile-avatar-image"
-                      />
-                    ) : (
-                      <div className="profile-avatar">
-                        {(vendor?.name || "V").charAt(0).toUpperCase()}
-                      </div>
-                    )}
+          <div className="profile-grid">
+            <section className="profile-sidebar">
+              <div className="admin-card user-info-card">
+                <div className="profile-avatar-wrap">
+                  {vendor?.profileImage ? (
+                    <img
+                      src={getProfileImageUrl(vendor.profileImage)}
+                      className="profile-avatar-image"
+                      alt={vendor.name}
+                    />
+                  ) : (
+                    <div className="profile-avatar">
+                      {(vendor?.name || "V").charAt(0).toUpperCase()}
+                    </div>
+                  )}
 
-                    <button
-                      type="button"
-                      className="camera-upload-btn"
-                      onClick={() => fileInputRef.current.click()}
-                    >
-                      📷
-                    </button>
+                  <button
+                    type="button"
+                    className="camera-upload-btn"
+                    onClick={() => fileInputRef.current.click()}
+                  >
+                    Upload
+                  </button>
 
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={onProfileImageChange}
+                  />
+                </div>
+
+                <h2>{vendor.name}</h2>
+                <p className="profile-email">{vendor.email}</p>
+
+                <div className="profile-quick-stats">
+                  <div className="profile-stat-box">
+                    <span>Phone</span>
+                    <strong>{vendor.phone || "Not set"}</strong>
+                  </div>
+                  <div className="profile-stat-box">
+                    <span>Country</span>
+                    <strong>{country || "India"}</strong>
+                  </div>
+                </div>
+
+                <div className={`status-pill ${vendor.approved ? "status-approved" : "status-pending"}`}>
+                  {vendor.approved ? "Verified Vendor" : "Pending Verification"}
+                </div>
+              </div>
+            </section>
+
+            <section className="profile-main">
+              <div className="admin-card edit-profile-card">
+                <h3>Edit Profile</h3>
+
+                <div className="profile-form">
+                  <div className="form-group">
+                    <label>Name</label>
+                    <input value={name} onChange={(e) => setName(e.target.value)} />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input value={vendor.email} disabled />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Phone</label>
+                    <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Address Line 1</label>
+                    <input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Address Line 2</label>
+                    <input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} />
+                  </div>
+
+                  <div className="form-row">
+                    <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
+                    <input value={state} onChange={(e) => setState(e.target.value)} placeholder="State" />
+                  </div>
+
+                  <div className="form-row">
                     <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      style={{ display: "none" }}
-                      onChange={onProfileImageChange}
+                      value={pincode}
+                      onChange={(e) => handlePincodeChange(e.target.value)}
+                      placeholder="Pincode"
+                      inputMode="numeric"
+                      maxLength={6}
+                    />
+                    <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" />
+                  </div>
+
+                  {pincodeError && (
+                    <p className="error-text">{pincodeError}</p>
+                  )}
+
+                  <div className="form-group">
+                    <label>New Password</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Leave blank to keep"
                     />
                   </div>
 
-                  <h2>{vendor.name}</h2>
-                  <p className="profile-email">{vendor.email}</p>
-
-                  <div className={`status-pill ${vendor.approved ? "status-approved" : "status-pending"}`}>
-                    {vendor.approved ? "Verified Vendor" : "Pending Verification"}
-                  </div>
+                  <button
+                    className="btn-save-profile"
+                    onClick={updateProfile}
+                    disabled={isUpdating || !!pincodeError}
+                  >
+                    {isUpdating ? "Saving..." : "Save Changes"}
+                  </button>
                 </div>
-              </section>
-
-              {/* RIGHT */}
-              <section className="profile-main">
-                <div className="admin-card edit-profile-card">
-                  <h3>Edit Profile</h3>
-
-                  <div className="profile-form">
-                    <div className="form-group">
-                      <label>Name</label>
-                      <input value={name} onChange={(e) => setName(e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Email</label>
-                      <input value={vendor.email} disabled />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Phone</label>
-                      <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Address Line 1</label>
-                      <input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Address Line 2</label>
-                      <input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} />
-                    </div>
-
-                    <div className="form-row">
-                      <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" />
-                      <input value={state} onChange={(e) => setState(e.target.value)} placeholder="State" />
-                    </div>
-
-                    <div className="form-row">
-                      <input
-                        value={pincode}
-                        onChange={(e) => handlePincodeChange(e.target.value)}
-                        placeholder="Pincode"
-                        inputMode="numeric"
-                        maxLength={6}
-                      />
-                      <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" />
-                    </div>
-                    {pincodeError && (
-                      <p className="error-text">{pincodeError}</p>
-                    )}
-
-                    <div className="form-group">
-                      <label>New Password</label>
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Leave blank to keep"
-                      />
-                    </div>
-                    
-                    <button
-                      className="btn-save-profile"
-                      onClick={updateProfile}
-                      disabled={isUpdating || !!pincodeError}
-                    >
-                      {isUpdating ? "Saving..." : "Save Changes"}
-                    </button>
-                  </div>
-                </div>
-              </section>
-            </div>
+              </div>
+            </section>
+          </div>
 
           <Footer />
         </div>

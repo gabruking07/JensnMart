@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
+import { confirmToast } from "../../utils/confirmToast";
 
 export default function CategoryTab() {
   const [categories, setCategories] = useState([]);
@@ -45,7 +46,12 @@ export default function CategoryTab() {
 
   /* ================= DELETE CATEGORY ================= */
   const deleteCategory = async (id) => {
-    if (!window.confirm("Delete category?")) return;
+    const confirmed = await confirmToast({
+      title: "Delete category?",
+      message: "Deleting this category may affect linked products.",
+      confirmLabel: "Delete"
+    });
+    if (!confirmed) return;
 
     await api.delete(`/categories/${id}`);
     loadCategories();
@@ -66,7 +72,12 @@ export default function CategoryTab() {
 
   /* ================= DELETE SUB ================= */
   const deleteSub = async (id) => {
-    if (!window.confirm("Delete subcategory?")) return;
+    const confirmed = await confirmToast({
+      title: "Delete subcategory?",
+      message: "This subcategory will be removed from the catalog structure.",
+      confirmLabel: "Delete"
+    });
+    if (!confirmed) return;
 
     await api.delete(`/subcategories/${id}`);
     toast.success("Deleted");

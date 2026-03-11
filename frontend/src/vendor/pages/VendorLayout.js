@@ -11,6 +11,7 @@ export default function VendorLayout({ children }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
 
   const logout = () => {
     localStorage.clear();
@@ -27,6 +28,16 @@ export default function VendorLayout({ children }) {
       setUnreadCount(countRes.data?.count || 0);
     } catch (err) {
       console.error("Vendor notifications load failed", err);
+    }
+  };
+
+  const loadCartCount = async () => {
+    try {
+      const res = await api.get("/cart");
+      const items = res.data?.items || [];
+      setCartCount(items.length);
+    } catch (err) {
+      setCartCount(0);
     }
   };
 
@@ -52,9 +63,33 @@ export default function VendorLayout({ children }) {
 
   useEffect(() => {
     loadNotifications();
+    loadCartCount();
     const id = setInterval(loadNotifications, 20000);
-    return () => clearInterval(id);
+    const cartIntervalId = setInterval(loadCartCount, 20000);
+
+    const onFocus = () => {
+      loadNotifications();
+      loadCartCount();
+    };
+
+    const onCartUpdated = () => {
+      loadCartCount();
+    };
+
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("cart-updated", onCartUpdated);
+
+    return () => {
+      clearInterval(id);
+      clearInterval(cartIntervalId);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("cart-updated", onCartUpdated);
+    };
   }, []);
+
+  useEffect(() => {
+    loadCartCount();
+  }, [location.pathname]);
 
   return (
     <div className="vendor-layout">
@@ -108,6 +143,11 @@ export default function VendorLayout({ children }) {
           className={`side-link ${location.pathname === "/cart" ? "active" : ""}`}
         >
           Cart
+          {cartCount > 0 && (
+            <span className="vendor-route-badge">
+              {cartCount > 99 ? "99+" : cartCount}
+            </span>
+          )}
         </button>
 
         <div className="vendor-notify-wrap">
