@@ -1,7 +1,38 @@
 const router = require("express").Router();
 const Product = require("../models/Product");
+const optionalAuth = require("../middleware/optionalAuthMiddleware");
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+const ROLE_CONFIG = {
+  guest: {
+    label: "guest visitor",
+    intro:
+      "Help guests browse the marketplace, compare products, explain categories, and nudge them to log in only when actions require an account.",
+    allowed:
+      "You can suggest discovery, comparisons, pricing guidance, and how shopping works for guests.",
+    avoid:
+      "Do not claim the guest can access vendor-only or admin-only pages or actions.",
+  },
+  vendor: {
+    label: "vendor",
+    intro:
+      "Help vendors shop the marketplace, compare products, find budget or premium options, and answer short questions about vendor shopping flows such as cart, checkout, and orders.",
+    allowed:
+      "You can suggest products, buying options, and vendor shopping guidance.",
+    avoid:
+      "Do not suggest admin-only inventory management or approvals.",
+  },
+  admin: {
+    label: "admin or manager",
+    intro:
+      "Help admins and managers inspect catalog health, identify low-stock or best-selling products, compare pricing, and answer short questions about inventory-oriented workflows.",
+    allowed:
+      "You can discuss stock levels, pricing patterns, category gaps, and inventory actions.",
+    avoid:
+      "Do not suggest vendor-only buying flows like cart or checkout as the primary action.",
+  },
+};
 
 const normalizeText = (value = "") =>
   String(value || "")
@@ -63,10 +94,16 @@ const getSuggestedProducts = (products = [], message = "", reply = "") => {
     }));
 };
 
-router.post("/chat", async (req, res) => {
+router.post("/chat", optionalAuth, async (req, res) => {
   try {
     const message = String(req.body.message || "").trim();
     const history = normalizeHistory(req.body.history);
+    const viewerRole = ["admin", "manager"].includes(req.user?.role)
+      ? "admin"
+      : req.user?.role === "vendor"
+        ? "vendor"
+        : "guest";
+    const roleConfig = ROLE_CONFIG[viewerRole];
 
     if (!message) {
       return res.status(400).json({ message: "Message is required" });
@@ -93,7 +130,10 @@ router.post("/chat", async (req, res) => {
 
     const prompt = [
       "You are the JensnMart AI shopping assistant.",
-      "Help users discover products, compare options, suggest cheaper or premium choices, explain categories, and answer short website shopping questions.",
+      `Current user type: ${roleConfig.label}.`,
+      roleConfig.intro,
+      roleConfig.allowed,
+      roleConfig.avoid,
       "Be concise, practical, and product-focused.",
       "If you do not know something, say so plainly.",
       "",
@@ -162,7 +202,7 @@ router.post("/chat", async (req, res) => {
 
     const suggestedProducts = getSuggestedProducts(products, message, reply);
 
-    return res.json({ reply, suggestedProducts });
+    return res.json({ reply, suggestedProducts, viewerRole });
   } catch (err) {
     console.error("AI chat route error:", err);
     return res.status(500).json({ message: "AI chatbot failed" });

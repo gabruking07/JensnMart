@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
 import { confirmToast } from "../../utils/confirmToast";
 
 export default function InventoryTab() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
@@ -42,6 +44,13 @@ export default function InventoryTab() {
       setSubcategories(res.data);
     } catch {}
   };
+
+  useEffect(() => {
+    const linkedSearch = String(searchParams.get("search") || "").trim();
+    if (linkedSearch) {
+      setSearchTerm(linkedSearch);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadProducts();
