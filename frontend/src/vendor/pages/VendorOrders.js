@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import OrderTimeline from "../../components/OrderTimeline";
 import "./VendorOrders.css";
@@ -117,8 +116,6 @@ export default function VendorOrders() {
       <header title="My Orders">
         <main className="vendor-main">
           <div className="vendor-orders-root">
-            <Header title="My Orders" />
-
             <section className="orders-hero">
               <div className="orders-hero-copy">
                 <p className="orders-eyebrow">Order control</p>

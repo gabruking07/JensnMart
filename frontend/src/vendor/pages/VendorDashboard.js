@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import "./VendorDashboard.css";
 import VendorLayout from "./VendorLayout";
@@ -330,51 +329,6 @@ export default function VendorDashboard() {
   const queryHasPopularIntent = queryIntentFlags.hasPopularIntent;
   const queryHasLatestIntent = queryIntentFlags.hasLatestIntent;
 
-  const searchSuggestions = (() => {
-    if (!hasSearch) return [];
-
-    const tokens = tokenize(searchTerm);
-    const correctedTokens = tokens.map((t) => getClosestWord(t, suggestionDictionary));
-    const correctedText = correctedTokens.join(" ");
-    const suggestions = [];
-
-    if (correctedText && correctedText !== normalizeText(searchTerm)) {
-      suggestions.push(`Did you mean: ${correctedText}`);
-    }
-
-    const hasCheap = hasIntent(tokens, SEARCH_ALIASES.cheap);
-    const hasPremium = hasIntent(tokens, SEARCH_ALIASES.premium);
-    const hasPopular = hasIntent(tokens, SEARCH_ALIASES.popular);
-    const hasLatest = hasIntent(tokens, SEARCH_ALIASES.latest);
-
-    if (!hasCheap && !hasPremium && !hasPopular && !hasLatest) {
-      const productHint = products.find((p) =>
-        tokenize(p.name).some((w) => tokens.some((t) => levenshtein(t, w) <= 2))
-      );
-      if (productHint?.name) suggestions.push(`best ${productHint.name.toLowerCase()}`);
-      if (productHint?.name) suggestions.push(`cheapest ${productHint.name.toLowerCase()}`);
-    } else {
-      const primaryIntent = hasCheap
-        ? INTENT_PRIMARY.cheap
-        : hasPremium
-          ? INTENT_PRIMARY.premium
-          : hasPopular
-            ? INTENT_PRIMARY.popular
-            : INTENT_PRIMARY.latest;
-
-      const nonIntentTokens = tokens.filter(
-        (t) =>
-          !flattenAliases().some((alias) => alias === t || levenshtein(alias, t) <= 2)
-      );
-
-      if (nonIntentTokens.length > 0) {
-        suggestions.push(`${primaryIntent} ${nonIntentTokens.join(" ")}`);
-      }
-    }
-
-    return [...new Set(suggestions)].slice(0, 3);
-  })();
-
   const visibleSubcategoryChips = selectedCategory
     ? subcategories.filter((subcategory) => subcategory.category?._id === selectedCategory)
     : [];
@@ -432,6 +386,10 @@ export default function VendorDashboard() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+  const lowStockProductsCount = products.filter((product) => {
+    const stock = Number(product.stock || 0);
+    return stock > 0 && stock < 10;
+  }).length;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -507,8 +465,6 @@ export default function VendorDashboard() {
 
   return (
     <VendorLayout>
-      <Header title="" />
-
       <main className="vendor-main">
         {!approved && (
           <div className="status-banner warning">
@@ -541,57 +497,42 @@ export default function VendorDashboard() {
                   <option value="new">New Arrivals</option>
                 </select>
               </div>
+            </div>
+          </div>
 
-              <div className="filter-item filter-item-search ai-chat-search-card">
-                <div className="ai-chat-search-header">
-                  <span className="ai-chat-search-badge">AI Search</span>
-                  <label htmlFor="vendor-ai-search">Ask inventory assistant</label>
-                </div>
+          <div className="vendor-dashboard-hero">
+            <div className="vendor-dashboard-hero-copy">
+              <span className="vendor-dashboard-eyebrow">Purchase Desk</span>
+              <h1>Stock up faster with sharper search.</h1>
+              <p>
+                Browse categories, compare products, and place vendor orders from one cleaner workspace.
+              </p>
+            </div>
 
-                <div className="ai-chat-thread">
-                  <div className="ai-chat-message ai-chat-message-bot">
-                    Try prompts like "cheap headphones", "latest grocery items", or "best electronics".
-                  </div>
-                  {searchTerm && (
-                    <div className="ai-chat-message ai-chat-message-user">
-                      {searchTerm}
-                    </div>
-                  )}
-                </div>
-
-                <div className="ai-chat-input-row">
-                  <input
-                    id="vendor-ai-search"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Ask AI to find products for your store"
-                  />
-                </div>
-
-                <small className="ai-search-hint">
-                  AI search understands product intent, pricing hints, popularity and typos.
-                </small>
-
-                {searchSuggestions.length > 0 && (
-                  <div className="ai-suggestion-wrap">
-                    {searchSuggestions.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        className="ai-suggestion-chip"
-                        onClick={() => setSearchTerm(s.replace(/^Did you mean:\s*/i, ""))}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="vendor-dashboard-stats">
+              <article className="vendor-stat-card">
+                <span>Catalog</span>
+                <strong>{products.length}</strong>
+                <small>products live</small>
+              </article>
+              <article className="vendor-stat-card">
+                <span>Categories</span>
+                <strong>{categories.length}</strong>
+                <small>browse lanes</small>
+              </article>
+              <article className="vendor-stat-card">
+                <span>Low Stock</span>
+                <strong>{lowStockProductsCount}</strong>
+                <small>running low</small>
+              </article>
             </div>
           </div>
 
           <div className="vendor-storefront-categories">
-            <h2>Categories</h2>
+            <div className="vendor-section-heading">
+              <h2>Categories</h2>
+              <p>Browse every category lane without losing your place.</p>
+            </div>
             <div ref={categoryScrollerRef} className="vendor-storefront-chip-scroller">
               <button
                 type="button"
@@ -645,7 +586,10 @@ export default function VendorDashboard() {
 
           {selectedCategory && (
             <div className="vendor-storefront-categories">
-              <h2>Subcategories</h2>
+              <div className="vendor-section-heading">
+                <h2>Subcategories</h2>
+                <p>Refine the selected category before adding products to cart.</p>
+              </div>
               <div ref={subcategoryScrollerRef} className="vendor-storefront-chip-scroller">
                 <button
                   type="button"

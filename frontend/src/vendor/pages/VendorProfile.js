@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../../services/api";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import "./VendorProfile.css";
 import VendorLayout from "./VendorLayout";
@@ -137,7 +136,6 @@ export default function VendorProfile() {
 
   return (
     <VendorLayout>
-      <Header title="Profile" />
       <main className="vendor-main">
         <div className="profile-page-root">
           <section className="profile-hero">

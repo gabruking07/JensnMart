@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./Cart.css";
-import Header from "../components/Header";
 import Footer from "../components/Footer";
 import VendorLayout from "../vendor/pages/VendorLayout";
 
@@ -182,31 +181,31 @@ export default function Cart() {
 
   return (
     <VendorLayout>
-      <Header title="Cart" />
-
       <main className="vendor-main">
         <div className="cart-page-root">
           <section className="cart-hero">
             <div className="cart-hero-copy">
-              <p className="cart-eyebrow">Purchase desk</p>
-              <h2 className="page-title">Your Cart</h2>
-              <p className="cart-hero-text">
-                Review selected products, fine-tune quantities and complete checkout with a cleaner buying flow.
-              </p>
-            </div>
+              <div className="cart-hero-content">
+                <p className="cart-eyebrow">Purchase desk</p>
+                <h2 className="page-title">Your Cart</h2>
+                <p className="cart-hero-text">
+                  Review selected products, fine-tune quantities and complete checkout with a cleaner buying flow.
+                </p>
+              </div>
 
-            <div className="cart-hero-stats">
-              <div className="cart-hero-stat">
-                <span>Items</span>
-                <strong>{cartItems.length}</strong>
-              </div>
-              <div className="cart-hero-stat">
-                <span>Units</span>
-                <strong>{totalUnits}</strong>
-              </div>
-              <div className="cart-hero-stat">
-                <span>Ready</span>
-                <strong>{inStockItems}</strong>
+              <div className="cart-hero-stats">
+                <div className="cart-hero-stat">
+                  <span>Items</span>
+                  <strong>{cartItems.length}</strong>
+                </div>
+                <div className="cart-hero-stat">
+                  <span>Units</span>
+                  <strong>{totalUnits}</strong>
+                </div>
+                <div className="cart-hero-stat">
+                  <span>Ready</span>
+                  <strong>{inStockItems}</strong>
+                </div>
               </div>
             </div>
           </section>
