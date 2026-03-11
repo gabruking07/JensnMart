@@ -451,7 +451,6 @@ export default function VendorDashboard() {
   return (
     <VendorLayout>
       <Header title="Inventory" />
-
       <main className="vendor-main">
         {!approved && (
           <div className="status-banner warning">
@@ -459,7 +458,6 @@ export default function VendorDashboard() {
           </div>
         )}
 
-        {/* FILTER BAR */}
         <div className="filter-row-container">
           {/* CATEGORY */}
           <div className="filter-item">
@@ -528,10 +526,10 @@ export default function VendorDashboard() {
               onChange={(e) => handleSortChange(e.target.value)}
             >
               <option value="">Default</option>
-              <option value="bestsell">🔥 Most Sold</option>
-              <option value="priceHigh">💰 Price High → Low</option>
-              <option value="priceLow">💰 Price Low → High</option>
-              <option value="new">🆕 New Arrivals</option>
+              <option value="bestsell">Most Sold</option>
+              <option value="priceHigh">Price High to Low</option>
+              <option value="priceLow">Price Low to High</option>
+              <option value="new">New Arrivals</option>
             </select>
           </div>
         </div>
@@ -567,11 +565,11 @@ export default function VendorDashboard() {
 
               <div className="v-card-body">
                 <h4>{p.name}</h4>
-                <p>₹{p.price}</p>
+                <p>&#8377;{p.price}</p>
 
                 <div className="v-purchase-zone">
                   <div className="v-qty-selector">
-                    <button onClick={() => decreaseQty(p._id)}>−</button>
+                    <button onClick={() => decreaseQty(p._id)}>-</button>
                     <span>{cartQty[p._id] || 1}</span>
                     <button onClick={() => increaseQty(p._id)}>+</button>
                   </div>
@@ -624,3 +622,5 @@ export default function VendorDashboard() {
     </VendorLayout>
   );
 }
+
+
