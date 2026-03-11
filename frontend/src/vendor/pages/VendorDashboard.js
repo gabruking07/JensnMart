@@ -174,6 +174,85 @@ const getAiScore = (product, searchTerm, lowPrice, highPrice) => {
   return score;
 };
 
+const formatDateLabel = (value) => {
+  if (!value) return "N/A";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "N/A";
+  return date.toLocaleDateString();
+};
+
+const buildComparisonInsights = (leftProduct, rightProduct) => {
+  if (!leftProduct || !rightProduct) return [];
+
+  const comparisons = [
+    {
+      label: "Lower price",
+      getValue: (product) => Number(product.price || 0),
+      better: "lower",
+      explanation: "better for budget-focused restocking",
+    },
+    {
+      label: "Higher stock",
+      getValue: (product) => Number(product.stock || 0),
+      better: "higher",
+      explanation: "safer if you need immediate bulk availability",
+    },
+    {
+      label: "Newer arrival",
+      getValue: (product) => new Date(product.createdAt).getTime() || 0,
+      better: "higher",
+      explanation: "more recent in the catalog",
+    },
+  ];
+
+  return comparisons.map((comparison) => {
+    const leftValue = comparison.getValue(leftProduct);
+    const rightValue = comparison.getValue(rightProduct);
+    const equal = leftValue === rightValue;
+
+    let winner = "Tie";
+    if (!equal) {
+      const leftWins = comparison.better === "lower"
+        ? leftValue < rightValue
+        : leftValue > rightValue;
+      winner = leftWins ? leftProduct.name : rightProduct.name;
+    }
+
+    return {
+      label: comparison.label,
+      winner,
+      explanation: equal ? "Both products are evenly matched here." : comparison.explanation,
+    };
+  });
+};
+
+const buildComparisonSummary = (leftProduct, rightProduct, insights) => {
+  if (!leftProduct || !rightProduct || insights.length === 0) return "";
+
+  const wins = new Map([
+    [leftProduct.name, 0],
+    [rightProduct.name, 0],
+  ]);
+
+  insights.forEach((insight) => {
+    if (wins.has(insight.winner)) {
+      wins.set(insight.winner, wins.get(insight.winner) + 1);
+    }
+  });
+
+  const leftWins = wins.get(leftProduct.name) || 0;
+  const rightWins = wins.get(rightProduct.name) || 0;
+
+  if (leftWins === rightWins) {
+    return `${leftProduct.name} is better if you want value pricing, while ${rightProduct.name} is a balanced alternative with similar overall strength.`;
+  }
+
+  const winner = leftWins > rightWins ? leftProduct : rightProduct;
+  const runnerUp = winner._id === leftProduct._id ? rightProduct : leftProduct;
+
+  return `${winner.name} comes out ahead overall. Choose ${winner.name} for the stronger mix of price, availability, and freshness. Pick ${runnerUp.name} if its specific category fit matters more than the headline metrics.`;
+};
+
 export default function VendorDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -190,6 +269,7 @@ export default function VendorDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [sortBy, setSortBy] = useState("");
+  const [compareIds, setCompareIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(4);
   const categoryScrollerRef = useRef(null);
@@ -390,6 +470,15 @@ export default function VendorDashboard() {
     const stock = Number(product.stock || 0);
     return stock > 0 && stock < 10;
   }).length;
+  const compareProducts = compareIds
+    .map((id) => products.find((product) => product._id === id))
+    .filter(Boolean);
+  const comparisonInsights = compareProducts.length === 2
+    ? buildComparisonInsights(compareProducts[0], compareProducts[1])
+    : [];
+  const comparisonSummary = compareProducts.length === 2
+    ? buildComparisonSummary(compareProducts[0], compareProducts[1], comparisonInsights)
+    : "";
 
   useEffect(() => {
     setCurrentPage(1);
@@ -459,6 +548,25 @@ export default function VendorDashboard() {
     } catch (err) {
       alert(err.response?.data?.message || "Add to cart failed");
     }
+  };
+
+  const toggleCompareProduct = (productId) => {
+    setCompareIds((prev) => {
+      if (prev.includes(productId)) {
+        return prev.filter((id) => id !== productId);
+      }
+
+      if (prev.length >= 2) {
+        alert("You can compare only two products at a time.");
+        return prev;
+      }
+
+      return [...prev, productId];
+    });
+  };
+
+  const clearComparison = () => {
+    setCompareIds([]);
   };
 
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
@@ -665,11 +773,22 @@ export default function VendorDashboard() {
               <div className="v-card-img">
                 <img src={`http://localhost:5000/uploads/${p.image}`} alt={p.name} />
                 <span className="stock-label">{p.stock} in stock</span>
+                <button
+                  type="button"
+                  className={`compare-toggle-btn ${compareIds.includes(p._id) ? "active" : ""}`}
+                  onClick={() => toggleCompareProduct(p._id)}
+                >
+                  {compareIds.includes(p._id) ? "Selected" : "Compare"}
+                </button>
               </div>
 
               <div className="v-card-body">
                 <h4>{p.name}</h4>
                 <p>₹{p.price}</p>
+                <div className="v-card-meta">
+                  <span>{p.category?.name || "Uncategorized"}</span>
+                  <span>{p.subcategory?.name || "No subcategory"}</span>
+                </div>
 
                 <div className="v-purchase-zone">
                   <div className="v-qty-selector">
@@ -719,6 +838,88 @@ export default function VendorDashboard() {
               Next
             </button>
           </div>
+        )}
+
+        {compareProducts.length > 0 && (
+          <section className="vendor-compare-tray">
+            <div className="vendor-compare-tray-copy">
+              <span className="vendor-compare-eyebrow">Product compare</span>
+              <strong>
+                {compareProducts.length === 1
+                  ? "Select one more product to compare."
+                  : `${compareProducts[0].name} vs ${compareProducts[1].name}`}
+              </strong>
+              <p>
+                {compareProducts.length === 1
+                  ? "Pick another product card to unlock the AI comparison summary."
+                  : "Review the side-by-side metrics and the generated buying recommendation below."}
+              </p>
+            </div>
+            <div className="vendor-compare-tray-actions">
+              {compareProducts.map((product) => (
+                <span key={product._id} className="vendor-compare-pill">
+                  {product.name}
+                </span>
+              ))}
+              <button
+                type="button"
+                className="vendor-compare-clear"
+                onClick={clearComparison}
+              >
+                Clear
+              </button>
+            </div>
+          </section>
+        )}
+
+        {compareProducts.length === 2 && (
+          <section className="vendor-compare-panel">
+            <div className="vendor-compare-panel-header">
+              <div>
+                <span className="vendor-compare-eyebrow">AI compare</span>
+                <h3>Which product fits the vendor better?</h3>
+              </div>
+              <p>{comparisonSummary}</p>
+            </div>
+
+            <div className="vendor-compare-grid">
+              {compareProducts.map((product) => (
+                <article key={product._id} className="vendor-compare-card">
+                  <div className="vendor-compare-card-top">
+                    <img src={`http://localhost:5000/uploads/${product.image}`} alt={product.name} />
+                    <div>
+                      <h4>{product.name}</h4>
+                      <span>{product.category?.name || "Uncategorized"}</span>
+                    </div>
+                  </div>
+                  <div className="vendor-compare-stats">
+                    <div>
+                      <span>Price</span>
+                      <strong>₹{product.price}</strong>
+                    </div>
+                    <div>
+                      <span>Stock</span>
+                      <strong>{product.stock}</strong>
+                    </div>
+                    <div>
+                      <span>Added</span>
+                      <strong>{formatDateLabel(product.createdAt)}</strong>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="vendor-compare-insights">
+              {comparisonInsights.map((insight) => (
+                <div key={insight.label} className="vendor-compare-insight">
+                  <span>{insight.label}</span>
+                  <strong>{insight.winner}</strong>
+                  <p>{insight.explanation}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
         <Footer />
