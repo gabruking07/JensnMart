@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
-import "./Cart.css";
-import Footer from "../components/Footer";
-import VendorLayout from "../vendor/pages/VendorLayout";
+import api from "../../services/api";
+import "./VendorCart.css";
+import Footer from "../../components/Footer";
+import VendorLayout from "./VendorLayout";
 
-export default function Cart() {
+export default function VendorCart() {
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState([]);

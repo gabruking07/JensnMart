@@ -131,7 +131,7 @@ export default function ChatbotWidget() {
       return `/vendor?search=${search}`;
     }
 
-    return `/products?search=${search}`;
+    return "/";
   };
 
   const sendMessage = async () => {
