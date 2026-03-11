@@ -34,7 +34,7 @@
   padding: 20px 22px;
   border-radius: 28px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 1.05fr);
+  grid-template-columns: minmax(0, 1fr) minmax(540px, 1.2fr);
   gap: 22px;
   align-items: end;
   background:
@@ -96,6 +96,8 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 247, 237, 0.84));
   position: relative;
   z-index: 1;
+  width: 100%;
+  justify-self: stretch;
 }
 
 .cart-hero-stat {
