@@ -32,8 +32,8 @@
   gap: 16px;
   padding: 16px 20px;
   border-radius: 22px;
-  background: linear-gradient(135deg, #0a6a68, #095f61);
-  box-shadow: 0 20px 40px rgba(9, 95, 97, 0.22);
+  background: linear-gradient(135deg, #0a2b4a, #113f66);
+  box-shadow: 0 20px 40px rgba(11, 49, 85, 0.28);
 }
 
 .admin-inventory .vendor-storefront-brand {
@@ -172,7 +172,7 @@
 }
 
 .admin-inventory .vendor-storefront-chip.active {
-  background: linear-gradient(135deg, #0a6a68, #095f61);
+  background: linear-gradient(135deg, #0a2b4a, #113f66);
   color: #fff;
 }
 
@@ -361,7 +361,7 @@
 }
 
 .admin-inventory .inventory-actions .edit-btn {
-  background: linear-gradient(135deg, #082e4f, #1f6ea7);
+  background: linear-gradient(135deg, #0a2b4a, #113f66);
   color: #fff;
 }
 
@@ -401,7 +401,7 @@
 
 .admin-inventory .page-btn:hover:not(:disabled),
 .admin-inventory .page-btn.active {
-  background: linear-gradient(135deg, #082e4f, #1f6ea7);
+  background: linear-gradient(135deg, #0a2b4a, #113f66);
   border-color: transparent;
   color: #fff;
 }

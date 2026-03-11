@@ -85,8 +85,6 @@ export default function VendorsTab() {
 
   return (
     <div>
-      <h1>Vendors</h1>
-
       {/* CREATE VENDOR */}
       <div className="card">
         <h3>Create Vendor</h3>

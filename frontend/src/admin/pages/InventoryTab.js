@@ -195,8 +195,6 @@ export default function InventoryTab() {
 
   return (
     <div className="admin-inventory">
-      <h1>Inventory</h1>
-
       <section className="vendor-storefront-strip">
         <div className="vendor-storefront-bar">
           <div className="vendor-storefront-brand">JensnMart</div>
@@ -242,7 +240,6 @@ export default function InventoryTab() {
         </div>
 
         <div className="vendor-storefront-categories">
-          <h2>Categories</h2>
           <div className="vendor-storefront-chip-row">
             <button
               type="button"

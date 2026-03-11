@@ -86,8 +86,6 @@ export default function CategoryTab() {
 
  return (
   <div className="category-wrapper">
-    <h1>Categories</h1>
-
     {/* TOP FORMS ROW */}
     <div className="category-top">
       {/* ADD CATEGORY */}

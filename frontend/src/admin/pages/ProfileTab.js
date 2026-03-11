@@ -93,7 +93,6 @@ export default function ProfileTab() {
           </div>
 
           <div className="header-info">
-            <h1>{form.name}</h1>
             <div className={`role-chip ${form.role.toLowerCase()}`}>
               {form.role.toLowerCase() === "admin" ? (
                 <ShieldCheck size={13} strokeWidth={3} />
