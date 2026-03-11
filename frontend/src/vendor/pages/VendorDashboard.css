@@ -72,14 +72,57 @@
 
 .vendor-storefront-chip-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(10, 106, 104, 0.35) transparent;
+}
+
+.vendor-storefront-chip-scroller {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  overscroll-behavior: contain;
+}
+
+.vendor-chip-nav {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(10, 106, 104, 0.14);
+  color: #0a6a68;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.vendor-chip-nav:hover {
+  background: linear-gradient(135deg, #0a6a68, #095f61);
+  color: #fff;
+}
+
+.vendor-storefront-chip-row::-webkit-scrollbar {
+  height: 8px;
+}
+
+.vendor-storefront-chip-row::-webkit-scrollbar-thumb {
+  background: rgba(10, 106, 104, 0.35);
+  border-radius: 999px;
 }
 
 .vendor-storefront-chip {
   border: none;
   border-radius: 999px;
   padding: 11px 18px;
+  flex: 0 0 auto;
   background: rgba(255, 255, 255, 0.74);
   color: #13323f;
   font-size: 0.95rem;
@@ -474,6 +517,14 @@
 @media (max-width: 768px) {
   .vendor-storefront-bar {
     grid-template-columns: 1fr;
+  }
+
+  .vendor-storefront-chip-scroller {
+    grid-template-columns: 1fr;
+  }
+
+  .vendor-chip-nav {
+    display: none;
   }
 
   .vendor-dashboard-tools {

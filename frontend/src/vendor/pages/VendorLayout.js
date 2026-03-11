@@ -12,6 +12,11 @@ export default function VendorLayout({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
+  const [cartItemCount, setCartItemCount] = useState(0);
+
+  const cartLabel = cartCount > 0
+    ? `Cart (${cartCount} ${cartCount === 1 ? "unit" : "units"})`
+    : "Cart";
 
   const logout = () => {
     localStorage.clear();
@@ -35,9 +40,15 @@ export default function VendorLayout({ children }) {
     try {
       const res = await api.get("/cart");
       const items = res.data?.items || [];
-      setCartCount(items.length);
+      setCartItemCount(items.length);
+      const totalUnits = items.reduce(
+        (sum, item) => sum + Number(item.quantity || 0),
+        0
+      );
+      setCartCount(totalUnits);
     } catch (err) {
       setCartCount(0);
+      setCartItemCount(0);
     }
   };
 
@@ -142,10 +153,10 @@ export default function VendorLayout({ children }) {
           onClick={() => navigate("/cart")}
           className={`side-link ${location.pathname === "/cart" ? "active" : ""}`}
         >
-          Cart
+          {cartLabel}
           {cartCount > 0 && (
             <span className="vendor-route-badge">
-              {cartCount > 99 ? "99+" : cartCount}
+              {cartItemCount > 99 ? "99+" : cartItemCount}
             </span>
           )}
         </button>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -193,6 +193,50 @@ export default function VendorDashboard() {
   const [sortBy, setSortBy] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(4);
+  const categoryScrollerRef = useRef(null);
+  const categoryRowRef = useRef(null);
+  const subcategoryScrollerRef = useRef(null);
+  const subcategoryRowRef = useRef(null);
+
+  const scrollChipRow = (ref, direction) => {
+    if (!ref.current) return;
+
+    ref.current.scrollBy({
+      left: direction * 220,
+      behavior: "smooth",
+    });
+  };
+
+  useEffect(() => {
+    const refs = [
+      { scrollerRef: categoryScrollerRef, rowRef: categoryRowRef },
+      { scrollerRef: subcategoryScrollerRef, rowRef: subcategoryRowRef },
+    ];
+    const cleanups = refs.map((ref) => {
+      const scroller = ref.scrollerRef.current;
+      const row = ref.rowRef.current;
+      if (!scroller || !row) return null;
+
+      const onWheel = (event) => {
+        const delta = event.deltaY || event.deltaX;
+        if (!delta) return;
+        if (row.scrollWidth <= row.clientWidth) return;
+
+        row.scrollLeft += delta;
+        event.preventDefault();
+        event.stopPropagation();
+      };
+
+      scroller.addEventListener("wheel", onWheel, { passive: false });
+      return () => scroller.removeEventListener("wheel", onWheel);
+    });
+
+    return () => {
+      cleanups.forEach((cleanup) => {
+        if (cleanup) cleanup();
+      });
+    };
+  }, [selectedCategory, categories.length, subcategories.length]);
 
   useEffect(() => {
     const linkedSearch = String(searchParams.get("search") || "").trim();
@@ -548,56 +592,102 @@ export default function VendorDashboard() {
 
           <div className="vendor-storefront-categories">
             <h2>Categories</h2>
-            <div className="vendor-storefront-chip-row">
+            <div ref={categoryScrollerRef} className="vendor-storefront-chip-scroller">
               <button
                 type="button"
-                className={`vendor-storefront-chip ${selectedCategory === "" ? "active" : ""}`}
-                onClick={() => {
-                  setSelectedCategory("");
-                  setSelectedSubcategory("");
-                }}
+                className="vendor-chip-nav"
+                onClick={() => scrollChipRow(categoryRowRef, -1)}
+                aria-label="Scroll categories left"
               >
-                All
+                ‹
               </button>
 
-              {categories.map((category) => (
+                <div
+                  ref={categoryRowRef}
+                  className="vendor-storefront-chip-row"
+                >
                 <button
-                  key={category._id}
                   type="button"
-                  className={`vendor-storefront-chip ${selectedCategory === category._id ? "active" : ""}`}
+                  className={`vendor-storefront-chip ${selectedCategory === "" ? "active" : ""}`}
                   onClick={() => {
-                    setSelectedCategory(category._id);
+                    setSelectedCategory("");
                     setSelectedSubcategory("");
                   }}
                 >
-                  {category.name}
+                  All
                 </button>
-              ))}
+
+                {categories.map((category) => (
+                  <button
+                    key={category._id}
+                    type="button"
+                    className={`vendor-storefront-chip ${selectedCategory === category._id ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedCategory(category._id);
+                      setSelectedSubcategory("");
+                    }}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="vendor-chip-nav"
+                onClick={() => scrollChipRow(categoryRowRef, 1)}
+                aria-label="Scroll categories right"
+              >
+                ›
+              </button>
             </div>
           </div>
 
           {selectedCategory && (
             <div className="vendor-storefront-categories">
               <h2>Subcategories</h2>
-              <div className="vendor-storefront-chip-row">
+              <div ref={subcategoryScrollerRef} className="vendor-storefront-chip-scroller">
                 <button
                   type="button"
-                  className={`vendor-storefront-chip ${selectedSubcategory === "" ? "active" : ""}`}
-                  onClick={() => setSelectedSubcategory("")}
+                  className="vendor-chip-nav"
+                  onClick={() => scrollChipRow(subcategoryRowRef, -1)}
+                  aria-label="Scroll subcategories left"
                 >
-                  All
+                  ‹
                 </button>
 
-                {visibleSubcategoryChips.map((subcategory) => (
+                <div
+                  ref={subcategoryRowRef}
+                  className="vendor-storefront-chip-row"
+                >
                   <button
-                    key={subcategory._id}
                     type="button"
-                    className={`vendor-storefront-chip ${selectedSubcategory === subcategory._id ? "active" : ""}`}
-                    onClick={() => setSelectedSubcategory(subcategory._id)}
+                    className={`vendor-storefront-chip ${selectedSubcategory === "" ? "active" : ""}`}
+                    onClick={() => setSelectedSubcategory("")}
                   >
-                    {subcategory.name}
+                    All
                   </button>
-                ))}
+
+                  {visibleSubcategoryChips.map((subcategory) => (
+                    <button
+                      key={subcategory._id}
+                      type="button"
+                      className={`vendor-storefront-chip ${selectedSubcategory === subcategory._id ? "active" : ""}`}
+                      onClick={() => setSelectedSubcategory(subcategory._id)}
+                    >
+                      {subcategory.name}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="vendor-chip-nav"
+                  onClick={() => scrollChipRow(subcategoryRowRef, 1)}
+                  aria-label="Scroll subcategories right"
+                >
+                  ›
+                </button>
               </div>
             </div>
           )}
