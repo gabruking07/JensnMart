@@ -488,7 +488,9 @@ export default function VendorDashboard() {
               <option value="">All</option>
               {categories.map(c => (
                 <option key={c._id} value={c._id}>{c.name}</option>
-=======
+              ))}
+            </select>
+          </div>
         <section className="vendor-storefront-strip">
           <div className="vendor-storefront-bar">
             <div className="vendor-storefront-brand">JensnMart</div>
@@ -589,7 +591,6 @@ export default function VendorDashboard() {
                 >
                   {category.name}
                 </button>
->>>>>>> aad69643a5ec465254504c3347d26747827a46cd
               ))}
             </div>
           </div>
@@ -617,8 +618,8 @@ export default function VendorDashboard() {
                   </button>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* SORT */}
           <div className="filter-item">
@@ -634,6 +635,7 @@ export default function VendorDashboard() {
               <option value="new">New Arrivals</option>
             </select>
           </div>
+        </section>
         </div>
 
         {/* PAGINATION BAR */}
@@ -657,31 +659,7 @@ export default function VendorDashboard() {
           </div>
         </div>
 
-        {/* PRODUCTS */}
-        <div className="vendor-product-grid">
-          {paginatedProducts.map(p => (
-            <div className="vendor-product-card" key={p._id}>
-              <div className="v-card-img">
-                <img src={`http://localhost:5000/uploads/${p.image}`} alt={p.name} />
-                <span className="stock-label">{p.stock} in stock</span>
-              </div>
-
-              <div className="v-card-body">
-                <h4>{p.name}</h4>
-                <p>&#8377;{p.price}</p>
-
-                <div className="v-purchase-zone">
-                  <div className="v-qty-selector">
-                    <button onClick={() => decreaseQty(p._id)}>-</button>
-                    <span>{cartQty[p._id] || 1}</span>
-                    <button onClick={() => increaseQty(p._id)}>+</button>
-                  </div>
-
-                  <button
-                    className="v-add-btn"
-                    disabled={!approved}
-                    onClick={() => addToCart(p._id)}
-                  >
+        
                     Add to Cart
                   </button>
                 </div>
