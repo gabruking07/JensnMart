@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import VendorLayout from "./VendorLayout";
 import "./VendorNotifications.css";
@@ -58,7 +57,6 @@ export default function VendorNotifications() {
 
   return (
     <VendorLayout>
-      <Header title="Notifications" />
       <main className="vendor-main">
         <div className="vendor-notifications-root">
           <section className="vendor-notifications-hero">

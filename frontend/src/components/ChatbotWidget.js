@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { Bot } from "lucide-react";
 import api from "../services/api";
 import "./ChatbotWidget.css";
 
@@ -7,22 +8,22 @@ const ROLE_CONTENT = {
   guest: {
     title: "JensnMart Guest Chat",
     eyebrow: "Guest Assistant",
-    subtitle: "Browse products before login",
-    toggle: "Guest AI",
-    placeholder: "Ask about products, prices, or categories",
+    subtitle: "Login and registration help",
+    toggle: "JensnMart AI ",
+    placeholder: "Ask about login, register, or forgot password",
     intro:
-      "Ask for product ideas, cheap options, category help, or comparisons before you sign in.",
+      "Ask about login, registration, forgot password, or account access before you sign in.",
     prompts: [
-      "Show budget electronics",
-      "Best products under Rs 1000",
-      "Compare popular categories",
+      "How do I register as vendor",
+      "How do I login as admin",
+      "I forgot my password",
     ],
   },
   vendor: {
     title: "JensnMart Vendor Chat",
     eyebrow: "Vendor Assistant",
     subtitle: "Shopping help for vendors",
-    toggle: "Vendor AI",
+    toggle: "JensnMart AI",
     placeholder: "Ask what to buy or compare",
     intro:
       "Ask for best sellers, cheaper options, category help, or product comparisons across JensnMart.",
@@ -36,7 +37,7 @@ const ROLE_CONTENT = {
     title: "JensnMart Admin Chat",
     eyebrow: "Admin Assistant",
     subtitle: "Catalog and inventory guidance",
-    toggle: "Admin AI",
+    toggle: "JensnMart AI",
     placeholder: "Ask about stock, pricing, or catalog trends",
     intro:
       "Ask about low stock items, best sellers, pricing patterns, or category coverage in the catalog.",
@@ -46,6 +47,26 @@ const ROLE_CONTENT = {
       "Find expensive items in catalog",
     ],
   },
+};
+
+const renderMessageContent = (content) => {
+  const parts = String(content || "").split(/(\*\*.*?\*\*)/g);
+  const formatSentenceCase = (value) => {
+    const text = String(value || "");
+    if (!text.trim()) return text;
+
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
+  return parts.map((part, index) => {
+    const boldMatch = part.match(/^\*\*(.+)\*\*$/);
+
+    if (boldMatch) {
+      return <strong key={index}>{formatSentenceCase(boldMatch[1])}</strong>;
+    }
+
+    return formatSentenceCase(part);
+  });
 };
 
 export default function ChatbotWidget() {
@@ -110,7 +131,7 @@ export default function ChatbotWidget() {
       return `/vendor?search=${search}`;
     }
 
-    return `/products?search=${search}`;
+    return "/";
   };
 
   const sendMessage = async () => {
@@ -167,7 +188,10 @@ export default function ChatbotWidget() {
           <div className="chatbot-header">
             <div className="chatbot-header-copy">
               <p>{content.eyebrow}</p>
-              <h3>{content.title}</h3>
+              <h3 className="chatbot-title">
+                <span>{content.title}</span>
+                <Bot size={18} aria-hidden="true" />
+              </h3>
               <span>{content.subtitle}</span>
             </div>
             <button type="button" onClick={() => setIsOpen(false)}>
@@ -197,8 +221,9 @@ export default function ChatbotWidget() {
                 key={`${message.role}-${index}`}
                 className={`chatbot-message ${message.role}`}
               >
-                {message.content}
-                {message.role === "assistant" &&
+                {renderMessageContent(message.content)}
+                {role !== "guest" &&
+                  message.role === "assistant" &&
                   Array.isArray(message.products) &&
                   message.products.length > 0 && (
                     <div className="chatbot-product-links">
@@ -236,7 +261,8 @@ export default function ChatbotWidget() {
         className="chatbot-toggle"
         onClick={() => setIsOpen((prev) => !prev)}
       >
-        {content.toggle}
+        <span>{content.toggle}</span>
+        <Bot size={18} aria-hidden="true" />
       </button>
     </div>
   );

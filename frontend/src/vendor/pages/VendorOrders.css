@@ -10,6 +10,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.9fr);
   gap: 14px;
+  align-items: stretch;
 }
 
 .orders-hero-copy,
@@ -57,7 +58,7 @@
 
 .orders-hero-copy h1 {
   margin: 0;
-  max-width: 13ch;
+  max-width: none;
   font-size: clamp(1.55rem, 2.7vw, 2.35rem);
   line-height: 1;
   font-weight: 600;
@@ -66,7 +67,7 @@
 
 .orders-hero-text {
   margin: 12px 0 0;
-  max-width: 50ch;
+  max-width: none;
   font-size: 0.86rem;
   line-height: 1.58;
   color: rgba(255, 248, 239, 0.84);
@@ -75,6 +76,9 @@
 .orders-hero-status {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 18px;
   border-radius: 24px;
   background:

@@ -12,6 +12,9 @@
   border: none;
   border-radius: 999px;
   padding: 14px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background:
     radial-gradient(circle at top right, rgba(244, 187, 80, 0.4), transparent 30%),
     linear-gradient(135deg, #082e4f, #1f6ea7);
@@ -69,6 +72,12 @@
 .chatbot-header h3 {
   font-size: 1.2rem;
   letter-spacing: -0.02em;
+}
+
+.chatbot-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .chatbot-header span {

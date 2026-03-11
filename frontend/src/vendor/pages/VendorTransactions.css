@@ -8,8 +8,9 @@
 
 .transactions-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.9fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 1.8fr) minmax(240px, 0.72fr);
+  gap: 16px;
+  align-items: stretch;
 }
 
 .transactions-hero-copy,
@@ -25,11 +26,11 @@
 .transactions-hero-copy {
   position: relative;
   overflow: hidden;
-  padding: 22px;
-  border-radius: 24px;
+  padding: 24px 26px;
+  border-radius: 28px;
   background:
-    radial-gradient(circle at 84% 18%, rgba(255, 214, 148, 0.18), transparent 18%),
-    linear-gradient(140deg, #082844 0%, #0d4c77 58%, #1f6ea7 100%);
+    radial-gradient(circle at 88% 16%, rgba(255, 214, 148, 0.18), transparent 18%),
+    linear-gradient(135deg, #082e4f 0%, #0f4a76 52%, #1f6ea7 100%);
   color: #fff8ef;
 }
 
@@ -57,26 +58,29 @@
 
 .transactions-hero-copy h1 {
   margin: 0;
-  max-width: 14ch;
-  font-size: clamp(1.55rem, 2.6vw, 2.25rem);
-  line-height: 1;
+  max-width: none;
+  font-size: clamp(1.5rem, 2.5vw, 2.15rem);
+  line-height: 1.06;
   font-weight: 900;
   letter-spacing: -0.05em;
 }
 
 .transactions-hero-text {
-  margin: 12px 0 0;
-  max-width: 50ch;
-  font-size: 0.86rem;
-  line-height: 1.58;
+  margin: 10px 0 0;
+  max-width: none;
+  font-size: 0.84rem;
+  line-height: 1.55;
   color: rgba(255, 248, 239, 0.84);
 }
 
 .transactions-hero-status {
   position: relative;
   overflow: hidden;
-  padding: 18px;
-  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px 18px;
+  border-radius: 28px;
   background:
     radial-gradient(circle at 100% 0%, rgba(31, 110, 167, 0.08), transparent 24%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 237, 0.88));
@@ -94,16 +98,16 @@
 
 .transactions-hero-status strong {
   display: block;
-  font-size: 1.8rem;
+  font-size: 1.55rem;
   line-height: 1;
   color: #082e4f;
 }
 
 .transactions-hero-status p {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: #475569;
-  line-height: 1.55;
-  font-size: 0.88rem;
+  line-height: 1.45;
+  font-size: 0.82rem;
 }
 
 .vendor-transaction-summary {
