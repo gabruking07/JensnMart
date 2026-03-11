@@ -200,10 +200,15 @@ export default function ReportsTab() {
       <div className="kpi-row">
         <div className="kpi-card">
           <div className="kpi-title">Today's Revenue</div>
-          <div className="kpi-value">₹{todayRevenue.toLocaleString()}</div>
+          <div className="kpi-value">₹ {todayRevenue.toLocaleString()}</div>
           <div className={`kpi-change ${change >= 0 ? "up" : "down"}`}>
             {change >= 0 ? "▲" : "▼"} {Math.abs(change)}% from yesterday
           </div>
+        </div>
+
+        <div className="kpi-card">
+          <div className="kpi-title">Yesterday's Revenue</div>
+          <div className="kpi-value">₹ {yesterdayRevenue.toLocaleString()}</div>
         </div>
 
         <div className="kpi-card">

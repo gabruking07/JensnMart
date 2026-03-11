@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
+import { confirmToast } from "../../utils/confirmToast";
 
 export default function InventoryTab() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
@@ -43,6 +46,13 @@ export default function InventoryTab() {
   };
 
   useEffect(() => {
+    const linkedSearch = String(searchParams.get("search") || "").trim();
+    if (linkedSearch) {
+      setSearchTerm(linkedSearch);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     loadProducts();
     loadCategories();
     loadSub();
@@ -78,7 +88,12 @@ export default function InventoryTab() {
 
   /* ================= DELETE ================= */
   const deleteProduct = async (id) => {
-    if (!window.confirm("Delete product?")) return;
+    const confirmed = await confirmToast({
+      title: "Delete product?",
+      message: "This product will be removed from inventory.",
+      confirmLabel: "Delete"
+    });
+    if (!confirmed) return;
 
     try {
       await api.delete(`/products/${id}`);

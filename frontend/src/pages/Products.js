@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Products.css";
 
 export default function Products() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const searchQuery = String(searchParams.get("search") || "").trim().toLowerCase();
 
   useEffect(() => {
     fetchProducts();
@@ -32,6 +35,14 @@ export default function Products() {
     }
   };
 
+  const visibleProducts = products.filter((product) => {
+    if (!searchQuery) return true;
+    return [product.name, product.category?.name, product.subcategory?.name]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchQuery);
+  });
+
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
@@ -42,20 +53,24 @@ export default function Products() {
         <div className="products-header-row">
           <div>
             <h2>Explore Products</h2>
-            <p className="text-muted">Find the best deals from our verified vendors</p>
+            <p className="text-muted">
+              {searchQuery
+                ? `Showing results for "${searchParams.get("search")}"`
+                : "Find the best deals from our verified vendors"}
+            </p>
           </div>
           <div className="products-filter">
-            <span>{products.length} Items Found</span>
+            <span>{visibleProducts.length} Items Found</span>
           </div>
         </div>
 
-        {products.length === 0 ? (
+        {visibleProducts.length === 0 ? (
           <div className="empty-state">
             <p>No products available right now. Check back later!</p>
           </div>
         ) : (
           <div className="products-grid">
-            {products.map((p) => (
+            {visibleProducts.map((p) => (
               <div className="admin-card product-display-card" key={p._id}>
                 <div className="product-img-wrapper">
                   <img

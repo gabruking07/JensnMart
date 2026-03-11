@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -9,15 +9,25 @@ import VendorLayout from "./VendorLayout";
 
 export default function VendorOrders() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchId, setSearchId] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(4);
+  const selectedOrderNumber = searchParams.get("order") || "";
 
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    if (selectedOrderNumber) {
+      setSearchId(selectedOrderNumber);
+    }
+  }, [selectedOrderNumber]);
 
   const fetchOrders = async () => {
     try {
@@ -67,8 +77,32 @@ export default function VendorOrders() {
       if (aStarts && !bStarts) return -1;
       if (!aStarts && bStarts) return 1;
 
-      return a.orderNumber - b.orderNumber;
+      const createdAtDiff = new Date(b.createdAt) - new Date(a.createdAt);
+      if (createdAtDiff !== 0) return createdAtDiff;
+
+      return b.orderNumber - a.orderNumber;
     });
+
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+  const orderSummary = {
+    total: orders.length,
+    placed: orders.filter((order) => order.status === "Placed").length,
+    processing: orders.filter((order) => order.status === "Processing").length,
+    delivered: orders.filter((order) => order.status === "Delivered").length,
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchId, dateFilter, itemsPerPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   if (loading) {
     return (
@@ -84,6 +118,46 @@ export default function VendorOrders() {
         <main className="vendor-main">
           <div className="vendor-orders-root">
             <Header title="My Orders" />
+
+            <section className="orders-hero">
+              <div className="orders-hero-copy">
+                <p className="orders-eyebrow">Order control</p>
+                <h1>Track every order from placement to delivery.</h1>
+                <p className="orders-hero-text">
+                  Review current activity, search by order number, and move between orders and transactions from one cleaner workspace.
+                </p>
+              </div>
+
+              <div className="orders-hero-status">
+                <span>Current focus</span>
+                <strong>{orderSummary.processing > 0 ? "Processing" : "Stable"}</strong>
+                <p>
+                  {orderSummary.processing > 0
+                    ? `${orderSummary.processing} orders are currently in progress.`
+                    : "No orders are currently waiting in processing."}
+                </p>
+              </div>
+            </section>
+
+            <div className="vendor-orders-summary">
+              <div className="orders-summary-card total">
+                <h4>Total Orders</h4>
+                <p>{orderSummary.total}</p>
+              </div>
+              <div className="orders-summary-card placed">
+                <h4>Placed</h4>
+                <p>{orderSummary.placed}</p>
+              </div>
+              <div className="orders-summary-card processing">
+                <h4>Processing</h4>
+                <p>{orderSummary.processing}</p>
+              </div>
+              <div className="orders-summary-card delivered">
+                <h4>Delivered</h4>
+                <p>{orderSummary.delivered}</p>
+              </div>
+            </div>
+
             <div className="orders-filter-bar">
               <select
                 value={statusFilter}
@@ -94,8 +168,6 @@ export default function VendorOrders() {
                 <option value="Processing">Processing</option>
                 <option value="Shipped">Shipped</option>
                 <option value="Delivered">Delivered</option>
-                <option value="Returned">Returned</option>
-                <option value="Cancelled">Cancelled</option>
               </select>
 
               <select
@@ -115,11 +187,36 @@ export default function VendorOrders() {
               />
             </div>
 
+            {orders.length > 0 && (
+              <div className="orders-pagination-toolbar">
+                <p className="orders-pagination-count">
+                  Showing {filteredOrders.length === 0 ? 0 : startIndex + 1}-
+                  {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
+                </p>
+                <div className="orders-page-size">
+                  <label htmlFor="orders-page-size">Items per page</label>
+                  <select
+                    id="orders-page-size"
+                    value={itemsPerPage}
+                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  >
+                    <option value={4}>4</option>
+                    <option value={8}>8</option>
+                    <option value={12}>12</option>
+                    <option value={16}>16</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
             {orders.length === 0 ? (
               <p>No orders placed yet.</p>
             ) : (
-              filteredOrders.map((order) => (
-                <div className="order-card" key={order.orderNumber}>
+              paginatedOrders.map((order) => (
+                <div
+                  className={`order-card ${String(order.orderNumber) === selectedOrderNumber ? "linked-order" : ""}`}
+                  key={order.orderNumber}
+                >
                   <div className="order-content">
                     <div className="order-meta">
                       <div className="order-header">
@@ -150,6 +247,16 @@ export default function VendorOrders() {
                         <span>Total: Rs {order.total}</span>
                         <span>{new Date(order.createdAt).toLocaleDateString()}</span>
                       </div>
+
+                      <div className="order-links">
+                        <button
+                          type="button"
+                          className="order-link-btn"
+                          onClick={() => navigate(`/vendor/transactions?order=${order.orderNumber}`)}
+                        >
+                          View Transaction
+                        </button>
+                      </div>
                     </div>
 
                     <div className="order-tracking">
@@ -158,6 +265,36 @@ export default function VendorOrders() {
                   </div>
                 </div>
               ))
+            )}
+
+            {filteredOrders.length > 0 && (
+              <div className="orders-pagination">
+                <button
+                  className="orders-page-btn"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                >
+                  Prev
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    className={`orders-page-btn ${currentPage === page ? "active" : ""}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  className="orders-page-btn"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                >
+                  Next
+                </button>
+              </div>
             )}
 
             <button className="btn-secondary" onClick={() => navigate("/vendor")}>
