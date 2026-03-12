@@ -75,7 +75,24 @@ export default function AddProductTab() {
     };
 
     return (
-        <div className="add-product-wrapper">
+        <div className="add-product-wrapper admin-panel-page">
+            <section className="admin-page-hero">
+                <div className="admin-page-hero-copy">
+                    <p className="admin-page-eyebrow">Catalog publishing</p>
+                    <h1>Add new products with the same guided layout as the rest of admin.</h1>
+                    <p>
+                        Create product records, assign them to the correct category tree, and publish
+                        fresh stock into the storefront without leaving this workflow.
+                    </p>
+                </div>
+
+                <div className="admin-page-hero-status">
+                    <span>Catalog coverage</span>
+                    <strong>{categories.length}</strong>
+                    <p>{subcategories.length} subcategories are available for product placement.</p>
+                </div>
+            </section>
+
             <div className="add-product-card">
                 <input
                     placeholder="Product name"

@@ -301,103 +301,107 @@ export default function InventoryTab() {
                 <span className={`stock-pill ${stockState}`}>{stockLabel}</span>
               </div>
 
-              <div className="field">
-                <label>Name</label>
-                {isEditing ? (
-                  <input
-                    value={draft.name}
-                    onChange={(e) =>
-                      setDraft((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                  />
-                ) : (
-                  <p className="field-value">{p.name}</p>
-                )}
+              <div className="product-card-topline">
+                <div className="field product-name-field">
+                  {isEditing ? (
+                    <input
+                      placeholder="Name"
+                      value={draft.name}
+                      onChange={(e) =>
+                        setDraft((prev) => ({ ...prev, name: e.target.value }))
+                      }
+                    />
+                  ) : (
+                    <p className="field-value product-title">{p.name}</p>
+                  )}
+                </div>
+
+                <div className="field product-price-field">
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Price"
+                      value={draft.price}
+                      onChange={(e) =>
+                        setDraft((prev) => ({ ...prev, price: e.target.value }))
+                      }
+                    />
+                  ) : (
+                    <p className="field-value product-price">₹ {Number(p.price || 0).toLocaleString()}</p>
+                  )}
+                </div>
               </div>
 
-              <div className="field">
-                <label>Price</label>
-                {isEditing ? (
-                  <input
-                    type="number"
-                    min="0"
-                    value={draft.price}
-                    onChange={(e) =>
-                      setDraft((prev) => ({ ...prev, price: e.target.value }))
-                    }
-                  />
-                ) : (
-                  <p className="field-value">Rs {Number(p.price || 0).toLocaleString()}</p>
-                )}
-              </div>
+              <div className="product-meta-grid">
+                <div className="field meta-card">
+                  <label>Stock</label>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={draft.stock}
+                      onChange={(e) =>
+                        setDraft((prev) => ({ ...prev, stock: e.target.value }))
+                      }
+                    />
+                  ) : (
+                    <p className="field-value">{p.stock}</p>
+                  )}
+                </div>
 
-              <div className="field">
-                <label>Stock</label>
-                {isEditing ? (
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={draft.stock}
-                    onChange={(e) =>
-                      setDraft((prev) => ({ ...prev, stock: e.target.value }))
-                    }
-                  />
-                ) : (
-                  <p className="field-value">{p.stock}</p>
-                )}
-              </div>
-
-              <div className="field">
-                <label>Category</label>
-                {isEditing ? (
-                  <select
-                    value={p.category?._id || ""}
-                    onChange={(e) =>
-                      updateCategory(p._id, e.target.value)
-                    }
-                  >
-                    {categories.map((c) => (
-                      <option key={c._id} value={c._id}>
-                        {formatDisplayName(c.name)}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="field-value">
-                    {formatDisplayName(p.category?.name)}
-                  </p>
-                )}
-              </div>
-
-              <div className="field">
-                <label>Sub Category</label>
-                {isEditing ? (
-                  <select
-                    value={p.subcategory?._id || ""}
-                    onChange={(e) =>
-                      updateSub(p._id, e.target.value)
-                    }
-                  >
-                    <option value="">None</option>
-                    {subcategories
-                      .filter(
-                        (s) =>
-                          s.category?._id === p.category?._id
-                      )
-                      .map((s) => (
-                        <option key={s._id} value={s._id}>
-                          {formatDisplayName(s.name)}
+                <div className="field meta-card">
+                  <label>Category</label>
+                  {isEditing ? (
+                    <select
+                      value={p.category?._id || ""}
+                      onChange={(e) =>
+                        updateCategory(p._id, e.target.value)
+                      }
+                    >
+                      {categories.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {formatDisplayName(c.name)}
                         </option>
                       ))}
-                  </select>
-                ) : (
-                  <p className="field-value">
-                    {p.subcategory?.name
-                      ? formatDisplayName(p.subcategory.name)
-                      : "None"}
-                  </p>
-                )}
+                    </select>
+                  ) : (
+                    <p className="field-value">
+                      {formatDisplayName(p.category?.name)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="field meta-card meta-card-wide">
+                  <label>Sub Category</label>
+                  {isEditing ? (
+                    <select
+                      value={p.subcategory?._id || ""}
+                      onChange={(e) =>
+                        updateSub(p._id, e.target.value)
+                      }
+                    >
+                      <option value="">None</option>
+                      {subcategories
+                        .filter(
+                          (s) =>
+                            s.category?._id === p.category?._id
+                        )
+                        .map((s) => (
+                          <option key={s._id} value={s._id}>
+                            {formatDisplayName(s.name)}
+                          </option>
+                        ))}
+                    </select>
+                  ) : (
+                    <p className="field-value">
+                      {p.subcategory?.name
+                        ? formatDisplayName(p.subcategory.name)
+                        : "None"}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="actions inventory-actions">

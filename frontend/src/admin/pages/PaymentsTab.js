@@ -70,7 +70,24 @@ export default function PaymentsTab() {
   };
 
   return (
-    <div className="payments-container">
+    <div className="payments-container admin-panel-page">
+      <section className="admin-page-hero">
+        <div className="admin-page-hero-copy">
+          <p className="admin-page-eyebrow">Payment control</p>
+          <h1>Review transaction flow with the same hero-led layout as the rest of admin.</h1>
+          <p>
+            Monitor settlement progress, filter vendor payouts, and update payment status from one
+            cleaner screen.
+          </p>
+        </div>
+
+        <div className="admin-page-hero-status">
+          <span>Filtered payments</span>
+          <strong>{filteredPayments.length}</strong>
+          <p>Rs {totalRevenue} has cleared, while Rs {pendingAmount} is still pending.</p>
+        </div>
+      </section>
+
       <div className="summary-cards">
         <div className="card revenue">
           <h3>Total Revenue</h3>

@@ -61,7 +61,24 @@ export default function NotificationsTab() {
   }
 
   return (
-    <div className="admin-notifications-root">
+    <div className="admin-notifications-root admin-panel-page">
+      <section className="admin-page-hero">
+        <div className="admin-page-hero-copy">
+          <p className="admin-page-eyebrow">Alert center</p>
+          <h1>Handle operational notifications from the same page shell as the rest of admin.</h1>
+          <p>
+            Review unread updates, clear your queue, and keep day-to-day admin actions moving from
+            one dedicated inbox.
+          </p>
+        </div>
+
+        <div className="admin-page-hero-status">
+          <span>Unread items</span>
+          <strong>{unreadCount}</strong>
+          <p>{notifications.length} notifications are currently loaded in the admin inbox.</p>
+        </div>
+      </section>
+
       <div className="admin-notifications-header">
         <div className="admin-notifications-actions">
           <span className="admin-notifications-count">
