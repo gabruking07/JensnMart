@@ -495,6 +495,13 @@ export default function VendorDashboard() {
     fetchProducts(value);
   };
 
+  const handleItemsPerPageChange = (event) => {
+    const nextSize = Number.parseInt(event.target.value, 10);
+    const safeSize = [4, 8, 12, 16].includes(nextSize) ? nextSize : 4;
+    setItemsPerPage(safeSize);
+    setCurrentPage(1);
+  };
+
   useEffect(() => {
     fetchProducts(sortBy);
   }, [location.key]);
@@ -756,7 +763,7 @@ export default function VendorDashboard() {
             <select
               id="vendor-page-size"
               value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              onChange={handleItemsPerPageChange}
             >
               <option value={4}>4</option>
               <option value={8}>8</option>

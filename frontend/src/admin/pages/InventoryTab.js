@@ -13,6 +13,8 @@ export default function InventoryTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(4);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({ name: "", price: "", stock: "" });
 
@@ -60,10 +62,12 @@ export default function InventoryTab() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage, searchTerm]);
+  }, [itemsPerPage, searchTerm, sortBy, selectedCategory]);
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
-  const filteredProducts = products.filter((product) => {
+  let filteredProducts = products.filter((product) => {
+    const categoryMatch = !selectedCategory || product.category?._id === selectedCategory;
+    if (!categoryMatch) return false;
     if (!normalizedSearch) return true;
 
     return [
@@ -74,6 +78,24 @@ export default function InventoryTab() {
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(normalizedSearch));
   });
+
+  if (sortBy === "priceHigh") {
+    filteredProducts.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+  }
+
+  if (sortBy === "priceLow") {
+    filteredProducts.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+  }
+
+  if (sortBy === "new") {
+    filteredProducts.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  if (sortBy === "bestsell") {
+    filteredProducts.sort((a, b) => Number(b.sold || 0) - Number(a.sold || 0));
+  }
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -172,26 +194,81 @@ export default function InventoryTab() {
   };
 
   return (
-    <div>
-      <h1>Inventory</h1>
+    <div className="admin-inventory">
+      <section className="vendor-storefront-strip">
+        <div className="vendor-storefront-bar">
+          <div className="vendor-storefront-brand">JensnMart</div>
+          <div className="vendor-storefront-search">
+            <input
+              type="search"
+              placeholder="Search for Grocery, Stores, Vegetable or Meat"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="vendor-dashboard-tools">
+            <div className="filter-item vendor-dashboard-sort-card">
+              <label>Sort By</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="">Default</option>
+                <option value="bestsell">Most Sold</option>
+                <option value="priceHigh">Price High to Low</option>
+                <option value="priceLow">Price Low to High</option>
+                <option value="new">New Arrivals</option>
+              </select>
+            </div>
+
+            <div className="filter-item filter-item-search ai-chat-search-card">
+              <div className="ai-chat-search-header">
+                <span className="ai-chat-search-badge">AI Search</span>
+                <label htmlFor="admin-ai-search">Ask inventory assistant</label>
+              </div>
+              <div className="ai-chat-input-row">
+                <input
+                  id="admin-ai-search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Ask AI to find products for inventory"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="vendor-storefront-categories">
+          <div className="vendor-storefront-chip-row">
+            <button
+              type="button"
+              className={`vendor-storefront-chip ${selectedCategory === "" ? "active" : ""}`}
+              onClick={() => setSelectedCategory("")}
+            >
+              All
+            </button>
+
+            {categories.map((category) => (
+              <button
+                key={category._id}
+                type="button"
+                className={`vendor-storefront-chip ${selectedCategory === category._id ? "active" : ""}`}
+                onClick={() => setSelectedCategory(category._id)}
+              >
+                {formatDisplayName(category.name)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <div className="inventory-toolbar">
         <p className="inventory-count">
           Showing {filteredProducts.length === 0 ? 0 : startIndex + 1}-
           {Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
         </p>
         <div className="inventory-toolbar-controls">
-          <div className="inventory-search">
-            <label htmlFor="inventory-search" className="sr-only">
-              Search products
-            </label>
-            <input
-              id="inventory-search"
-              type="search"
-              placeholder="Search products, category, subcategory"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
           <div className="inventory-page-size">
             <label htmlFor="inventory-page-size">Items per page</label>
             <select

@@ -63,7 +63,6 @@ export default function NotificationsTab() {
   return (
     <div className="admin-notifications-root">
       <div className="admin-notifications-header">
-        <h2>Notifications</h2>
         <div className="admin-notifications-actions">
           <span className="admin-notifications-count">
             {unreadCount} unread

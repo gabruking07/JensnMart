@@ -77,8 +77,6 @@ export default function AddProductTab() {
     return (
         <div className="add-product-wrapper">
             <div className="add-product-card">
-                <h2>Add Product</h2>
-
                 <input
                     placeholder="Product name"
                     value={form.name}
