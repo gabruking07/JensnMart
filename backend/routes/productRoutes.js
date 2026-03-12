@@ -1,12 +1,95 @@
 const express = require("express");
 const router = express.Router();
+const path = require("path");
 
 const Product = require("../models/Product");
 const Category = require("../models/Category");
 const SubCategory = require("../models/SubCategory");
+const RestockSubscription = require("../models/RestockSubscription");
+const Notification = require("../models/Notification");
+const Vendor = require("../models/Vendor");
 const upload = require("../config/upload");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly"); // adminOnly middleware
+const { sendNotificationEmail } = require("../utils/mailer");
+
+const getProductImageUrl = (imageName) => {
+  if (!imageName) return "";
+  const baseUrl = process.env.PUBLIC_BACKEND_URL || "http://localhost:5000";
+  return `${baseUrl.replace(/\/$/, "")}/uploads/${imageName}`;
+};
+
+const getProductImagePath = (imageName) => {
+  if (!imageName) return "";
+  return path.join(__dirname, "..", "uploads", imageName);
+};
+
+const notifyRestockSubscribers = async (product) => {
+  const subscriptions = await RestockSubscription.find({
+    product: product._id,
+    status: "pending",
+  }).populate("vendor", "name email");
+
+  if (!subscriptions.length) return;
+
+  const fulfilledAt = new Date();
+
+  await Promise.all(
+    subscriptions.map(async (subscription) => {
+      const vendor = subscription.vendor;
+      if (!vendor?._id) return;
+
+      const title = `${product.name} is back in stock`;
+      const message = `The product you asked about, ${product.name}, has been restocked on JensnMart and is now available to order.`;
+      const productImageUrl = getProductImageUrl(product.image);
+      const productImagePath = getProductImagePath(product.image);
+      const productDetails = [
+        { label: "Product", value: product.name },
+        { label: "Price", value: `₹ ${Number(product.price || 0).toLocaleString("en-IN")}` },
+        { label: "Stock available", value: String(product.stock || 0) },
+        { label: "Category", value: product.category?.name || "Uncategorized" },
+        { label: "Subcategory", value: product.subcategory?.name || "None" },
+      ];
+
+      await Notification.create({
+        recipientModel: "Vendor",
+        recipient: vendor._id,
+        type: "system",
+        title,
+        message,
+        meta: {
+          productId: product._id,
+          vendorId: vendor._id,
+          productImage: product.image,
+          productName: product.name,
+          status: "restocked",
+        },
+      });
+
+      if (vendor.email) {
+        try {
+          await sendNotificationEmail({
+            to: vendor.email,
+            subject: `JensnMart: ${title}`,
+            title,
+            message,
+            imageUrl: productImageUrl,
+            imageAlt: product.name,
+            imagePath: productImagePath,
+            details: productDetails,
+          });
+        } catch (err) {
+          console.error("RESTOCK EMAIL ERROR:", err.message);
+        }
+      }
+    })
+  );
+
+  await RestockSubscription.updateMany(
+    { product: product._id, status: "pending" },
+    { $set: { status: "fulfilled", fulfilledAt } }
+  );
+};
 
 /* =====================================================
    ADD PRODUCT (ADMIN + MANAGER)
@@ -104,6 +187,7 @@ router.put(
         product.name = trimmedName;
       }
       if (price !== undefined) product.price = price;
+      const previousStock = Number(product.stock || 0);
       if (stock !== undefined) product.stock = stock;
 
       if (category !== undefined) {
@@ -147,6 +231,11 @@ router.put(
       await product.save();
       await product.populate("category", "name");
       await product.populate("subcategory", "name");
+
+      const currentStock = Number(product.stock || 0);
+      if (previousStock === 0 && currentStock > 0) {
+        await notifyRestockSubscribers(product);
+      }
 
       console.log("UPDATE PRODUCT AFTER SAVE:", { id: product._id.toString(), name: product.name });
 

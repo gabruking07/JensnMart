@@ -2,7 +2,11 @@ const express = require("express");
 const router = express.Router();
 
 const Notification = require("../models/Notification");
+const Product = require("../models/Product");
+const RestockSubscription = require("../models/RestockSubscription");
+const Vendor = require("../models/Vendor");
 const authMiddleware = require("../middleware/authMiddleware");
+const { notifyAdmins } = require("../utils/notificationService");
 
 const getRecipientModelByRole = (role) => {
   if (role === "vendor") return "Vendor";
@@ -46,6 +50,93 @@ router.get("/unread-count", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("UNREAD COUNT ERROR:", err);
     res.status(500).json({ message: "Failed to load unread count" });
+  }
+});
+
+router.post("/restock-request", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "vendor") {
+      return res.status(403).json({ message: "Only vendors can request restock alerts" });
+    }
+
+    const { productId } = req.body || {};
+    if (!productId) {
+      return res.status(400).json({ message: "Product is required" });
+    }
+
+    const product = await Product.findById(productId).select("name stock");
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (Number(product.stock || 0) > 0) {
+      return res.status(400).json({ message: "This product is already in stock" });
+    }
+
+    const existingRequest = await RestockSubscription.exists({
+      product: product._id,
+      vendor: req.user.id,
+      status: "pending",
+    });
+
+    if (existingRequest) {
+      return res.json({
+        alreadyRequested: true,
+        message: "You are already subscribed for this product restock update",
+      });
+    }
+
+    await RestockSubscription.create({
+      product: product._id,
+      vendor: req.user.id,
+      status: "pending",
+      requestedAt: new Date(),
+    });
+
+    const vendor = await Vendor.findById(req.user.id).select("name email");
+    const vendorLabel = vendor?.name || vendor?.email || "A vendor";
+
+    await notifyAdmins({
+      type: "system",
+      title: `Restock request: ${product.name}`,
+      message: `${vendorLabel} requested a restock alert for ${product.name} because it is currently out of stock.`,
+      meta: {
+        productId: product._id,
+        vendorId: req.user.id,
+        status: "restock-request",
+      },
+      sendEmail: false,
+    });
+
+    res.status(201).json({
+      message: "Request accepted. We'll notify you when this product becomes available.",
+    });
+  } catch (err) {
+    console.error("RESTOCK REQUEST ERROR:", err);
+    res.status(500).json({ message: "Failed to send restock request" });
+  }
+});
+
+router.delete("/restock-request/:productId", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "vendor") {
+      return res.status(403).json({ message: "Only vendors can manage restock alerts" });
+    }
+
+    const subscription = await RestockSubscription.findOneAndDelete({
+      product: req.params.productId,
+      vendor: req.user.id,
+      status: "pending",
+    });
+
+    if (!subscription) {
+      return res.status(404).json({ message: "No active restock alert found for this product" });
+    }
+
+    res.json({ message: "Restock alert turned off successfully" });
+  } catch (err) {
+    console.error("RESTOCK CANCEL ERROR:", err);
+    res.status(500).json({ message: "Failed to turn off restock alert" });
   }
 });
 

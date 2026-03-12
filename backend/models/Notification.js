@@ -36,6 +36,10 @@ const notificationSchema = new mongoose.Schema(
     meta: {
       orderId: { type: mongoose.Schema.Types.ObjectId, ref: "Order" },
       paymentId: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+      productImage: String,
+      productName: String,
       orderNumber: Number,
       status: String,
     },

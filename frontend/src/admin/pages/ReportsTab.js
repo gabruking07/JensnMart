@@ -194,7 +194,23 @@ export default function ReportsTab() {
   const maxVendorRevenue = topVendors[0]?.revenue || 1;
 
   return (
-    <div className="reports-page">
+    <div className="reports-page admin-panel-page">
+      <section className="admin-page-hero">
+        <div className="admin-page-hero-copy">
+          <p className="admin-page-eyebrow">Reporting hub</p>
+          <h1>See revenue, order trends, and vendor performance from a stronger analytics header.</h1>
+          <p>
+            This reporting view now opens with the same hero treatment as the other admin pages,
+            while keeping the dashboards and charts below intact.
+          </p>
+        </div>
+
+        <div className="admin-page-hero-status">
+          <span>Total revenue</span>
+          <strong>Rs {totalRevenueAllTime.toLocaleString()}</strong>
+          <p>{totalOrdersPlaced} orders from {totalVendors} vendors are included in this report set.</p>
+        </div>
+      </section>
 
       {/* KPI */}
       <div className="kpi-row">

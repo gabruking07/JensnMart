@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BellOff, BellRing } from "lucide-react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -261,6 +262,8 @@ export default function VendorDashboard() {
 
   const [products, setProducts] = useState([]);
   const [cartQty, setCartQty] = useState({});
+  const [restockRequests, setRestockRequests] = useState({});
+  const [notifyModal, setNotifyModal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -557,6 +560,57 @@ export default function VendorDashboard() {
     }
   };
 
+  const requestRestockAlert = async (product) => {
+    const productId = product?._id;
+    if (!productId) return;
+
+    if (!approved) {
+      alert("Your vendor account must be approved before requesting restock alerts.");
+      return;
+    }
+
+    if (restockRequests[productId] === "pending" || restockRequests[productId] === "subscribed") {
+      return;
+    }
+
+    setRestockRequests((prev) => ({ ...prev, [productId]: "pending" }));
+
+    try {
+      const { data } = await api.post("/notifications/restock-request", { productId });
+      setRestockRequests((prev) => ({ ...prev, [productId]: "subscribed" }));
+      setNotifyModal({
+        title: "Request Accepted",
+        message: data?.message || "We'll notify you when this product becomes available.",
+        productName: product.name,
+      });
+    } catch (err) {
+      setRestockRequests((prev) => ({ ...prev, [productId]: "" }));
+      alert(err.response?.data?.message || "Failed to send restock notification request");
+    }
+  };
+
+  const cancelRestockAlert = async (product) => {
+    const productId = product?._id;
+    if (!productId || restockRequests[productId] !== "subscribed") return;
+
+    setRestockRequests((prev) => ({ ...prev, [productId]: "pending" }));
+
+    try {
+      const { data } = await api.delete(`/notifications/restock-request/${productId}`);
+      setRestockRequests((prev) => ({ ...prev, [productId]: "" }));
+      setNotifyModal({
+        title: "Restock Alert Turned Off",
+        message:
+          data?.message ||
+          "You will no longer receive email or notification updates for this product.",
+        productName: product.name,
+      });
+    } catch (err) {
+      setRestockRequests((prev) => ({ ...prev, [productId]: "subscribed" }));
+      alert(err.response?.data?.message || "Failed to turn off restock alert");
+    }
+  };
+
   const toggleCompareProduct = (productId) => {
     setCompareIds((prev) => {
       if (prev.includes(productId)) {
@@ -779,7 +833,9 @@ export default function VendorDashboard() {
             <div className="vendor-product-card" key={p._id}>
               <div className="v-card-img">
                 <img src={`http://localhost:5000/uploads/${p.image}`} alt={p.name} />
-                <span className="stock-label">{p.stock} in stock</span>
+                <span className={`stock-label ${Number(p.stock || 0) === 0 ? "out" : ""}`}>
+                  {Number(p.stock || 0) === 0 ? "Sold out" : `${p.stock} in stock`}
+                </span>
                 <button
                   type="button"
                   className={`compare-toggle-btn ${compareIds.includes(p._id) ? "active" : ""}`}
@@ -798,24 +854,77 @@ export default function VendorDashboard() {
                 </div>
 
                 <div className="v-purchase-zone">
-                  <div className="v-qty-selector">
-                    <button onClick={() => decreaseQty(p._id)}>−</button>
-                    <span>{cartQty[p._id] || 1}</span>
-                    <button onClick={() => increaseQty(p._id)}>+</button>
-                  </div>
+                  {Number(p.stock || 0) === 0 ? (
+                    restockRequests[p._id] === "subscribed" ? (
+                      <button
+                        type="button"
+                        className="v-notify-btn turn-off"
+                        disabled={restockRequests[p._id] === "pending"}
+                        onClick={() => cancelRestockAlert(p)}
+                      >
+                        <BellOff size={16} />
+                        <span>Turn off</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="v-notify-btn"
+                        disabled={!approved || restockRequests[p._id] === "pending"}
+                        onClick={() => requestRestockAlert(p)}
+                      >
+                        <BellRing size={16} />
+                        <span>{restockRequests[p._id] === "pending" ? "Sending..." : "Notify Me"}</span>
+                      </button>
+                    )
+                  ) : (
+                    <>
+                      <div className="v-qty-selector">
+                        <button onClick={() => decreaseQty(p._id)}>−</button>
+                        <span>{cartQty[p._id] || 1}</span>
+                        <button onClick={() => increaseQty(p._id)}>+</button>
+                      </div>
 
-                  <button
-                    className="v-add-btn"
-                    disabled={!approved}
-                    onClick={() => addToCart(p._id)}
-                  >
-                    Add to Cart
-                  </button>
+                      <button
+                        className="v-add-btn"
+                        disabled={!approved}
+                        onClick={() => addToCart(p._id)}
+                      >
+                        Add to Cart
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           ))}
         </div>
+
+        {notifyModal && (
+          <div className="notify-request-modal-backdrop" onClick={() => setNotifyModal(null)}>
+            <div
+              className="notify-request-modal"
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="notify-request-title"
+            >
+              <button
+                type="button"
+                className="notify-request-close"
+                onClick={() => setNotifyModal(null)}
+                aria-label="Close notification request message"
+              >
+                ×
+              </button>
+              <div className="notify-request-illustration" aria-hidden="true">
+                <div className="notify-request-icon">✓</div>
+              </div>
+              <h3 id="notify-request-title">{notifyModal.title}</h3>
+              <p>{notifyModal.message}</p>
+              <strong>{notifyModal.productName}</strong>
+            </div>
+          </div>
+        )}
 
         {filteredProducts.length > 0 && (
           <div className="vendor-pagination">

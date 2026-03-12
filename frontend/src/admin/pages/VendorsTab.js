@@ -28,6 +28,7 @@ export default function VendorsTab() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedVendors = vendors.slice(startIndex, endIndex);
+  const approvedVendors = vendors.filter((vendor) => vendor.approved).length;
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -84,7 +85,24 @@ export default function VendorsTab() {
   };
 
   return (
-    <div>
+    <div className="admin-panel-page">
+      <section className="admin-page-hero">
+        <div className="admin-page-hero-copy">
+          <p className="admin-page-eyebrow">Vendor network</p>
+          <h1>Oversee vendor onboarding with the same page structure as the rest of admin.</h1>
+          <p>
+            Create vendor accounts, approve new partners, and keep marketplace access under direct
+            admin control.
+          </p>
+        </div>
+
+        <div className="admin-page-hero-status">
+          <span>Active vendors</span>
+          <strong>{approvedVendors}</strong>
+          <p>{vendors.length - approvedVendors} vendor accounts are still pending approval.</p>
+        </div>
+      </section>
+
       {/* CREATE VENDOR */}
       <div className="card">
         <h3>Create Vendor</h3>

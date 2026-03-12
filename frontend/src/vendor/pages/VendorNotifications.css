@@ -261,6 +261,24 @@
 .vendor-notification-content {
   display: grid;
   gap: 8px;
+  flex: 1;
+}
+
+.vendor-notification-thumb {
+  width: 82px;
+  height: 82px;
+  flex: 0 0 82px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.vendor-notification-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
 }
 
 .vendor-notification-tag {
