@@ -944,6 +944,23 @@
   gap: 10px;
 }
 
+.order-products-toggle {
+  width: fit-content;
+  margin-top: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.order-products-toggle:hover {
+  background: #f1f5f9;
+}
+
 .product-chip {
   background: #f8fafc;
   border-radius: 16px;

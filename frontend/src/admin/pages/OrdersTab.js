@@ -10,8 +10,9 @@ export default function OrdersTab() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [vendorFilter, setVendorFilter] = useState("all");
-  
-  // Pagination State 
+  const [expandedOrders, setExpandedOrders] = useState({});
+
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
 
@@ -28,7 +29,7 @@ export default function OrdersTab() {
     try {
       const res = await api.get("/orders/commission");
       setCommission(res.data?.total || 0);
-    } catch { }
+    } catch {}
   };
 
   useEffect(() => {
@@ -58,7 +59,12 @@ export default function OrdersTab() {
   const filtered = useMemo(() => {
     return orders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
-      if (search && !String(o.orderNumber || "").toLowerCase().includes(search.toLowerCase())) return false;
+      if (
+        search &&
+        !String(o.orderNumber || "").toLowerCase().includes(search.toLowerCase())
+      ) {
+        return false;
+      }
       if (vendorFilter !== "all" && o.vendor?._id !== vendorFilter) return false;
       return true;
     });
@@ -83,14 +89,21 @@ export default function OrdersTab() {
 
   const stats = useMemo(() => {
     return {
-      placed: orders.filter(o => o.status === "Placed").length,
-      processing: orders.filter(o => o.status === "Processing").length,
-      shipped: orders.filter(o => o.status === "Shipped").length,
-      delivered: orders.filter(o => o.status === "Delivered").length,
-      returned: orders.filter(o => o.status === "Returned").length,
-      cancelled: orders.filter(o => o.status === "Cancelled").length
+      placed: orders.filter((o) => o.status === "Placed").length,
+      processing: orders.filter((o) => o.status === "Processing").length,
+      shipped: orders.filter((o) => o.status === "Shipped").length,
+      delivered: orders.filter((o) => o.status === "Delivered").length,
+      returned: orders.filter((o) => o.status === "Returned").length,
+      cancelled: orders.filter((o) => o.status === "Cancelled").length,
     };
   }, [orders]);
+
+  const toggleOrderProducts = (orderId) => {
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
 
   return (
     <div className="admin-container admin-panel-page">
@@ -99,8 +112,8 @@ export default function OrdersTab() {
           <p className="admin-page-eyebrow">Order oversight</p>
           <h1>Track vendor orders and fulfillment from a unified admin command view.</h1>
           <p>
-            Review live order volume, filter by vendor or status, and update fulfillment without
-            losing the big-picture view.
+            Review live order volume, filter by vendor or status, and update
+            fulfillment without losing the big-picture view.
           </p>
         </div>
 
@@ -112,7 +125,7 @@ export default function OrdersTab() {
       </section>
 
       <div className="stats-row">
-        {['Placed', 'Processing', 'Shipped', 'Delivered', 'Returned', 'Cancelled'].map(s => (
+        {["Placed", "Processing", "Shipped", "Delivered", "Returned", "Cancelled"].map((s) => (
           <div className="stat-card" key={s}>
             <span>{s}</span>
             <h3>{stats[s.toLowerCase()]}</h3>
@@ -120,7 +133,7 @@ export default function OrdersTab() {
         ))}
         <div className="stat-card highlight">
           <span>Commission</span>
-          <h3>₹{commission}</h3>
+          <h3>Rs {commission}</h3>
         </div>
       </div>
 
@@ -137,13 +150,25 @@ export default function OrdersTab() {
 
         <select value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)}>
           <option value="all">All Vendors</option>
-          {vendors.map((v) => <option key={v.id} value={v.id}>{v.email}</option>)}
+          {vendors.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.email}
+            </option>
+          ))}
         </select>
 
-        <button className="reset-btn" onClick={() => { setStatusFilter("all"); setSearch(""); setVendorFilter("all"); }}>
+        <button
+          className="reset-btn"
+          onClick={() => {
+            setStatusFilter("all");
+            setSearch("");
+            setVendorFilter("all");
+          }}
+        >
           Reset
         </button>
       </div>
+
       <div className="orders-page-toolbar">
         <div className="orders-page-size">
           <label htmlFor="orders-page-size">Items per page</label>
@@ -161,55 +186,93 @@ export default function OrdersTab() {
       </div>
 
       <div className="orders-list">
-        {paginatedOrders.map((o) => (
-          <div key={o._id} className="order-card">
-            <div className="order-main-content">
-              <div className="order-header">
-                <h3>Order #{o.orderNumber}</h3>
-                <p className="vendor-email">{o.vendor?.email}</p>
-                <select className="status-select-minimal" value={o.status} onChange={(e) => updateStatus(o._id, e.target.value)}>
-                  <option value="Placed">Placed</option>
-                  <option value="Processing">Processing</option>
-                  <option value="Shipped">Shipped</option>
-                  <option value="Delivered">Delivered</option>
-                </select>
-              </div>
+        {paginatedOrders.map((o) => {
+          const products = o.products || [];
+          const hasMultipleProducts = products.length > 1;
+          const isExpanded = Boolean(expandedOrders[o._id]);
+          const visibleProducts =
+            hasMultipleProducts && !isExpanded ? products.slice(0, 1) : products;
 
-              <div className="order-products">
-                {o.products?.map((p, i) => (
-                  <div key={i} className="product-chip">
-                    <img src={`http://localhost:5000/uploads/${p.image}`} alt="" />
-                    <div className="product-info">
-                      <span className="p-name">{p.name}</span>
-                      <span className="p-details">Qty: {p.qty} | ₹{p.price}</span>
+          return (
+            <div key={o._id} className="order-card">
+              <div className="order-main-content">
+                <div className="order-header">
+                  <h3>Order #{o.orderNumber}</h3>
+                  <p className="vendor-email">{o.vendor?.email}</p>
+                  <select
+                    className="status-select-minimal"
+                    value={o.status}
+                    onChange={(e) => updateStatus(o._id, e.target.value)}
+                  >
+                    <option value="Placed">Placed</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                  </select>
+                </div>
+
+                <div className="order-products">
+                  {visibleProducts.map((p, i) => (
+                    <div key={`${o._id}-${i}`} className="product-chip">
+                      <img src={`http://localhost:5000/uploads/${p.image}`} alt="" />
+                      <div className="product-info">
+                        <span className="p-name">{p.name}</span>
+                        <span className="p-details">Qty: {p.qty} | Rs {p.price}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                {hasMultipleProducts && (
+                  <button
+                    type="button"
+                    className="order-products-toggle"
+                    onClick={() => toggleOrderProducts(o._id)}
+                  >
+                    {isExpanded ? "Show less products" : `Show all products (${products.length})`}
+                  </button>
+                )}
+
+                <div className="order-footer">
+                  <span className="label">TOTAL AMOUNT</span>
+                  <span className="total-price">Total: Rs {o.total}</span>
+                </div>
               </div>
 
-              <div className="order-footer">
-                <span className="label">TOTAL AMOUNT</span>
-                <span className="total-price">Total: ₹{o.total}</span>
+              <div className="timeline-box-dark">
+                <OrderTimeline status={o.status} />
+                <div className="order-address-mini">Address: {o.deliveryAddress}</div>
               </div>
             </div>
-
-            <div className="timeline-box-dark">
-              <OrderTimeline status={o.status} />
-              <div className="order-address-mini">📍 {o.deliveryAddress}</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {totalPages > 1 && (
         <div className="pagination-container">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="pag-btn">Prev</button>
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className="pag-btn"
+          >
+            Prev
+          </button>
           {[...Array(totalPages)].map((_, i) => (
-            <button key={i} onClick={() => setCurrentPage(i + 1)} className={`page-num ${currentPage === i + 1 ? 'active' : ''}`}>
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`page-num ${currentPage === i + 1 ? "active" : ""}`}
+            >
               {i + 1}
             </button>
           ))}
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="pag-btn">Next</button>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="pag-btn"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>
