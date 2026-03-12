@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import VendorLayout from "./VendorLayout";
 import "./VendorTransactions.css";
@@ -93,8 +92,6 @@ export default function VendorTransactions() {
 
   return (
     <VendorLayout>
-      <Header title="Transactions" />
-
       <main className="vendor-main">
         <div className="vendor-transactions-root">
           <section className="transactions-hero">

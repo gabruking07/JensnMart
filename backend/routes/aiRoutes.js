@@ -8,11 +8,11 @@ const ROLE_CONFIG = {
   guest: {
     label: "guest visitor",
     intro:
-      "Help guests browse the marketplace, compare products, explain categories, and nudge them to log in only when actions require an account.",
+      "Help guests only with login, registration, forgot password, and account-access questions.",
     allowed:
-      "You can suggest discovery, comparisons, pricing guidance, and how shopping works for guests.",
+      "You can explain how admin or vendor login works, where to register, and how forgot password or account recovery works.",
     avoid:
-      "Do not claim the guest can access vendor-only or admin-only pages or actions.",
+      "Do not answer product-shopping questions for guests and do not claim the guest can access vendor-only or admin-only pages or actions.",
   },
   vendor: {
     label: "vendor",
@@ -200,7 +200,8 @@ router.post("/chat", optionalAuth, async (req, res) => {
       return res.status(502).json({ message: "Empty AI response" });
     }
 
-    const suggestedProducts = getSuggestedProducts(products, message, reply);
+    const suggestedProducts =
+      viewerRole === "guest" ? [] : getSuggestedProducts(products, message, reply);
 
     return res.json({ reply, suggestedProducts, viewerRole });
   } catch (err) {

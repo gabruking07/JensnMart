@@ -2,12 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import Login from "./pages/Login";
-import Products from "./pages/Products";
-import Cart from "./pages/Cart";
 import AdminRegister from "./pages/AdminRegister";
 import VendorRegister from "./pages/VendorRegister";
 import ForgotPassword from "./pages/ForgotPassword";
 
+import VendorCart from "./vendor/pages/VendorCart";
 import VendorDashboard from "./vendor/pages/VendorDashboard";
 import VendorProfile from "./vendor/pages/VendorProfile";
 import VendorOrders from "./vendor/pages/VendorOrders";
@@ -102,12 +101,11 @@ function App() {
           }
         />
 
-        <Route path="/cart" element={<Cart />} />
+        <Route path="/cart" element={<VendorCart />} />
         <Route path="/" element={<Login />} />
         <Route path="/admin-register" element={<AdminRegister />} />
         <Route path="/vendor-register" element={<VendorRegister />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/products" element={<Products />} />
       </Routes>
     </BrowserRouter>
   );
