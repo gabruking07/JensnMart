@@ -38,6 +38,8 @@ const notificationSchema = new mongoose.Schema(
       paymentId: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
       productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
       vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+      productImage: String,
+      productName: String,
       orderNumber: Number,
       status: String,
     },

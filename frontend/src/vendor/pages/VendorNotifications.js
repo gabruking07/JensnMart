@@ -115,6 +115,14 @@ export default function VendorNotifications() {
                   key={n._id}
                   className={`vendor-notification-card ${n.isRead ? "read" : "unread"}`}
                 >
+                  {n.meta?.productImage && (
+                    <div className="vendor-notification-thumb">
+                      <img
+                        src={`http://localhost:5000/uploads/${n.meta.productImage}`}
+                        alt={n.meta?.productName || n.title}
+                      />
+                    </div>
+                  )}
                   <div className="vendor-notification-content">
                     <span className="vendor-notification-tag">
                       {n.type || "system"}
