@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const path = require("path");
 
 const Product = require("../models/Product");
 const Category = require("../models/Category");
@@ -11,6 +12,17 @@ const upload = require("../config/upload");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly"); // adminOnly middleware
 const { sendNotificationEmail } = require("../utils/mailer");
+
+const getProductImageUrl = (imageName) => {
+  if (!imageName) return "";
+  const baseUrl = process.env.PUBLIC_BACKEND_URL || "http://localhost:5000";
+  return `${baseUrl.replace(/\/$/, "")}/uploads/${imageName}`;
+};
+
+const getProductImagePath = (imageName) => {
+  if (!imageName) return "";
+  return path.join(__dirname, "..", "uploads", imageName);
+};
 
 const notifyRestockSubscribers = async (product) => {
   const subscriptions = await RestockSubscription.find({
@@ -29,6 +41,15 @@ const notifyRestockSubscribers = async (product) => {
 
       const title = `${product.name} is back in stock`;
       const message = `The product you asked about, ${product.name}, has been restocked on JensnMart and is now available to order.`;
+      const productImageUrl = getProductImageUrl(product.image);
+      const productImagePath = getProductImagePath(product.image);
+      const productDetails = [
+        { label: "Product", value: product.name },
+        { label: "Price", value: `₹ ${Number(product.price || 0).toLocaleString("en-IN")}` },
+        { label: "Stock available", value: String(product.stock || 0) },
+        { label: "Category", value: product.category?.name || "Uncategorized" },
+        { label: "Subcategory", value: product.subcategory?.name || "None" },
+      ];
 
       await Notification.create({
         recipientModel: "Vendor",
@@ -39,6 +60,8 @@ const notifyRestockSubscribers = async (product) => {
         meta: {
           productId: product._id,
           vendorId: vendor._id,
+          productImage: product.image,
+          productName: product.name,
           status: "restocked",
         },
       });
@@ -50,6 +73,10 @@ const notifyRestockSubscribers = async (product) => {
             subject: `JensnMart: ${title}`,
             title,
             message,
+            imageUrl: productImageUrl,
+            imageAlt: product.name,
+            imagePath: productImagePath,
+            details: productDetails,
           });
         } catch (err) {
           console.error("RESTOCK EMAIL ERROR:", err.message);
