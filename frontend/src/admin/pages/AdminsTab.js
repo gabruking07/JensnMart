@@ -42,6 +42,7 @@ export default function AdminsTab() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedAdmins = admins.slice(startIndex, endIndex);
+  const managerCount = admins.filter((admin) => admin.role === "manager").length;
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -109,7 +110,24 @@ export default function AdminsTab() {
   };
 
   return (
-    <div>
+    <div className="admin-panel-page">
+      <section className="admin-page-hero">
+        <div className="admin-page-hero-copy">
+          <p className="admin-page-eyebrow">Team access</p>
+          <h1>Manage admin and manager accounts from a clearer control surface.</h1>
+          <p>
+            Create elevated users, review pending approvals, and keep internal access limited to the
+            right people.
+          </p>
+        </div>
+
+        <div className="admin-page-hero-status">
+          <span>Pending approvals</span>
+          <strong>{pending.length}</strong>
+          <p>{admins.length} approved accounts are live, including {managerCount} managers.</p>
+        </div>
+      </section>
+
       {/* CREATE */}
       <div className="card">
         <h3>Create Admin / Manager</h3>

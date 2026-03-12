@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
     UserCircle,
     Package,
@@ -11,20 +11,15 @@ import {
     BarChart3,
     ChevronLeft,
     ChevronRight,
-    Bell,
     LogOut
 } from "lucide-react";
 import logo from "../assets/logo.png";
-import api from "../services/api";
 import "./AdminLayout.css";
 
 export default function AdminLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const [collapsed, setCollapsed] = useState(false);
-    const [notifOpen, setNotifOpen] = useState(false);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
 
     const role = localStorage.getItem("role");
 
@@ -80,7 +75,7 @@ export default function AdminLayout() {
         {
             name: "Notifications",
             path: "/admin/notifications",
-            icon: Bell,
+            icon: Receipt,
             roles: ["admin", "manager"]
         },
         {
@@ -95,45 +90,6 @@ export default function AdminLayout() {
         localStorage.clear();
         navigate("/");
     };
-
-    const loadNotifications = async () => {
-        try {
-            const [listRes, countRes] = await Promise.all([
-                api.get("/notifications?limit=8"),
-                api.get("/notifications/unread-count"),
-            ]);
-            setNotifications((listRes.data || []).filter((n) => !n.isRead));
-            setUnreadCount(countRes.data?.count || 0);
-        } catch (err) {
-            console.error("Load notifications failed", err);
-        }
-    };
-
-    const markOneRead = async (id) => {
-        try {
-            await api.put(`/notifications/${id}/read`);
-            setNotifications((prev) => prev.filter((n) => n._id !== id));
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-        } catch (err) {
-            console.error("Mark read failed", err);
-        }
-    };
-
-    const markAllRead = async () => {
-        try {
-            await api.put("/notifications/read-all");
-            setNotifications([]);
-            setUnreadCount(0);
-        } catch (err) {
-            console.error("Mark all read failed", err);
-        }
-    };
-
-    useEffect(() => {
-        loadNotifications();
-        const id = setInterval(loadNotifications, 20000);
-        return () => clearInterval(id);
-    }, []);
 
     return (
         <div className="admin-root">
@@ -175,51 +131,6 @@ export default function AdminLayout() {
                 </nav>
 
                 <div className="sidebar-bottom">
-                    <div className="notification-wrap">
-                        <button
-                            type="button"
-                            className="notify-btn"
-                            onClick={() => setNotifOpen((prev) => !prev)}
-                        >
-                            <Bell size={16} />
-                            <span className="label">Notifications</span>
-                            {unreadCount > 0 && (
-                                <span className="notify-badge">
-                                    {unreadCount > 99 ? "99+" : unreadCount}
-                                </span>
-                            )}
-                        </button>
-
-                        {notifOpen && (
-                            <div className="notify-panel">
-                                <div className="notify-head">
-                                    <strong>Notifications</strong>
-                                    <button type="button" onClick={markAllRead}>
-                                        Mark all read
-                                    </button>
-                                </div>
-
-                                <div className="notify-list">
-                                    {notifications.length === 0 ? (
-                                        <p className="notify-empty">No notifications</p>
-                                    ) : (
-                                        notifications.map((n) => (
-                                            <button
-                                                key={n._id}
-                                                type="button"
-                                                className={`notify-item ${n.isRead ? "read" : "unread"}`}
-                                                onClick={() => !n.isRead && markOneRead(n._id)}
-                                            >
-                                                <p className="notify-title">{n.title}</p>
-                                                <p className="notify-msg">{n.message}</p>
-                                            </button>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
                     <button className="logout-btn" onClick={logout}>
                         <LogOut size={16} />
                         <span className="label">Logout</span>

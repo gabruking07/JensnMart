@@ -93,7 +93,24 @@ export default function OrdersTab() {
   }, [orders]);
 
   return (
-    <div className="admin-container">
+    <div className="admin-container admin-panel-page">
+      <section className="admin-page-hero">
+        <div className="admin-page-hero-copy">
+          <p className="admin-page-eyebrow">Order oversight</p>
+          <h1>Track vendor orders and fulfillment from a unified admin command view.</h1>
+          <p>
+            Review live order volume, filter by vendor or status, and update fulfillment without
+            losing the big-picture view.
+          </p>
+        </div>
+
+        <div className="admin-page-hero-status">
+          <span>Orders in view</span>
+          <strong>{filtered.length}</strong>
+          <p>{orders.length} total orders are loaded, with commission at Rs {commission}.</p>
+        </div>
+      </section>
+
       <div className="stats-row">
         {['Placed', 'Processing', 'Shipped', 'Delivered', 'Returned', 'Cancelled'].map(s => (
           <div className="stat-card" key={s}>

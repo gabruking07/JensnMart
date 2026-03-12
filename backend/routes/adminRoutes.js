@@ -8,6 +8,7 @@ const Admin = require("../models/Admin");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly");
+const { notifyVendor } = require("../utils/notificationService");
 
 /* GET ALL VENDORS (ADMIN ONLY) */
 router.get("/vendors", authMiddleware, roleOnly("admin", "manager"), async (req, res) => {
@@ -90,8 +91,23 @@ router.put(
         return res.status(404).json({ message: "Vendor not found" });
       }
 
+      const wasApproved = Boolean(vendor.approved);
       vendor.approved = true;
       await vendor.save();
+
+      if (!wasApproved) {
+        await notifyVendor({
+          vendorId: vendor._id,
+          type: "system",
+          title: "Vendor account approved",
+          message:
+            "Your JensnMart vendor account has been approved by admin. You can now sign in and start placing orders.",
+          meta: {
+            status: "approved",
+          },
+          sendEmail: true,
+        });
+      }
 
       res.json({ message: "Vendor approved successfully" });
     } catch (err) {
