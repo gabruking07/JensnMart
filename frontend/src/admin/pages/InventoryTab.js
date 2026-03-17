@@ -221,21 +221,6 @@ export default function InventoryTab() {
                 <option value="new">New Arrivals</option>
               </select>
             </div>
-
-            <div className="filter-item filter-item-search ai-chat-search-card">
-              <div className="ai-chat-search-header">
-                <span className="ai-chat-search-badge">AI Search</span>
-                <label htmlFor="admin-ai-search">Ask inventory assistant</label>
-              </div>
-              <div className="ai-chat-input-row">
-                <input
-                  id="admin-ai-search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Ask AI to find products for inventory"
-                />
-              </div>
-            </div>
           </div>
         </div>
 
