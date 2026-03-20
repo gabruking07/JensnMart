@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 import Footer from "../../components/Footer";
 import VendorLayout from "./VendorLayout";
 import "./VendorTransactions.css";
@@ -31,7 +32,7 @@ export default function VendorTransactions() {
       const res = await api.get("/payments/vendor");
       setTransactions(res.data || []);
     } catch (err) {
-      alert("Failed to load transactions");
+      toast.error("Failed to load transactions");
     } finally {
       setLoading(false);
     }

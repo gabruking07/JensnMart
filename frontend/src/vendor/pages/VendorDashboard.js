@@ -3,6 +3,7 @@ import { BellOff, BellRing } from "lucide-react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 import Footer from "../../components/Footer";
 import "./VendorDashboard.css";
 import VendorLayout from "./VendorLayout";
@@ -553,10 +554,10 @@ export default function VendorDashboard() {
       const qty = cartQty[productId] || 1;
       await api.post("/cart/add", { productId, quantity: qty });
       window.dispatchEvent(new Event("cart-updated"));
-      alert("Added to cart successfully!");
+      toast.success("Added to cart successfully!");
       fetchProducts();
     } catch (err) {
-      alert(err.response?.data?.message || "Add to cart failed");
+      toast.error(err.response?.data?.message || "Add to cart failed");
     }
   };
 
@@ -565,7 +566,7 @@ export default function VendorDashboard() {
     if (!productId) return;
 
     if (!approved) {
-      alert("Your vendor account must be approved before requesting restock alerts.");
+      toast.error("Your vendor account must be approved before requesting restock alerts.");
       return;
     }
 
@@ -585,7 +586,7 @@ export default function VendorDashboard() {
       });
     } catch (err) {
       setRestockRequests((prev) => ({ ...prev, [productId]: "" }));
-      alert(err.response?.data?.message || "Failed to send restock notification request");
+      toast.error(err.response?.data?.message || "Failed to send restock notification request");
     }
   };
 
@@ -607,7 +608,7 @@ export default function VendorDashboard() {
       });
     } catch (err) {
       setRestockRequests((prev) => ({ ...prev, [productId]: "subscribed" }));
-      alert(err.response?.data?.message || "Failed to turn off restock alert");
+      toast.error(err.response?.data?.message || "Failed to turn off restock alert");
     }
   };
 
@@ -618,7 +619,7 @@ export default function VendorDashboard() {
       }
 
       if (prev.length >= 2) {
-        alert("You can compare only two products at a time.");
+        toast.error("You can compare only two products at a time.");
         return prev;
       }
 

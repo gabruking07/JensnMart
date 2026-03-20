@@ -237,7 +237,7 @@
 .admin-inventory .field input,
 .admin-inventory .field select {
   width: 100%;
-  padding: 13px 14px;
+  padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid rgba(15, 23, 42, 0.1);
   background: rgba(255, 255, 255, 0.9);
@@ -340,10 +340,11 @@
 }
 
 .admin-inventory .product-card-topline {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .admin-inventory .product-name-field,
@@ -351,15 +352,35 @@
   margin-top: 0;
 }
 
+.admin-inventory .product-name-field {
+  min-width: 0;
+  width: 100%;
+  padding-right: 0;
+}
+
+.admin-inventory .product-price-field {
+  width: 100%;
+}
+
 .admin-inventory .product-title {
+  margin: 0;
   font-size: 13px;
   font-weight: 800;
   line-height: 1.35;
   color: #102033;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 
 .admin-inventory .product-price {
-  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  margin: 0;
   padding: 6px 10px;
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(225, 106, 47, 0.16), rgba(244, 187, 80, 0.24));
@@ -370,6 +391,7 @@
   border: 1px solid rgba(225, 106, 47, 0.16);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
   white-space: nowrap;
+  align-self: flex-start;
 }
 
 .admin-inventory .field-value {
@@ -390,7 +412,7 @@
 
 .admin-inventory .meta-card {
   margin-top: 0;
-  padding: 8px;
+  padding: 7px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(15, 23, 42, 0.06);
@@ -412,13 +434,14 @@
 }
 
 .admin-inventory .inventory-actions {
-  margin-top: 8px;
+  margin-top: 6px;
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .admin-inventory .inventory-actions .edit-btn,
+.admin-inventory .inventory-actions .cancel-btn,
 .admin-inventory .inventory-actions .delete-btn {
   border: none;
   border-radius: 999px;
@@ -426,6 +449,21 @@
   font-size: 11px;
   font-weight: 800;
   cursor: pointer;
+  flex: 1 1 0;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.admin-inventory .product-card input,
+.admin-inventory .product-card select {
+  min-height: 40px;
+}
+
+.admin-inventory .product-card .meta-card input,
+.admin-inventory .product-card .meta-card select {
+  min-height: 36px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .admin-inventory .inventory-actions .edit-btn {
@@ -435,6 +473,15 @@
 
 .admin-inventory .inventory-actions .edit-btn:hover {
   background: linear-gradient(135deg, #e16a2f, #bc4917);
+}
+
+.admin-inventory .inventory-actions .cancel-btn {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.admin-inventory .inventory-actions .cancel-btn:hover {
+  background: #cbd5e1;
 }
 
 .admin-inventory .inventory-actions .delete-btn {

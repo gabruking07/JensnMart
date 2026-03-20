@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import toast from "react-hot-toast";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Login.css";
@@ -43,7 +44,7 @@ export default function Login() {
         navigate("/vendor");
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }

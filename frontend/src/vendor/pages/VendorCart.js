@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 import "./VendorCart.css";
 import Footer from "../../components/Footer";
 import VendorLayout from "./VendorLayout";
@@ -97,7 +98,7 @@ export default function VendorCart() {
 
     const address = await getCheckoutAddress();
     if (!address) {
-      alert("No saved address found.");
+      toast.error("No saved address found.");
       navigate("/profile");
       return;
     }
@@ -109,7 +110,7 @@ export default function VendorCart() {
       });
 
       if (paymentMethod === "COD") {
-        alert("Order placed with Cash on Delivery");
+        toast.success("Order placed with Cash on Delivery");
         fetchCart();
         window.dispatchEvent(new Event("cart-updated"));
         navigate("/vendor/orders");
@@ -118,7 +119,7 @@ export default function VendorCart() {
 
       const { order, razorpayOrder, razorpayKeyId } = res.data;
       if (!razorpayOrder || !razorpayKeyId) {
-        alert("Razorpay is not configured on server.");
+        toast.error("Razorpay is not configured on server.");
         return;
       }
 
@@ -126,19 +127,19 @@ export default function VendorCart() {
 
     } catch (err) {
       console.log(err.response);
-      alert(err.response?.data?.message || "Checkout failed");
+      toast.error(err.response?.data?.message || "Checkout failed");
     }
   };
 
   const openRazorpay = (razorpayOrder, order, razorpayKeyId) => {
     if (!window.Razorpay) {
-      alert("Razorpay SDK failed to load. Please refresh and try again.");
+      toast.error("Razorpay SDK failed to load. Please refresh and try again.");
       return;
     }
 
     const razorpayPublicKey = razorpayKeyId || process.env.REACT_APP_RAZORPAY_KEY_ID;
     if (!razorpayPublicKey) {
-      alert("Razorpay key is missing. Contact support.");
+      toast.error("Razorpay key is missing. Contact support.");
       return;
     }
 
@@ -156,13 +157,13 @@ export default function VendorCart() {
             amount: order.total,
           });
 
-          alert("Payment Successful");
+          toast.success("Payment successful");
           fetchCart();
           window.dispatchEvent(new Event("cart-updated"));
           navigate("/vendor/orders");
 
         } catch (err) {
-          alert("Payment verification failed");
+          toast.error("Payment verification failed");
         }
       },
     };

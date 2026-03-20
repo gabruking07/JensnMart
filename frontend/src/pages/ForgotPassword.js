@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
+import toast from "react-hot-toast";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import logo from "../assets/logo.png";
@@ -25,7 +26,7 @@ export default function ForgotPassword() {
 
   const sendOtp = async () => {
     if (!email.trim()) {
-      return alert("Please enter your registered email");
+      return toast.error("Please enter your registered email");
     }
 
     try {
@@ -33,9 +34,9 @@ export default function ForgotPassword() {
       const res = await api.post(`${basePath}/forgot-password/request-otp`, {
         email: email.trim().toLowerCase()
       });
-      alert(res.data?.message || "OTP has been sentt");
+      toast.success(res.data?.message || "OTP has been sent");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to send OTP");
+      toast.error(err.response?.data?.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
@@ -43,7 +44,7 @@ export default function ForgotPassword() {
 
   const verifyOtp = async () => {
     if (!email.trim() || !otp.trim()) {
-      return alert("Please enter email and OTP");
+      return toast.error("Please enter email and OTP");
     }
 
     try {
@@ -53,9 +54,9 @@ export default function ForgotPassword() {
         otp: otp.trim()
       });
       setResetToken(res.data.resetToken);
-      alert("OTP verified. You can set a new password now.");
+      toast.success("OTP verified. You can set a new password now.");
     } catch (err) {
-      alert(err.response?.data?.message || "OTP verification failed");
+      toast.error(err.response?.data?.message || "OTP verification failed");
     } finally {
       setLoading(false);
     }
@@ -63,13 +64,13 @@ export default function ForgotPassword() {
 
   const resetPassword = async () => {
     if (!otpVerified) {
-      return alert("Please verify OTP first");
+      return toast.error("Please verify OTP first");
     }
     if (newPassword.length < 6) {
-      return alert("Password must be at least 6 characters");
+      return toast.error("Password must be at least 6 characters");
     }
     if (newPassword !== confirmPassword) {
-      return alert("Passwords do not match");
+      return toast.error("Passwords do not match");
     }
 
     try {
@@ -79,10 +80,10 @@ export default function ForgotPassword() {
         newPassword,
         resetToken
       });
-      alert("Password updated successfully");
+      toast.success("Password updated successfully");
       navigate("/");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to reset password");
+      toast.error(err.response?.data?.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }

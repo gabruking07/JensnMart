@@ -391,12 +391,20 @@ export default function InventoryTab() {
 
               <div className="actions inventory-actions">
                 {isEditing ? (
-                  <button
-                    className="edit-btn"
-                    onClick={() => saveEdit(p._id)}
-                  >
-                    Save
-                  </button>
+                  <>
+                    <button
+                      className="edit-btn"
+                      onClick={() => saveEdit(p._id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="cancel-btn"
+                      onClick={cancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </>
                 ) : (
                   <button
                     className="edit-btn"

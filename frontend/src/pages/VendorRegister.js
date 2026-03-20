@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import toast from "react-hot-toast";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Login.css";
@@ -27,27 +28,27 @@ export default function VendorRegister() {
   const handleRegister = async () => {
     try {
       if (!formData.name || !formData.email || !formData.password || !formData.phone) {
-        alert("Fill all required fields");
+        toast.error("Fill all required fields");
         return;
       }
 
       if (!/^\d{10}$/.test(formData.phone)) {
-        alert("Phone number must be exactly 10 digits");
+        toast.error("Phone number must be exactly 10 digits");
         return;
       }
 
       if (formData.pincode && !/^\d{6}$/.test(formData.pincode)) {
-        alert("Pincode must be exactly 6 digits");
+        toast.error("Pincode must be exactly 6 digits");
         return;
       }
 
       await api.post("/vendor/register", formData);
 
-      alert("Registered. Wait for admin approval");
+      toast.success("Registered. Wait for admin approval");
       navigate("/vendor-login");
 
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
+      toast.error(err.response?.data?.message || "Registration failed");
     }
   };
 

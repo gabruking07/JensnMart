@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import toast from "react-hot-toast";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Login.css"; 
@@ -25,12 +26,12 @@ export default function AdminRegister() {
 
   const handleRegister = async () => {
     if (!validateEmail(email)) {
-      alert("Invalid email format");
+      toast.error("Invalid email format");
       return;
     }
 
     if (phone.length !== 10) {
-      alert("Phone number must be exactly 10 digits");
+      toast.error("Phone number must be exactly 10 digits");
       return;
     }
 
@@ -43,10 +44,10 @@ export default function AdminRegister() {
         role,
       });
 
-      alert("Admin registered successfully");
+      toast.success("Admin registered successfully");
       navigate("/");
     } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
+      toast.error(error.response?.data?.message || "Registration failed");
     }
   };
 
