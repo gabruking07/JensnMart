@@ -12,8 +12,8 @@
 
 .admin-root {
   min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
   background:
     radial-gradient(circle at top left, rgba(244, 187, 80, 0.16), transparent 20%),
     radial-gradient(circle at top right, rgba(31, 110, 167, 0.1), transparent 18%),
@@ -296,6 +296,7 @@
 .content {
   margin-left: 270px;
   min-height: 100vh;
+  overflow: visible;
   padding: 6px 18px 18px 0;
   background: transparent;
 }
