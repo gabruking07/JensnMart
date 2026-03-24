@@ -15,6 +15,7 @@ export default function InventoryTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({ name: "", price: "", stock: "" });
 
@@ -62,12 +63,18 @@ export default function InventoryTab() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage, searchTerm, sortBy, selectedCategory]);
+  }, [itemsPerPage, searchTerm, sortBy, selectedCategory, selectedSubcategory]);
+
+  const visibleSubcategoryChips = selectedCategory
+    ? subcategories.filter((subcategory) => subcategory.category?._id === selectedCategory)
+    : [];
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   let filteredProducts = products.filter((product) => {
     const categoryMatch = !selectedCategory || product.category?._id === selectedCategory;
+    const subcategoryMatch = !selectedSubcategory || product.subcategory?._id === selectedSubcategory;
     if (!categoryMatch) return false;
+    if (!subcategoryMatch) return false;
     if (!normalizedSearch) return true;
 
     return [
@@ -229,7 +236,10 @@ export default function InventoryTab() {
             <button
               type="button"
               className={`vendor-storefront-chip ${selectedCategory === "" ? "active" : ""}`}
-              onClick={() => setSelectedCategory("")}
+              onClick={() => {
+                setSelectedCategory("");
+                setSelectedSubcategory("");
+              }}
             >
               All
             </button>
@@ -239,13 +249,46 @@ export default function InventoryTab() {
                 key={category._id}
                 type="button"
                 className={`vendor-storefront-chip ${selectedCategory === category._id ? "active" : ""}`}
-                onClick={() => setSelectedCategory(category._id)}
+                onClick={() => {
+                  setSelectedCategory(category._id);
+                  setSelectedSubcategory("");
+                }}
               >
                 {formatDisplayName(category.name)}
               </button>
             ))}
           </div>
         </div>
+
+        {selectedCategory && (
+          <div className="vendor-storefront-categories">
+            <div className="vendor-section-heading">
+              <h2>Subcategories</h2>
+              <p>Refine the selected category before editing or reviewing inventory.</p>
+            </div>
+
+            <div className="vendor-storefront-chip-row">
+              <button
+                type="button"
+                className={`vendor-storefront-chip ${selectedSubcategory === "" ? "active" : ""}`}
+                onClick={() => setSelectedSubcategory("")}
+              >
+                All
+              </button>
+
+              {visibleSubcategoryChips.map((subcategory) => (
+                <button
+                  key={subcategory._id}
+                  type="button"
+                  className={`vendor-storefront-chip ${selectedSubcategory === subcategory._id ? "active" : ""}`}
+                  onClick={() => setSelectedSubcategory(subcategory._id)}
+                >
+                  {formatDisplayName(subcategory.name)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <div className="inventory-toolbar">
@@ -391,12 +434,20 @@ export default function InventoryTab() {
 
               <div className="actions inventory-actions">
                 {isEditing ? (
-                  <button
-                    className="edit-btn"
-                    onClick={() => saveEdit(p._id)}
-                  >
-                    Save
-                  </button>
+                  <>
+                    <button
+                      className="edit-btn"
+                      onClick={() => saveEdit(p._id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="cancel-btn"
+                      onClick={cancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </>
                 ) : (
                   <button
                     className="edit-btn"

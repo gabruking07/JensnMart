@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const path = require("path");
+const multer = require("multer");
+const XLSX = require("xlsx");
 
 const Product = require("../models/Product");
 const Category = require("../models/Category");
@@ -12,6 +14,23 @@ const upload = require("../config/upload");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly"); // adminOnly middleware
 const { sendNotificationEmail } = require("../utils/mailer");
+const IMPORT_PLACEHOLDER_IMAGE = "product-placeholder.svg";
+
+const importUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedExtensions = [".csv", ".xlsx", ".xls"];
+    const extension = path.extname(file.originalname || "").toLowerCase();
+
+    if (allowedExtensions.includes(extension)) {
+      cb(null, true);
+      return;
+    }
+
+    cb(new Error("Only CSV or Excel files are allowed"));
+  },
+});
 
 const getProductImageUrl = (imageName) => {
   if (!imageName) return "";
@@ -91,6 +110,55 @@ const notifyRestockSubscribers = async (product) => {
   );
 };
 
+const normalizeValue = (value) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+const getRowValue = (row, candidateKeys) => {
+  const entries = Object.entries(row || {});
+  for (const [key, value] of entries) {
+    const normalizedKey = normalizeValue(key).replace(/[\s_-]+/g, "");
+    if (candidateKeys.includes(normalizedKey)) {
+      return value;
+    }
+  }
+  return "";
+};
+
+const parseImportRows = (buffer, filename = "") => {
+  const workbook = XLSX.read(buffer, { type: "buffer" });
+  const firstSheetName = workbook.SheetNames[0];
+  if (!firstSheetName) return [];
+
+  const worksheet = workbook.Sheets[firstSheetName];
+  return XLSX.utils.sheet_to_json(worksheet, {
+    defval: "",
+    raw: false,
+  });
+};
+
+const buildCategoryLookup = (categories = []) => {
+  const map = new Map();
+  categories.forEach((category) => {
+    map.set(String(category._id), category);
+    map.set(normalizeValue(category.name), category);
+  });
+  return map;
+};
+
+const buildSubcategoryLookup = (subcategories = []) => {
+  const map = new Map();
+  subcategories.forEach((subcategory) => {
+    map.set(String(subcategory._id), subcategory);
+    map.set(
+      `${normalizeValue(subcategory.name)}::${String(subcategory.category)}`,
+      subcategory
+    );
+  });
+  return map;
+};
+
 /* =====================================================
    ADD PRODUCT (ADMIN + MANAGER)
 ===================================================== */
@@ -126,6 +194,129 @@ router.post(
     } catch (err) {
       console.error("CREATE PRODUCT ERROR:", err);
       res.status(500).json({ message: err.message });
+    }
+  }
+);
+
+/* =====================================================
+   IMPORT PRODUCTS (CSV / EXCEL)
+===================================================== */
+router.post(
+  "/import",
+  authMiddleware,
+  roleOnly("admin", "manager"),
+  importUpload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Import file is required" });
+      }
+
+      const rows = parseImportRows(req.file.buffer, req.file.originalname);
+      if (!rows.length) {
+        return res.status(400).json({ message: "No rows found in the uploaded file" });
+      }
+
+      const categories = await Category.find({});
+      const subcategories = await SubCategory.find({});
+      const categoryLookup = buildCategoryLookup(categories);
+      const subcategoryLookup = buildSubcategoryLookup(subcategories);
+      const errors = [];
+      const documents = [];
+
+      rows.forEach((row, index) => {
+        const excelRowNumber = index + 2;
+        const name = String(
+          getRowValue(row, ["name", "productname", "product", "title"])
+        ).trim();
+        const priceValue = getRowValue(row, ["price", "amount", "mrp"]);
+        const stockValue = getRowValue(row, ["stock", "quantity", "qty", "inventory"]);
+        const categoryValue = String(
+          getRowValue(row, ["category", "categoryid", "categoryname"])
+        ).trim();
+        const subcategoryValue = String(
+          getRowValue(row, ["subcategory", "subcategoryid", "subcategoryname"])
+        ).trim();
+        const imageValue = String(
+          getRowValue(row, ["image", "imagename", "imagefile", "filename"])
+        ).trim();
+
+        // Skip completely empty rows.
+        if (![name, priceValue, stockValue, categoryValue, subcategoryValue, imageValue].some(Boolean)) {
+          return;
+        }
+
+        if (!name || priceValue === "" || stockValue === "" || !categoryValue) {
+          errors.push(`Row ${excelRowNumber}: name, price, stock, and category are required.`);
+          return;
+        }
+
+        const price = Number(priceValue);
+        const stock = Number(stockValue);
+        if (Number.isNaN(price) || price < 0) {
+          errors.push(`Row ${excelRowNumber}: price must be a valid non-negative number.`);
+          return;
+        }
+
+        if (!Number.isInteger(stock) || stock < 0) {
+          errors.push(`Row ${excelRowNumber}: stock must be a valid whole number.`);
+          return;
+        }
+
+        const categoryDoc =
+          categoryLookup.get(categoryValue) || categoryLookup.get(normalizeValue(categoryValue));
+
+        if (!categoryDoc) {
+          errors.push(`Row ${excelRowNumber}: category "${categoryValue}" was not found.`);
+          return;
+        }
+
+        let subcategoryId = null;
+        if (subcategoryValue) {
+          const byId = subcategoryLookup.get(subcategoryValue);
+          const byNameAndCategory = subcategoryLookup.get(
+            `${normalizeValue(subcategoryValue)}::${String(categoryDoc._id)}`
+          );
+          const subcategoryDoc = byId || byNameAndCategory;
+
+          if (!subcategoryDoc) {
+            errors.push(
+              `Row ${excelRowNumber}: subcategory "${subcategoryValue}" was not found under "${categoryDoc.name}".`
+            );
+            return;
+          }
+
+          subcategoryId = subcategoryDoc._id;
+        }
+
+        documents.push({
+          name,
+          price,
+          stock,
+          category: categoryDoc._id,
+          subcategory: subcategoryId,
+          image: imageValue || IMPORT_PLACEHOLDER_IMAGE,
+          vendor: null,
+        });
+      });
+
+      if (!documents.length) {
+        return res.status(400).json({
+          message: errors[0] || "No valid product rows found",
+          errors,
+        });
+      }
+
+      const inserted = await Product.insertMany(documents);
+      return res.json({
+        message: `Imported ${inserted.length} products successfully`,
+        importedCount: inserted.length,
+        skippedCount: errors.length,
+        errors,
+      });
+    } catch (err) {
+      console.error("IMPORT PRODUCTS ERROR:", err);
+      res.status(500).json({ message: err.message || "Import failed" });
     }
   }
 );

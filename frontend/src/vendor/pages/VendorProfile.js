@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 import Footer from "../../components/Footer";
 import "./VendorProfile.css";
 import VendorLayout from "./VendorLayout";
@@ -60,13 +61,13 @@ export default function VendorProfile() {
     setIsUpdating(true);
     try {
       if (phone && !/^\d{10}$/.test(phone)) {
-        alert("Phone must be 10 digits");
+        toast.error("Phone must be 10 digits");
         setIsUpdating(false);
         return;
       }
 
       if (pincode && !/^\d{6}$/.test(pincode.trim())) {
-        alert("Pincode must be 6 digits");
+        toast.error("Pincode must be 6 digits");
         setPincodeError("Pincode must be 6 digits");
         setIsUpdating(false);
         return;
@@ -89,12 +90,12 @@ export default function VendorProfile() {
 
       await api.put("/vendor/profile", formData);
 
-      alert("Profile updated");
+      toast.success("Profile updated");
       setPassword("");
       setProfileImage(null);
       loadProfile();
     } catch (err) {
-      alert(err.response?.data?.message || "Update failed");
+      toast.error(err.response?.data?.message || "Update failed");
     } finally {
       setIsUpdating(false);
     }
@@ -122,7 +123,7 @@ export default function VendorProfile() {
       await api.put("/vendor/profile", formData);
       await loadProfile();
     } catch (err) {
-      alert("Image upload failed");
+      toast.error("Image upload failed");
     }
   };
 

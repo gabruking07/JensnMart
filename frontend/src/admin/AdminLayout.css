@@ -11,7 +11,6 @@
 }
 
 .admin-root {
-  display: flex;
   min-height: 100vh;
   background:
     radial-gradient(circle at top left, rgba(244, 187, 80, 0.16), transparent 20%),
@@ -31,8 +30,19 @@
   flex-direction: column;
   padding: 14px 12px;
   transition: width 0.25s ease;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: calc(100vh - 12px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   box-shadow: 0 22px 44px rgba(4, 23, 39, 0.35);
+  z-index: 20;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar.collapsed {
@@ -282,10 +292,14 @@
 }
 
 .content {
-  flex: 1;
-  overflow-y: auto;
+  margin-left: 270px;
+  min-height: 100vh;
   padding: 6px 18px 18px 0;
   background: transparent;
+}
+
+.sidebar.collapsed + .content {
+  margin-left: 90px;
 }
 
 .sidebar-header {
@@ -345,7 +359,12 @@
   }
 
   .content{
+    margin-left: 106px;
     padding:12px 14px 14px 0;
+  }
+
+  .sidebar.collapsed + .content{
+    margin-left: 106px;
   }
 }
 
@@ -362,9 +381,11 @@
     height:auto;
     position:sticky;
     top:0;
+    left:auto;
     z-index:1000;
     margin:0;
     border-radius:0;
+    overflow:visible;
   }
 
   .sidebar-header{
@@ -398,6 +419,7 @@
   }
 
   .content{
+    margin-left: 0;
     padding:12px 10px;
   }
 }

@@ -86,10 +86,6 @@ export default function CategoryTab() {
 
   const categoryCount = categories.length;
   const subcategoryCount = subcategories.length;
-  const averageSubcategories = categoryCount
-    ? (subcategoryCount / categoryCount).toFixed(1)
-    : "0.0";
-
   const subcategoryMap = useMemo(() => {
     return categories.map((category) => ({
       ...category,
@@ -125,11 +121,6 @@ export default function CategoryTab() {
           <span>Subcategories</span>
           <strong>{subcategoryCount}</strong>
           <small>catalog drill-down options</small>
-        </article>
-        <article className="category-summary-card">
-          <span>Avg density</span>
-          <strong>{averageSubcategories}</strong>
-          <small>subcategories per category</small>
         </article>
       </section>
 
