@@ -481,7 +481,7 @@
 }
 
 .admin-inventory .inventory-actions .cancel-btn:hover {
-  background: #cbd5e1;
+  background: #cbd5e1; 
 }
 
 .admin-inventory .inventory-actions .delete-btn {
@@ -945,6 +945,23 @@
   gap: 10px;
 }
 
+.order-products-toggle {
+  width: fit-content;
+  margin-top: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.order-products-toggle:hover {
+  background: #f1f5f9;
+}
+
 .product-chip {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.86));
@@ -1005,6 +1022,21 @@
   font-size: 1.15rem;
   font-weight: 900;
   color: #9a3412;
+}
+
+.invoice-btn {
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0a2b4a, #113f66);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
+.invoice-btn:hover {
+  background: linear-gradient(135deg, #e16a2f, #bc4917);
 }
 
 .timeline-box-dark {
@@ -2434,6 +2466,17 @@
   .summary-cards{
     flex-direction:column;
     gap:12px;
+  }
+
+  .order-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .order-footer-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .charts-row{

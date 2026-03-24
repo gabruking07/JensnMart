@@ -9,6 +9,10 @@ const STEPS = [
 ];
 
 export default function OrderTimeline({ status }) {
+    const statusLabel = String(status || "")
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/_/g, " ")
+        .trim();
     const idx = STEPS.findIndex(s => s.key === status);
     const current = idx;
 
@@ -17,7 +21,7 @@ export default function OrderTimeline({ status }) {
             <div className="timeline-header">
                 <span className="timeline-title">Delivery Status</span>
                 <span className={`status-pill ${status?.toLowerCase()}`}>
-                    {status}
+                    {statusLabel}
                 </span>
             </div>
 
