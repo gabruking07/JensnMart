@@ -13,6 +13,8 @@
 .admin-root {
   display: flex;
   min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background:
     radial-gradient(circle at top left, rgba(244, 187, 80, 0.16), transparent 20%),
     radial-gradient(circle at top right, rgba(31, 110, 167, 0.1), transparent 18%),
@@ -21,7 +23,7 @@
 
 .sidebar {
   width: 252px;
-  margin: 6px 0 6px 6px;
+  margin: 0;
   border-radius: 12px 0 0 12px;
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 28%),
@@ -31,7 +33,11 @@
   flex-direction: column;
   padding: 14px 12px;
   transition: width 0.25s ease;
-  position: relative;
+  position: fixed;
+  top: 6px;
+  left: 6px;
+  bottom: 6px;
+  overflow-y: auto;
   box-shadow: 0 22px 44px rgba(4, 23, 39, 0.35);
 }
 
@@ -283,9 +289,15 @@
 
 .content {
   flex: 1;
+  margin-left: 264px;
+  height: 100vh;
   overflow-y: auto;
   padding: 6px 18px 18px 0;
   background: transparent;
+}
+
+.sidebar.collapsed + .content {
+  margin-left: 84px;
 }
 
 .sidebar-header {
@@ -345,7 +357,12 @@
   }
 
   .content{
+    margin-left: 100px;
     padding:12px 14px 14px 0;
+  }
+
+  .sidebar.collapsed + .content{
+    margin-left: 100px;
   }
 }
 
@@ -354,6 +371,7 @@
     flex-direction:column;
     height:auto;
     min-height:100vh;
+    overflow: visible;
   }
 
   .sidebar,
@@ -398,6 +416,8 @@
   }
 
   .content{
+    margin-left: 0;
+    height: auto;
     padding:12px 10px;
   }
 }
