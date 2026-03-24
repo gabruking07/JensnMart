@@ -14,156 +14,7 @@ export default function OrdersTab() {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(4);
-  const formattedCommission = useMemo(
-    () =>
-      new Intl.NumberFormat("en-IN", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(Number(commission || 0)),
-    [commission]
-  );
-  const formatStatusLabel = (value) =>
-    String(value || "")
-      .replace(/([a-z])([A-Z])/g, "$1 $2")
-      .replace(/_/g, " ")
-      .trim();
-
-  const escapeHtml = (value) =>
-    String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-
-  const generateInvoice = (order) => {
-    const invoiceId = `INV-${order?.orderNumber || order?._id?.slice(-6) || "NA"}`;
-    const orderDate = order?.createdAt
-      ? new Date(order.createdAt).toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
-      : "N/A";
-
-    const products = Array.isArray(order?.products) ? order.products : [];
-    const subtotal = products.reduce(
-      (sum, item) => sum + Number(item?.qty || 0) * Number(item?.price || 0),
-      0
-    );
-    const grandTotal = Number(order?.total ?? subtotal);
-
-    const rows = products
-      .map((item, idx) => {
-        const qty = Number(item?.qty || 0);
-        const unit = Number(item?.price || 0);
-        const lineTotal = qty * unit;
-
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${escapeHtml(item?.name || "Item")}</td>
-            <td>${qty}</td>
-            <td>Rs ${unit.toFixed(2)}</td>
-            <td>Rs ${lineTotal.toFixed(2)}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    const invoiceHtml = `
-      <!doctype html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>Invoice ${escapeHtml(invoiceId)}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 28px; color: #0f172a; }
-            .head { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
-            .brand h1 { margin: 0; font-size: 22px; }
-            .brand p { margin: 4px 0 0; color: #475569; }
-            .meta { text-align: right; }
-            .meta p { margin: 3px 0; }
-            .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-            th, td { border: 1px solid #e2e8f0; padding: 9px; text-align: left; font-size: 13px; }
-            th { background: #f8fafc; }
-            .total { margin-top: 14px; display: flex; justify-content: flex-end; }
-            .total-box { min-width: 260px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; }
-            .row { display: flex; justify-content: space-between; margin: 5px 0; }
-            .grand { font-weight: 700; font-size: 16px; border-top: 1px dashed #cbd5e1; padding-top: 8px; margin-top: 8px; }
-            .note { margin-top: 18px; color: #475569; font-size: 12px; }
-            @media print { body { margin: 14px; } }
-          </style>
-        </head>
-        <body>
-          <div class="head">
-            <div class="brand">
-              <h1>JensnMart Invoice</h1>
-              <p>Admin generated order invoice</p>
-            </div>
-            <div class="meta">
-              <p><strong>Invoice:</strong> ${escapeHtml(invoiceId)}</p>
-              <p><strong>Order #:</strong> ${escapeHtml(order?.orderNumber || "N/A")}</p>
-              <p><strong>Date:</strong> ${escapeHtml(orderDate)}</p>
-              <p><strong>Status:</strong> ${escapeHtml(order?.status || "N/A")}</p>
-            </div>
-          </div>
-
-          <div class="card grid">
-            <div>
-              <strong>Vendor</strong>
-              <p>${escapeHtml(order?.vendor?.email || "N/A")}</p>
-            </div>
-            <div>
-              <strong>Delivery Address</strong>
-              <p>${escapeHtml(order?.deliveryAddress || "N/A")}</p>
-            </div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>Unit Price</th>
-                <th>Line Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows || '<tr><td colspan="5">No products found</td></tr>'}
-            </tbody>
-          </table>
-
-          <div class="total">
-            <div class="total-box">
-              <div class="row"><span>Subtotal</span><span>Rs ${subtotal.toFixed(2)}</span></div>
-              <div class="row grand"><span>Grand Total</span><span>Rs ${grandTotal.toFixed(2)}</span></div>
-            </div>
-          </div>
-
-          <p class="note">Generated from Admin Orders panel on ${new Date().toLocaleString("en-IN")}.</p>
-        </body>
-      </html>
-    `;
-
-    const popup = window.open("", "_blank", "width=980,height=720");
-    if (!popup) {
-      toast.error("Popup blocked. Please allow popups to generate invoice.");
-      return;
-    }
-
-    popup.document.open();
-    popup.document.write(invoiceHtml);
-    popup.document.close();
-    popup.focus();
-    setTimeout(() => {
-      popup.print();
-    }, 250);
-  };
+  const [itemsPerPage, setItemsPerPage] = useState(6);
 
   const loadOrders = async () => {
     try {
@@ -269,20 +120,20 @@ export default function OrdersTab() {
         <div className="admin-page-hero-status">
           <span>Orders in view</span>
           <strong>{filtered.length}</strong>
-          <p>{orders.length} total orders are loaded, with commission at Rs {formattedCommission}.</p>
+          <p>{orders.length} total orders are loaded, with commission at Rs {commission}.</p>
         </div>
       </section>
 
       <div className="stats-row">
         {["Placed", "Processing", "Shipped", "Delivered", "Returned", "Cancelled"].map((s) => (
-          <div className={`stat-card stat-${s.toLowerCase()}`} key={s}>
+          <div className="stat-card" key={s}>
             <span>{s}</span>
             <h3>{stats[s.toLowerCase()]}</h3>
           </div>
         ))}
         <div className="stat-card highlight">
           <span>Commission</span>
-          <h3>Rs {formattedCommission}</h3>
+          <h3>Rs {commission}</h3>
         </div>
       </div>
 
@@ -337,23 +188,16 @@ export default function OrdersTab() {
       <div className="orders-list">
         {paginatedOrders.map((o) => {
           const products = o.products || [];
-          const statusLabel = formatStatusLabel(o.status);
           const hasMultipleProducts = products.length > 1;
           const isExpanded = Boolean(expandedOrders[o._id]);
           const visibleProducts =
             hasMultipleProducts && !isExpanded ? products.slice(0, 1) : products;
 
           return (
-            <div
-              key={o._id}
-              className={`order-card order-${String(o.status || "unknown").toLowerCase()}`}
-            >
+            <div key={o._id} className="order-card">
               <div className="order-main-content">
                 <div className="order-header">
-                  <h3>
-                    Order #{o.orderNumber}
-                    <span className="order-id-pill">{statusLabel}</span>
-                  </h3>
+                  <h3>Order #{o.orderNumber}</h3>
                   <p className="vendor-email">{o.vendor?.email}</p>
                   <select
                     className="status-select-minimal"
@@ -391,16 +235,7 @@ export default function OrdersTab() {
 
                 <div className="order-footer">
                   <span className="label">TOTAL AMOUNT</span>
-                  <div className="order-footer-actions">
-                    <span className="total-price">Total: Rs {o.total}</span>
-                    <button
-                      type="button"
-                      className="invoice-btn"
-                      onClick={() => generateInvoice(o)}
-                    >
-                      Generate Invoice
-                    </button>
-                  </div>
+                  <span className="total-price">Total: Rs {o.total}</span>
                 </div>
               </div>
 
