@@ -167,21 +167,21 @@ export default function OrdersTab() {
         >
           Reset
         </button>
-      </div>
 
-      <div className="orders-page-toolbar">
-        <div className="orders-page-size">
-          <label htmlFor="orders-page-size">Items per page</label>
-          <select
-            id="orders-page-size"
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-          >
-            <option value={4}>4</option>
-            <option value={6}>6</option>
-            <option value={8}>8</option>
-            <option value={12}>12</option>
-          </select>
+        <div className="orders-page-toolbar">
+          <div className="orders-page-size">
+            <label htmlFor="orders-page-size">Items per page</label>
+            <select
+              id="orders-page-size"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={4}>4</option>
+              <option value={6}>6</option>
+              <option value={8}>8</option>
+              <option value={12}>12</option>
+            </select>
+          </div>
         </div>
       </div>
 

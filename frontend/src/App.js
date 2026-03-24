@@ -31,7 +31,44 @@ import VendorNotifications from "./vendor/pages/VendorNotifications";
 function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            borderRadius: "16px",
+            padding: "14px 16px",
+            fontSize: "14px",
+            fontWeight: "700",
+            border: "1px solid rgba(15, 23, 42, 0.08)",
+            boxShadow: "0 18px 36px rgba(15, 23, 42, 0.16)",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,248,240,0.96))",
+            color: "#0f172a"
+          },
+          success: {
+            iconTheme: {
+              primary: "#16a34a",
+              secondary: "#f0fdf4"
+            },
+            style: {
+              border: "1px solid rgba(34, 197, 94, 0.22)",
+              background:
+                "radial-gradient(circle at top right, rgba(134, 239, 172, 0.18), transparent 42%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(240,253,244,0.96))"
+            }
+          },
+          error: {
+            iconTheme: {
+              primary: "#dc2626",
+              secondary: "#fef2f2"
+            },
+            style: {
+              border: "1px solid rgba(248, 113, 113, 0.24)",
+              background:
+                "radial-gradient(circle at top right, rgba(252, 165, 165, 0.16), transparent 42%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(254,242,242,0.96))"
+            }
+          }
+        }}
+      />
       <ChatbotWidget />
 
       <Routes>

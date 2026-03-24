@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 import Footer from "../../components/Footer";
 import OrderTimeline from "../../components/OrderTimeline";
 import "./VendorOrders.css";
@@ -33,7 +34,7 @@ export default function VendorOrders() {
       const res = await api.get("/orders/vendor/orders");
       setOrders(res.data || []);
     } catch (err) {
-      alert("Failed to load orders");
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }

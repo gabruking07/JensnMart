@@ -5,7 +5,9 @@ import {
     Package,
     PlusCircle,
     FolderTree,
-    Receipt,
+    ShoppingCart,
+    CreditCard,
+    Bell,
     Store,
     Users,
     BarChart3,
@@ -63,19 +65,19 @@ export default function AdminLayout() {
         {
             name: "Orders",
             path: "/admin/orders",
-            icon: Receipt,
+            icon: ShoppingCart,
             roles: ["admin", "manager"]
         },
         {
             name: "Payments",
             path: "/admin/payments",
-            icon: Receipt,
+            icon: CreditCard,
             roles: ["admin"]   // ADMIN ONLY
         },
         {
             name: "Notifications",
             path: "/admin/notifications",
-            icon: Receipt,
+            icon: Bell,
             roles: ["admin", "manager"]
         },
         {
