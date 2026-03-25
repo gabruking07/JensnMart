@@ -27,9 +27,9 @@ export default function AdminLayout() {
 
     const menu = [
         {
-            name: "Profile",
-            path: "/admin/profile",
-            icon: UserCircle,
+            name: "Reports",
+            path: "/admin/reports",
+            icon: BarChart3,
             roles: ["admin", "manager"]
         },
         {
@@ -72,7 +72,7 @@ export default function AdminLayout() {
             name: "Payments",
             path: "/admin/payments",
             icon: CreditCard,
-            roles: ["admin"]   // ADMIN ONLY
+            roles: ["admin"] // ADMIN ONLY
         },
         {
             name: "Notifications",
@@ -81,9 +81,9 @@ export default function AdminLayout() {
             roles: ["admin", "manager"]
         },
         {
-            name: "Reports",
-            path: "/admin/reports",
-            icon: BarChart3,
+            name: "Profile",
+            path: "/admin/profile",
+            icon: UserCircle,
             roles: ["admin", "manager"]
         },
     ];

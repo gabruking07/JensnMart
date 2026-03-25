@@ -81,7 +81,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="inventory" replace />} />
+          <Route index element={<Navigate to="reports" replace />} />
           <Route path="profile" element={<ProfileTab />} />
           <Route path="inventory" element={<InventoryTab />} />
           <Route path="vendors" element={<VendorsTab />} />
