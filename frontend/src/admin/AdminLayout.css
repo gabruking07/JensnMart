@@ -23,7 +23,7 @@
 .sidebar {
   width: 252px;
   margin: 0;
-  border-radius: 12px 0 0 12px;
+  border-radius: 0;
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 28%),
     linear-gradient(180deg, var(--bg), var(--bg-2) 62%, var(--panel));
@@ -35,7 +35,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  height: calc(100vh - 12px);
+  height: 100vh;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -294,7 +294,7 @@
 }
 
 .content {
-  margin-left: 270px;
+  margin-left: 252px;
   min-height: 100vh;
   overflow: visible;
   padding: 6px 18px 18px 0;
@@ -302,7 +302,7 @@
 }
 
 .sidebar.collapsed + .content {
-  margin-left: 90px;
+  margin-left: 72px;
 }
 
 .sidebar-header {
