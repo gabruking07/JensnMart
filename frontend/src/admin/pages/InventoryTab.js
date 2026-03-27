@@ -17,7 +17,7 @@ export default function InventoryTab() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const [draft, setDraft] = useState({ name: "", price: "", stock: "" });
+  const [draft, setDraft] = useState({ name: "", price: "", stock: "", image: null });
 
   const formatDisplayName = (value) => {
     const normalized = String(value || "").trim().toLowerCase();
@@ -158,12 +158,13 @@ export default function InventoryTab() {
       name: product.name || "",
       price: String(product.price ?? ""),
       stock: String(product.stock ?? ""),
+      image: null,
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setDraft({ name: "", price: "", stock: "" });
+    setDraft({ name: "", price: "", stock: "", image: null });
   };
 
   const saveEdit = async (id) => {
@@ -187,10 +188,19 @@ export default function InventoryTab() {
     }
 
     try {
-      await api.put(`/products/${id}`, {
-        name: trimmedName,
-        price,
-        stock,
+      const data = new FormData();
+      data.append("name", trimmedName);
+      data.append("price", String(price));
+      data.append("stock", String(stock));
+
+      if (draft.image) {
+        data.append("image", draft.image);
+      }
+
+      await api.put(`/products/${id}`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       toast.success("Product updated");
       cancelEdit();
@@ -327,6 +337,21 @@ export default function InventoryTab() {
                   alt={p.name}
                 />
                 <span className={`stock-pill ${stockState}`}>{stockLabel}</span>
+                {isEditing && (
+                  <label className="product-image-edit-trigger">
+                    <span>{draft.image ? "Image selected" : "Change image"}</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          image: e.target.files?.[0] || null,
+                        }))
+                      }
+                    />
+                  </label>
+                )}
               </div>
 
               <div className="product-card-topline">

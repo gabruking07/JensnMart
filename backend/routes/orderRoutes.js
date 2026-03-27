@@ -65,7 +65,8 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
           productId: product._id,
           name: product.name,
           price: product.price,
-          qty
+          qty,
+          image: product.image
         }
       ],
       total,

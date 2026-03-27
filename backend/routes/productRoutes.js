@@ -360,6 +360,7 @@ router.put(
   "/:id",
   authMiddleware,
   roleOnly("admin", "manager"),
+  upload.single("image"),
   async (req, res) => {
     try {
       const { name, price, stock, category, subcategory } = req.body;
@@ -414,6 +415,10 @@ router.put(
         if (!existingSub || String(existingSub.category) !== String(product.category)) {
           product.subcategory = null;
         }
+      }
+
+      if (req.file) {
+        product.image = `products/${req.file.filename}`;
       }
 
       console.log("UPDATE PRODUCT BODY:", req.body);
