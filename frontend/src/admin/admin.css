@@ -2805,6 +2805,36 @@
   background: #fff;
 }
 
+.payment-actions-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.payment-notify-btn {
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1d4ed8, #0f766e);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 12px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.18);
+}
+
+.payment-notify-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.payment-notify-muted {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
 .payments-pagination{
   margin-top: 14px;
   display: flex;

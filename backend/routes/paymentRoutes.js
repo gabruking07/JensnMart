@@ -194,4 +194,40 @@ router.put("/:id", authMiddleware, roleOnly("admin"), async (req, res) => {
   res.json({ message: "Payment updated", payment });
 });
 
+router.post("/:id/notify-vendor", authMiddleware, roleOnly("admin"), async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id)
+      .populate("order", "orderNumber")
+      .populate("vendor", "name email");
+
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    if (payment.status !== "Pending") {
+      return res.status(400).json({ message: "Only pending transactions can send reminders" });
+    }
+
+    await notifyVendor({
+      vendorId: payment.vendor?._id || payment.vendor,
+      type: "payment",
+      title: `Pending transaction reminder for Order #${payment.order?.orderNumber || "-"}`,
+      message: `Admin flagged your pending transaction of Rs ${payment.amount} for follow-up. Please review the payment status and update it if needed.`,
+      meta: {
+        orderId: payment.order?._id,
+        paymentId: payment._id,
+        vendorId: payment.vendor?._id || payment.vendor,
+        orderNumber: payment.order?.orderNumber,
+        status: payment.status,
+      },
+      sendEmail: true,
+    });
+
+    res.json({ message: "Vendor notified successfully" });
+  } catch (err) {
+    console.error("PAYMENT VENDOR NOTIFY ERROR:", err);
+    res.status(500).json({ message: "Failed to notify vendor" });
+  }
+});
+
 module.exports = router;

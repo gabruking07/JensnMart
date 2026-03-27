@@ -5,6 +5,7 @@ import "../admin.css";
 
 export default function PaymentsTab() {
   const [payments, setPayments] = useState([]);
+  const [notifyingId, setNotifyingId] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [orderSort, setOrderSort] = useState("asc");
@@ -66,6 +67,18 @@ export default function PaymentsTab() {
       loadPayments();
     } catch {
       toast.error("Update failed");
+    }
+  };
+
+  const notifyVendorForPending = async (payment) => {
+    try {
+      setNotifyingId(payment._id);
+      const { data } = await api.post(`/payments/${payment._id}/notify-vendor`);
+      toast.success(data?.message || "Vendor notified");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to notify vendor");
+    } finally {
+      setNotifyingId("");
     }
   };
 
@@ -166,15 +179,30 @@ export default function PaymentsTab() {
               {p.status}
             </span>
 
-            <select
-              value={p.status}
-              onChange={(e) => updateStatus(p._id, e.target.value)}
-              className="payment-action-select"
-            >
-              <option value="Pending">Pending</option>
-              <option value="Paid">Paid</option>
-              <option value="Failed">Failed</option>
-            </select>
+            <div className="payment-actions-stack">
+              <select
+                value={p.status}
+                onChange={(e) => updateStatus(p._id, e.target.value)}
+                className="payment-action-select"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+                <option value="Failed">Failed</option>
+              </select>
+
+              {p.status === "Pending" ? (
+                <button
+                  type="button"
+                  className="payment-notify-btn"
+                  onClick={() => notifyVendorForPending(p)}
+                  disabled={notifyingId === p._id}
+                >
+                  {notifyingId === p._id ? "Sending..." : "Notify Vendor"}
+                </button>
+              ) : (
+                <span className="payment-notify-muted">No reminder needed</span>
+              )}
+            </div>
           </div>
         ))}
       </div>
