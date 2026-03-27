@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
-import { confirmToast } from "../../utils/confirmToast";
+import { confirmToast } from "../../components/confirmToast";
 
 export default function VendorsTab() {
   const [vendors, setVendors] = useState([]);
