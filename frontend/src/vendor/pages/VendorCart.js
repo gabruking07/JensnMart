@@ -157,8 +157,9 @@ export default function VendorCart() {
             amount: order.total,
           });
 
+          setCartItems([]);
           toast.success("Payment successful");
-          fetchCart();
+          await fetchCart();
           window.dispatchEvent(new Event("cart-updated"));
           navigate("/vendor/orders");
 

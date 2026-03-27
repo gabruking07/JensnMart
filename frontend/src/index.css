@@ -1,3 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 36 73% 96%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 205 77% 35%;
+  --primary-foreground: 35 100% 96%;
+  --secondary: 32 82% 92%;
+  --secondary-foreground: 213 68% 16%;
+  --muted: 34 46% 92%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 36 90% 67%;
+  --accent-foreground: 213 68% 16%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 205 77% 35%;
+  --radius: 0.9rem;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -5,21 +32,22 @@
 body {
   margin: 0;
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  background: #f4f6f8;
-  color: #333;
+  background:
+    radial-gradient(circle at top left, rgba(244, 187, 80, 0.14), transparent 20%),
+    radial-gradient(circle at top right, rgba(31, 110, 167, 0.08), transparent 18%),
+    hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button {
   cursor: pointer;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  padding: 6px 12px;
-  background: #fff;
-  transition: 0.2s;
+  font: inherit;
 }
 
 button:hover {
-  background: #f0f0f0;
+  transition: 0.2s;
 }
 
 button:disabled {
@@ -28,9 +56,11 @@ button:disabled {
 }
 
 input {
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 /* ===== GLOBAL PAGE HEADER ===== */

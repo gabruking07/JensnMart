@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import OrderTimeline from "../../components/OrderTimeline";
@@ -12,7 +12,6 @@ export default function OrdersTab() {
   const [vendorFilter, setVendorFilter] = useState("all");
   const [expandedOrders, setExpandedOrders] = useState({});
 
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
 
@@ -50,27 +49,26 @@ export default function OrdersTab() {
 
   const vendors = useMemo(() => {
     const map = new Map();
-    orders.forEach((o) => {
-      if (o.vendor?._id) map.set(o.vendor._id, o.vendor.email);
+    orders.forEach((order) => {
+      if (order.vendor?._id) map.set(order.vendor._id, order.vendor.email);
     });
     return Array.from(map.entries()).map(([id, email]) => ({ id, email }));
   }, [orders]);
 
   const filtered = useMemo(() => {
-    return orders.filter((o) => {
-      if (statusFilter !== "all" && o.status !== statusFilter) return false;
+    return orders.filter((order) => {
+      if (statusFilter !== "all" && order.status !== statusFilter) return false;
       if (
         search &&
-        !String(o.orderNumber || "").toLowerCase().includes(search.toLowerCase())
+        !String(order.orderNumber || "").toLowerCase().includes(search.toLowerCase())
       ) {
         return false;
       }
-      if (vendorFilter !== "all" && o.vendor?._id !== vendorFilter) return false;
+      if (vendorFilter !== "all" && order.vendor?._id !== vendorFilter) return false;
       return true;
     });
   }, [orders, statusFilter, search, vendorFilter]);
 
-  // Pagination Math
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const paginatedOrders = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -89,12 +87,12 @@ export default function OrdersTab() {
 
   const stats = useMemo(() => {
     return {
-      placed: orders.filter((o) => o.status === "Placed").length,
-      processing: orders.filter((o) => o.status === "Processing").length,
-      shipped: orders.filter((o) => o.status === "Shipped").length,
-      delivered: orders.filter((o) => o.status === "Delivered").length,
-      returned: orders.filter((o) => o.status === "Returned").length,
-      cancelled: orders.filter((o) => o.status === "Cancelled").length,
+      placed: orders.filter((order) => order.status === "Placed").length,
+      processing: orders.filter((order) => order.status === "Processing").length,
+      shipped: orders.filter((order) => order.status === "Shipped").length,
+      delivered: orders.filter((order) => order.status === "Delivered").length,
+      returned: orders.filter((order) => order.status === "Returned").length,
+      cancelled: orders.filter((order) => order.status === "Cancelled").length,
     };
   }, [orders]);
 
@@ -104,6 +102,8 @@ export default function OrdersTab() {
       [orderId]: !prev[orderId],
     }));
   };
+
+  const commissionRupees = Math.round(Number(commission || 0));
 
   return (
     <div className="admin-container admin-panel-page">
@@ -120,20 +120,23 @@ export default function OrdersTab() {
         <div className="admin-page-hero-status">
           <span>Orders in view</span>
           <strong>{filtered.length}</strong>
-          <p>{orders.length} total orders are loaded, with commission at Rs {commission}.</p>
+          <p>
+            {orders.length} total orders are loaded, with commission at Rs{" "}
+            {commissionRupees.toLocaleString()}.
+          </p>
         </div>
       </section>
 
       <div className="stats-row">
-        {["Placed", "Processing", "Shipped", "Delivered", "Returned", "Cancelled"].map((s) => (
-          <div className="stat-card" key={s}>
-            <span>{s}</span>
-            <h3>{stats[s.toLowerCase()]}</h3>
+        {["Placed", "Processing", "Shipped", "Delivered", "Returned", "Cancelled"].map((status) => (
+          <div className="stat-card" key={status}>
+            <span>{status}</span>
+            <h3>{stats[status.toLowerCase()]}</h3>
           </div>
         ))}
         <div className="stat-card highlight">
           <span>Commission</span>
-          <h3>Rs {commission}</h3>
+          <h3>Rs {commissionRupees.toLocaleString()}</h3>
         </div>
       </div>
 
@@ -144,15 +147,21 @@ export default function OrdersTab() {
           <option value="Processing">Processing</option>
           <option value="Shipped">Shipped</option>
           <option value="Delivered">Delivered</option>
+          <option value="Returned">Returned</option>
+          <option value="Cancelled">Cancelled</option>
         </select>
 
-        <input placeholder="Search Order #" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input
+          placeholder="Search Order #"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
         <select value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)}>
           <option value="all">All Vendors</option>
-          {vendors.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.email}
+          {vendors.map((vendor) => (
+            <option key={vendor.id} value={vendor.id}>
+              {vendor.email}
             </option>
           ))}
         </select>
@@ -185,90 +194,253 @@ export default function OrdersTab() {
         </div>
       </div>
 
-      <div className="orders-list">
-        {paginatedOrders.map((o) => {
-          const products = o.products || [];
-          const hasMultipleProducts = products.length > 1;
-          const isExpanded = Boolean(expandedOrders[o._id]);
-          const visibleProducts =
-            hasMultipleProducts && !isExpanded ? products.slice(0, 1) : products;
+      <div className="orders-table-shell">
+        <div className="orders-table-header">
+          <p className="orders-table-title">Orders Table</p>
+          <span className="orders-table-count">
+            Showing {paginatedOrders.length} of {filtered.length} orders
+          </span>
+        </div>
+
+        <div className="orders-table-wrap">
+          <table className="orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Vendor</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Address</th>
+                <th>More</th>
+              </tr>
+            </thead>
+            <tbody>
+        {paginatedOrders.map((order) => {
+          const products = order.products || [];
+          const isExpanded = Boolean(expandedOrders[order._id]);
+          const firstProduct = products[0];
+          const vendorName =
+            order.vendor?.name ||
+            order.customerName ||
+            order.shippingAddress?.name ||
+            "Not available";
+          const vendorEmail = order.vendor?.email || order.customerEmail || "Not available";
+          const vendorPhone =
+            order.vendor?.phone ||
+            order.phone ||
+            order.shippingAddress?.phone ||
+            "Not available";
+          const vendorCountry =
+            order.vendor?.country ||
+            order.country ||
+            order.shippingAddress?.country ||
+            "India";
+          const paymentMethod = order.paymentMethod || order.payment?.method || "Online";
+          const transactionId =
+            order.razorpayPaymentId ||
+            order.transactionId ||
+            order.payment?.razorpayPaymentId ||
+            order.payment?.transactionId ||
+            "Not available";
+          const transactionStatus =
+            order.paymentStatus ||
+            order.payment?.status ||
+            (order.status === "Delivered" ? "Paid" : "Pending");
+          const orderDate = order.createdAt
+            ? new Date(order.createdAt).toLocaleString()
+            : "Not available";
+          const totalItems = products.reduce((sum, product) => sum + Number(product.qty || 0), 0);
+          const subtotalAmount = products.reduce(
+            (sum, product) => sum + Number(product.price || 0) * Number(product.qty || 0),
+            0
+          );
 
           return (
-            <div key={o._id} className="order-card">
-              <div className="order-main-content">
-                <div className="order-header">
-                  <h3>Order #{o.orderNumber}</h3>
-                  <p className="vendor-email">{o.vendor?.email}</p>
+            <Fragment key={order._id}>
+              <tr className="orders-table-row">
+                <td>
+                  <div className="orders-table-order-id">
+                    <strong>#{order.orderNumber}</strong>
+                    <span>{order._id?.slice(-8)}</span>
+                  </div>
+                </td>
+                <td>
+                  <div className="orders-table-vendor">
+                    <strong>{order.vendor?.email || "-"}</strong>
+                  </div>
+                </td>
+                <td>
+                  {firstProduct ? (
+                    <div className="orders-table-item">
+                      <img src={`http://localhost:5000/uploads/${firstProduct.image}`} alt="" />
+                      <div>
+                        <strong>{firstProduct.name}</strong>
+                        <span>
+                          Qty {firstProduct.qty}
+                          {products.length > 1 ? ` + ${products.length - 1} more item(s)` : ""}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="orders-table-muted">No products</span>
+                  )}
+                </td>
+                <td>
+                  <span className="orders-table-total">
+                    Rs {Number(order.total || 0).toLocaleString()}
+                  </span>
+                </td>
+                <td>
                   <select
-                    className="status-select-minimal"
-                    value={o.status}
-                    onChange={(e) => updateStatus(o._id, e.target.value)}
+                    className="orders-table-status"
+                    value={order.status}
+                    onChange={(e) => updateStatus(order._id, e.target.value)}
                   >
                     <option value="Placed">Placed</option>
                     <option value="Processing">Processing</option>
                     <option value="Shipped">Shipped</option>
                     <option value="Delivered">Delivered</option>
+                    <option value="Returned">Returned</option>
+                    <option value="Cancelled">Cancelled</option>
                   </select>
-                </div>
-
-                <div className="order-products">
-                  {visibleProducts.map((p, i) => (
-                    <div key={`${o._id}-${i}`} className="product-chip">
-                      <img src={`http://localhost:5000/uploads/${p.image}`} alt="" />
-                      <div className="product-info">
-                        <span className="p-name">{p.name}</span>
-                        <span className="p-details">Qty: {p.qty} | Rs {p.price}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {hasMultipleProducts && (
+                </td>
+                <td>
+                  <div className="orders-table-address">{order.deliveryAddress || "-"}</div>
+                </td>
+                <td>
                   <button
                     type="button"
-                    className="order-products-toggle"
-                    onClick={() => toggleOrderProducts(o._id)}
+                    className="orders-table-expand"
+                    onClick={() => toggleOrderProducts(order._id)}
                   >
-                    {isExpanded ? "Show less products" : `Show all products (${products.length})`}
+                    {isExpanded ? "Hide" : "View"}
                   </button>
-                )}
+                </td>
+              </tr>
+              {isExpanded && (
+                <tr className="orders-table-expanded-row">
+                  <td colSpan={7}>
+                    <div className="orders-table-expanded">
+                      <div className="orders-table-products">
+                        {products.map((product, index) => (
+                          <div key={`${order._id}-${index}`} className="product-chip">
+                            <img src={`http://localhost:5000/uploads/${product.image}`} alt="" />
+                            <div className="product-info">
+                              <span className="p-name">{product.name}</span>
+                              <span className="p-details">Qty: {product.qty} | Rs {product.price}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
 
-                <div className="order-footer">
-                  <span className="label">TOTAL AMOUNT</span>
-                  <span className="total-price">Total: Rs {o.total}</span>
-                </div>
-              </div>
+                      <div className="orders-table-side">
+                        <div className="orders-detail-grid">
+                          <div className="orders-detail-card">
+                            <span className="orders-detail-kicker">Vendor Details</span>
+                            <div className="orders-detail-list">
+                              <div>
+                                <label>Name</label>
+                                <strong>{vendorName}</strong>
+                              </div>
+                              <div>
+                                <label>Email</label>
+                                <strong>{vendorEmail}</strong>
+                              </div>
+                              <div>
+                                <label>Phone</label>
+                                <strong>{vendorPhone}</strong>
+                              </div>
+                              <div>
+                                <label>Country</label>
+                                <strong>{vendorCountry}</strong>
+                              </div>
+                            </div>
+                          </div>
 
-              <div className="timeline-box-dark">
-                <OrderTimeline status={o.status} />
-                <div className="order-address-mini">Address: {o.deliveryAddress}</div>
-              </div>
-            </div>
+                          <div className="orders-detail-card">
+                            <span className="orders-detail-kicker">Order Details</span>
+                            <div className="orders-detail-list">
+                              <div>
+                                <label>Order No.</label>
+                                <strong>#{order.orderNumber}</strong>
+                              </div>
+                              <div>
+                                <label>Created At</label>
+                                <strong>{orderDate}</strong>
+                              </div>
+                              <div>
+                                <label>Total Items</label>
+                                <strong>{totalItems}</strong>
+                              </div>
+                              <div>
+                                <label>Subtotal</label>
+                                <strong>Rs {subtotalAmount.toLocaleString()}</strong>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="orders-detail-card">
+                            <span className="orders-detail-kicker">Transaction Details</span>
+                            <div className="orders-detail-list">
+                              <div>
+                                <label>Method</label>
+                                <strong>{paymentMethod}</strong>
+                              </div>
+                              <div>
+                                <label>Transaction ID</label>
+                                <strong>{transactionId}</strong>
+                              </div>
+                              <div>
+                                <label>Payment Status</label>
+                                <strong>{transactionStatus}</strong>
+                              </div>
+                              <div>
+                                <label>Total Amount</label>
+                                <strong>Rs {Number(order.total || 0).toLocaleString()}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="timeline-box-dark">
+                          <OrderTimeline status={order.status} />
+                          <div className="order-address-mini">Address: {order.deliveryAddress}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </Fragment>
           );
         })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {totalPages > 1 && (
         <div className="pagination-container">
           <button
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
+            onClick={() => setCurrentPage((page) => page - 1)}
             className="pag-btn"
           >
             Prev
           </button>
-          {[...Array(totalPages)].map((_, i) => (
+          {Array.from({ length: totalPages }, (_, index) => (
             <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`page-num ${currentPage === i + 1 ? "active" : ""}`}
+              key={index}
+              onClick={() => setCurrentPage(index + 1)}
+              className={`page-num ${currentPage === index + 1 ? "active" : ""}`}
             >
-              {i + 1}
+              {index + 1}
             </button>
           ))}
           <button
             disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
+            onClick={() => setCurrentPage((page) => page + 1)}
             className="pag-btn"
           >
             Next

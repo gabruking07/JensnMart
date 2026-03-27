@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
-const { sendOtpEmail } = require("../utils/mailer");
+const { sendOtpEmail, sendOtpSms } = require("../utils/mailer");
 
 const router = express.Router();
 
@@ -85,45 +85,83 @@ router.post("/login", async (req, res) => {
 /* ================= FORGOT PASSWORD (ADMIN/MANAGER) ================= */
 router.post("/forgot-password/request-otp", async (req, res) => {
   try {
-    const email = String(req.body.email || "").toLowerCase().trim();
+    const contactType = req.body.contactType === "phone" ? "phone" : "email";
+    const identifier = String(req.body.identifier || req.body.email || req.body.phone || "")
+      .trim();
+    const normalizedIdentifier =
+      contactType === "email" ? identifier.toLowerCase() : identifier.replace(/\D/g, "");
 
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+    if (!normalizedIdentifier) {
+      return res.status(400).json({
+        message: contactType === "phone" ? "Phone is required" : "Email is required"
+      });
     }
 
-    const user = await Admin.findOne({ email });
-    if (user) {
-      const otp = String(Math.floor(100000 + Math.random() * 900000));
-      const otpHash = await bcrypt.hash(otp, 10);
+    if (contactType === "phone" && !/^\d{10}$/.test(normalizedIdentifier)) {
+      return res.status(400).json({ message: "Phone must be exactly 10 digits" });
+    }
 
-      user.passwordResetOtp = otpHash;
-      user.passwordResetOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
-      await user.save();
+    const lookup = contactType === "phone"
+      ? { phone: normalizedIdentifier }
+      : { email: normalizedIdentifier };
 
-      try {
+    const user = await Admin.findOne(lookup);
+    if (!user) {
+      return res.status(404).json({ message: "No account found" });
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otpHash = await bcrypt.hash(otp, 10);
+
+    user.passwordResetOtp = otpHash;
+    user.passwordResetOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    try {
+      if (contactType === "phone") {
+        await sendOtpSms({ to: user.phone, name: user.name, otp });
+      } else {
         await sendOtpEmail({ to: user.email, name: user.name, otp });
-      } catch (mailErr) {
-        console.error("ADMIN OTP EMAIL ERROR:", mailErr.message);
       }
+    } catch (deliveryErr) {
+      console.error("ADMIN OTP DELIVERY ERROR:", deliveryErr.message);
     }
 
-    res.json({ message: "If the email exists, OTP has been sent" });
+    res.json({
+      message:
+        contactType === "phone"
+          ? "If the phone number exists, OTP has been sent"
+          : "If the email exists, OTP has been sent"
+    });
   } catch (err) {
     console.error("ADMIN OTP REQUEST ERROR:", err);
-    res.json({ message: "If the email exists, OTP has been sent" });
+    res.status(500).json({ message: "Failed to send OTP" });
   }
 });
 
 router.post("/forgot-password/verify-otp", async (req, res) => {
   try {
-    const email = String(req.body.email || "").toLowerCase().trim();
+    const contactType = req.body.contactType === "phone" ? "phone" : "email";
+    const identifier = String(req.body.identifier || req.body.email || req.body.phone || "")
+      .trim();
+    const normalizedIdentifier =
+      contactType === "email" ? identifier.toLowerCase() : identifier.replace(/\D/g, "");
     const otp = String(req.body.otp || "").trim();
 
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
+    if (!normalizedIdentifier || !otp) {
+      return res.status(400).json({
+        message:
+          contactType === "phone"
+            ? "Phone and OTP are required"
+            : "Email and OTP are required"
+      });
     }
 
-    const user = await Admin.findOne({ email });
+    const lookup = contactType === "phone"
+      ? { phone: normalizedIdentifier }
+      : { email: normalizedIdentifier };
+
+    const user = await Admin.findOne(lookup);
     if (!user || !user.passwordResetOtp || !user.passwordResetOtpExpires) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
@@ -138,7 +176,15 @@ router.post("/forgot-password/verify-otp", async (req, res) => {
     }
 
     const resetToken = jwt.sign(
-      { id: user._id, email: user.email, role: user.role, purpose: "password_reset" },
+      {
+        id: user._id,
+        email: user.email,
+        phone: user.phone || "",
+        role: user.role,
+        contactType,
+        identifier: normalizedIdentifier,
+        purpose: "password_reset"
+      },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
@@ -152,12 +198,21 @@ router.post("/forgot-password/verify-otp", async (req, res) => {
 
 router.post("/forgot-password/reset", async (req, res) => {
   try {
-    const email = String(req.body.email || "").toLowerCase().trim();
+    const contactType = req.body.contactType === "phone" ? "phone" : "email";
+    const identifier = String(req.body.identifier || req.body.email || req.body.phone || "")
+      .trim();
+    const normalizedIdentifier =
+      contactType === "email" ? identifier.toLowerCase() : identifier.replace(/\D/g, "");
     const newPassword = String(req.body.newPassword || "");
     const resetToken = String(req.body.resetToken || "");
 
-    if (!email || !newPassword || !resetToken) {
-      return res.status(400).json({ message: "Email, reset token and new password are required" });
+    if (!normalizedIdentifier || !newPassword || !resetToken) {
+      return res.status(400).json({
+        message:
+          contactType === "phone"
+            ? "Phone, reset token and new password are required"
+            : "Email, reset token and new password are required"
+      });
     }
 
     if (newPassword.length < 6) {
@@ -171,11 +226,15 @@ router.post("/forgot-password/reset", async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired reset token" });
     }
 
-    if (payload.purpose !== "password_reset" || payload.email !== email) {
+    if (
+      payload.purpose !== "password_reset" ||
+      payload.contactType !== contactType ||
+      payload.identifier !== normalizedIdentifier
+    ) {
       return res.status(400).json({ message: "Invalid reset request" });
     }
 
-    const user = await Admin.findOne({ _id: payload.id, email });
+    const user = await Admin.findById(payload.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

@@ -5,9 +5,10 @@ import "../admin.css";
 
 export default function PaymentsTab() {
   const [payments, setPayments] = useState([]);
+  const [notifyingId, setNotifyingId] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [orderSort, setOrderSort] = useState("asc");
+  const [transactionSort, setTransactionSort] = useState("latest");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -45,14 +46,14 @@ export default function PaymentsTab() {
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
-      const aOrder = Number(a.order?.orderNumber || 0);
-      const bOrder = Number(b.order?.orderNumber || 0);
-      return orderSort === "asc" ? aOrder - bOrder : bOrder - aOrder;
+      const aTime = new Date(a.createdAt || 0).getTime();
+      const bTime = new Date(b.createdAt || 0).getTime();
+      return transactionSort === "latest" ? bTime - aTime : aTime - bTime;
     });
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, orderSort, pageSize]);
+  }, [search, statusFilter, transactionSort, pageSize]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPayments.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -66,6 +67,18 @@ export default function PaymentsTab() {
       loadPayments();
     } catch {
       toast.error("Update failed");
+    }
+  };
+
+  const notifyVendorForPending = async (payment) => {
+    try {
+      setNotifyingId(payment._id);
+      const { data } = await api.post(`/payments/${payment._id}/notify-vendor`);
+      toast.success(data?.message || "Vendor notified");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to notify vendor");
+    } finally {
+      setNotifyingId("");
     }
   };
 
@@ -106,12 +119,36 @@ export default function PaymentsTab() {
       </div>
 
       <div className="payments-topbar">
-        <input
-          placeholder="Search by vendor email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="search-input payment-search-input"
-        />
+        <div className="payments-search-filters">
+          <input
+            placeholder="Search by vendor email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="search-input payment-search-input"
+          />
+
+          <select
+            value={transactionSort}
+            onChange={(e) => setTransactionSort(e.target.value)}
+            className="payment-sort-select"
+            aria-label="Sort transactions"
+          >
+            <option value="latest">Latest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="payment-sort-select"
+            aria-label="Filter transactions by status"
+          >
+            <option value="all">All status</option>
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Failed">Failed</option>
+          </select>
+        </div>
 
         <div className="payments-page-size top-right">
           <label htmlFor="payments-page-size-top">Rows per page</label>
@@ -130,29 +167,10 @@ export default function PaymentsTab() {
 
       <div className="table payments-table">
         <div className="table-head payments-table-head">
-          <button
-            type="button"
-            className="head-sort-btn"
-            onClick={() => setOrderSort((prev) => (prev === "asc" ? "desc" : "asc"))}
-            title="Toggle order sort"
-          >
-            Order {orderSort === "asc" ? "(Asc)" : "(Desc)"}
-          </button>
+          <span>Order</span>
           <span>Vendor</span>
           <span>Amount</span>
-          <span className="status-head-cell">
-            <span>Status</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="status-head-filter"
-            >
-              <option value="all">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Paid">Paid</option>
-              <option value="Failed">Failed</option>
-            </select>
-          </span>
+          <span>Status</span>
           <span>Action</span>
         </div>
 
@@ -166,15 +184,30 @@ export default function PaymentsTab() {
               {p.status}
             </span>
 
-            <select
-              value={p.status}
-              onChange={(e) => updateStatus(p._id, e.target.value)}
-              className="payment-action-select"
-            >
-              <option value="Pending">Pending</option>
-              <option value="Paid">Paid</option>
-              <option value="Failed">Failed</option>
-            </select>
+            <div className="payment-actions-stack">
+              <select
+                value={p.status}
+                onChange={(e) => updateStatus(p._id, e.target.value)}
+                className="payment-action-select"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+                <option value="Failed">Failed</option>
+              </select>
+
+              {p.status === "Pending" ? (
+                <button
+                  type="button"
+                  className="payment-notify-btn"
+                  onClick={() => notifyVendorForPending(p)}
+                  disabled={notifyingId === p._id}
+                >
+                  {notifyingId === p._id ? "Sending..." : "Notify Vendor"}
+                </button>
+              ) : (
+                <span className="payment-notify-muted">No reminder needed</span>
+              )}
+            </div>
           </div>
         ))}
       </div>

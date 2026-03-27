@@ -130,6 +130,7 @@
 
 .vendor-link-label {
   white-space: nowrap;
+  color: #000;
 }
 
 .vendor-sidebar.collapsed .vendor-link-label {

@@ -120,11 +120,6 @@ export default function ProfileTab() {
           <strong>{form.phone || "Not added"}</strong>
           <small>notification fallback</small>
         </article>
-        <article className="admin-profile-summary-card">
-          <span>Security</span>
-          <strong>{form.password ? "Pending update" : "Stable"}</strong>
-          <small>{form.password ? "new password ready" : "no draft change"}</small>
-        </article>
       </section>
 
       <div className="admin-profile-layout">

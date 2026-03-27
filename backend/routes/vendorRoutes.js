@@ -5,7 +5,7 @@ const auth = require("../middleware/authMiddleware");
 const bcrypt = require("bcryptjs");
 const upload = require("../config/upload");
 const jwt = require("jsonwebtoken");
-const { sendOtpEmail } = require("../utils/mailer");
+const { sendOtpEmail, sendOtpSms } = require("../utils/mailer");
 
 /* =====================================================
    REGISTER VENDOR
@@ -128,45 +128,83 @@ router.post("/login", async (req, res) => {
 ===================================================== */
 router.post("/forgot-password/request-otp", async (req, res) => {
   try {
-    const email = String(req.body.email || "").toLowerCase().trim();
+    const contactType = req.body.contactType === "phone" ? "phone" : "email";
+    const identifier = String(req.body.identifier || req.body.email || req.body.phone || "")
+      .trim();
+    const normalizedIdentifier =
+      contactType === "email" ? identifier.toLowerCase() : identifier.replace(/\D/g, "");
 
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+    if (!normalizedIdentifier) {
+      return res.status(400).json({
+        message: contactType === "phone" ? "Phone is required" : "Email is required"
+      });
     }
 
-    const vendor = await Vendor.findOne({ email });
-    if (vendor) {
-      const otp = String(Math.floor(100000 + Math.random() * 900000));
-      const otpHash = await bcrypt.hash(otp, 10);
+    if (contactType === "phone" && !/^\d{10}$/.test(normalizedIdentifier)) {
+      return res.status(400).json({ message: "Phone must be exactly 10 digits" });
+    }
 
-      vendor.passwordResetOtp = otpHash;
-      vendor.passwordResetOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
-      await vendor.save();
+    const lookup = contactType === "phone"
+      ? { phone: normalizedIdentifier }
+      : { email: normalizedIdentifier };
 
-      try {
+    const vendor = await Vendor.findOne(lookup);
+    if (!vendor) {
+      return res.status(404).json({ message: "No account found" });
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otpHash = await bcrypt.hash(otp, 10);
+
+    vendor.passwordResetOtp = otpHash;
+    vendor.passwordResetOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await vendor.save();
+
+    try {
+      if (contactType === "phone") {
+        await sendOtpSms({ to: vendor.phone, name: vendor.name, otp });
+      } else {
         await sendOtpEmail({ to: vendor.email, name: vendor.name, otp });
-      } catch (mailErr) {
-        console.error("VENDOR OTP EMAIL ERROR:", mailErr.message);
       }
+    } catch (deliveryErr) {
+      console.error("VENDOR OTP DELIVERY ERROR:", deliveryErr.message);
     }
 
-    res.json({ message: "If the email exists, OTP has been sent" });
+    res.json({
+      message:
+        contactType === "phone"
+          ? "If the phone number exists, OTP has been sent"
+          : "If the email exists, OTP has been sent"
+    });
   } catch (err) {
     console.log("VENDOR OTP REQUEST ERROR:", err);
-    res.json({ message: "If the email exists, OTP has been sent" });
+    res.status(500).json({ message: "Failed to send OTP" });
   }
 });
 
 router.post("/forgot-password/verify-otp", async (req, res) => {
   try {
-    const email = String(req.body.email || "").toLowerCase().trim();
+    const contactType = req.body.contactType === "phone" ? "phone" : "email";
+    const identifier = String(req.body.identifier || req.body.email || req.body.phone || "")
+      .trim();
+    const normalizedIdentifier =
+      contactType === "email" ? identifier.toLowerCase() : identifier.replace(/\D/g, "");
     const otp = String(req.body.otp || "").trim();
 
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
+    if (!normalizedIdentifier || !otp) {
+      return res.status(400).json({
+        message:
+          contactType === "phone"
+            ? "Phone and OTP are required"
+            : "Email and OTP are required"
+      });
     }
 
-    const vendor = await Vendor.findOne({ email });
+    const lookup = contactType === "phone"
+      ? { phone: normalizedIdentifier }
+      : { email: normalizedIdentifier };
+
+    const vendor = await Vendor.findOne(lookup);
     if (!vendor || !vendor.passwordResetOtp || !vendor.passwordResetOtpExpires) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
@@ -181,7 +219,15 @@ router.post("/forgot-password/verify-otp", async (req, res) => {
     }
 
     const resetToken = jwt.sign(
-      { id: vendor._id, email: vendor.email, role: "vendor", purpose: "password_reset" },
+      {
+        id: vendor._id,
+        email: vendor.email,
+        phone: vendor.phone || "",
+        role: "vendor",
+        contactType,
+        identifier: normalizedIdentifier,
+        purpose: "password_reset"
+      },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
@@ -195,12 +241,21 @@ router.post("/forgot-password/verify-otp", async (req, res) => {
 
 router.post("/forgot-password/reset", async (req, res) => {
   try {
-    const email = String(req.body.email || "").toLowerCase().trim();
+    const contactType = req.body.contactType === "phone" ? "phone" : "email";
+    const identifier = String(req.body.identifier || req.body.email || req.body.phone || "")
+      .trim();
+    const normalizedIdentifier =
+      contactType === "email" ? identifier.toLowerCase() : identifier.replace(/\D/g, "");
     const newPassword = String(req.body.newPassword || "");
     const resetToken = String(req.body.resetToken || "");
 
-    if (!email || !newPassword || !resetToken) {
-      return res.status(400).json({ message: "Email, reset token and new password are required" });
+    if (!normalizedIdentifier || !newPassword || !resetToken) {
+      return res.status(400).json({
+        message:
+          contactType === "phone"
+            ? "Phone, reset token and new password are required"
+            : "Email, reset token and new password are required"
+      });
     }
 
     if (newPassword.length < 6) {
@@ -214,11 +269,15 @@ router.post("/forgot-password/reset", async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired reset token" });
     }
 
-    if (payload.purpose !== "password_reset" || payload.email !== email) {
+    if (
+      payload.purpose !== "password_reset" ||
+      payload.contactType !== contactType ||
+      payload.identifier !== normalizedIdentifier
+    ) {
       return res.status(400).json({ message: "Invalid reset request" });
     }
 
-    const vendor = await Vendor.findOne({ _id: payload.id, email });
+    const vendor = await Vendor.findById(payload.id);
     if (!vendor) {
       return res.status(404).json({ message: "Vendor not found" });
     }

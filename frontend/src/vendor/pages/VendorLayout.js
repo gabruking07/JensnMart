@@ -30,9 +30,9 @@ export default function VendorLayout({ children }) {
     { name: "Inventory", path: "/vendor", icon: LayoutGrid },
     { name: "Orders", path: "/vendor/orders", icon: Receipt },
     { name: "Transactions", path: "/vendor/transactions", icon: Wallet },
-    { name: "Profile", path: "/vendor/profile", icon: UserCircle },
     { name: "Notifications", path: "/vendor/notifications", icon: Bell, badge: unreadCount },
     { name: cartLabel, path: "/cart", icon: ShoppingCart, badge: cartCount > 0 ? cartItemCount : 0 },
+    { name: "Profile", path: "/vendor/profile", icon: UserCircle },
   ];
 
   const logout = () => {
