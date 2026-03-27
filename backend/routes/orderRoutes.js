@@ -7,6 +7,7 @@ const Vendor = require("../models/Vendor");
 const Cart = require("../models/Cart");
 const Payment = require("../models/Payment");
 const { notifyVendor, notifyAdmins } = require("../utils/notificationService");
+const attachPaymentDetails = require("../utils/attachPaymentDetails");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const approvedVendorOnly = require("../middleware/approveVendorOnly");
@@ -103,7 +104,8 @@ router.get("/vendor/orders", authMiddleware, async (req, res) => {
     vendor: req.user.id,
     status: { $ne: "PendingPayment" }
   }).sort({ createdAt: -1, orderNumber: -1 });
-  res.json(orders);
+  const ordersWithPayments = await attachPaymentDetails(orders);
+  res.json(ordersWithPayments);
 });
 
 /* =====================================================
@@ -298,7 +300,8 @@ router.get("/admin", authMiddleware, async (req, res) => {
     })
     .sort({ createdAt: -1 });
 
-  res.json(orders);
+  const ordersWithPayments = await attachPaymentDetails(orders);
+  res.json(ordersWithPayments);
 });
 
 /* =====================================================
@@ -329,6 +332,15 @@ router.put("/status/:id", authMiddleware, async (req, res) => {
 
   if (!order) {
     return res.status(404).json({ message: "Order not found" });
+  }
+
+  const payment = await Payment.findOne({ order: order._id });
+  const hasPendingPayment = payment?.status === "Pending";
+
+  if (hasPendingPayment && status !== "Placed") {
+    return res.status(400).json({
+      message: "Pending-payment orders are locked to Placed until payment is completed"
+    });
   }
 
   if (

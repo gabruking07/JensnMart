@@ -77,6 +77,9 @@ export default function VendorOrders() {
       if (aStarts && !bStarts) return -1;
       if (!aStarts && bStarts) return 1;
 
+      const orderNumberDiff = Number(b.orderNumber || 0) - Number(a.orderNumber || 0);
+      if (orderNumberDiff !== 0) return orderNumberDiff;
+
       const createdAtDiff = new Date(b.createdAt) - new Date(a.createdAt);
       if (createdAtDiff !== 0) return createdAtDiff;
 

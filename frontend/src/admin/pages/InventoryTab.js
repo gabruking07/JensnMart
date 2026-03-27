@@ -11,7 +11,7 @@ export default function InventoryTab() {
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(4);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -314,10 +314,10 @@ export default function InventoryTab() {
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
             >
-              <option value={4}>4</option>
-              <option value={8}>8</option>
+              <option value={6}>6</option>
               <option value={12}>12</option>
-              <option value={16}>16</option>
+              <option value={18}>18</option>
+              <option value={24}>24</option>
             </select>
           </div>
         </div>

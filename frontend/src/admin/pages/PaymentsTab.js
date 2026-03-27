@@ -45,6 +45,10 @@ export default function PaymentsTab() {
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
+      const orderNumberDiff =
+        Number(b.order?.orderNumber || 0) - Number(a.order?.orderNumber || 0);
+      if (orderNumberDiff !== 0) return orderNumberDiff;
+
       const aTime = new Date(a.createdAt || 0).getTime();
       const bTime = new Date(b.createdAt || 0).getTime();
       return bTime - aTime;
