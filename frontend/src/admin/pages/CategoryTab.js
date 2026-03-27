@@ -3,7 +3,7 @@ import { FolderTree, Layers3, Plus, Tag } from "lucide-react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
-import { confirmToast } from "../../utils/confirmToast";
+import { confirmToast } from "../../components/confirmToast";
 
 export default function CategoryTab() {
   const [categories, setCategories] = useState([]);
