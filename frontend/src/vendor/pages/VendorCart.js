@@ -11,7 +11,6 @@ export default function VendorCart() {
 
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState("Online");
 
   useEffect(() => {
     fetchCart();
@@ -106,16 +105,8 @@ export default function VendorCart() {
     try {
       const res = await api.post("/orders/checkout", {
         address,
-        paymentMethod
+        paymentMethod: "Online"
       });
-
-      if (paymentMethod === "COD") {
-        toast.success("Order placed with Cash on Delivery");
-        fetchCart();
-        window.dispatchEvent(new Event("cart-updated"));
-        navigate("/vendor/orders");
-        return;
-      }
 
       const { order, razorpayOrder, razorpayKeyId } = res.data;
       if (!razorpayOrder || !razorpayKeyId) {
@@ -300,31 +291,13 @@ export default function VendorCart() {
 
                   <div className="payment-method-box">
                     <p className="payment-method-title">Payment Method</p>
-                    <label className="payment-method-option">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="Online"
-                        checked={paymentMethod === "Online"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      />
-                      <span>Online (Razorpay)</span>
-                    </label>
-
-                    <label className="payment-method-option">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="COD"
-                        checked={paymentMethod === "COD"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      />
-                      <span>Cash on Delivery (COD)</span>
-                    </label>
+                    <div className="payment-method-option">
+                      <span>Online payment via Razorpay</span>
+                    </div>
                   </div>
 
                   <button className="btn-checkout" onClick={placeOrder}>
-                    {paymentMethod === "COD" ? "Place COD Order" : "Proceed to Checkout"}
+                    Proceed to Payment
                   </button>
                 </div>
               </aside>

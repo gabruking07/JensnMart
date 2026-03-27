@@ -15,7 +15,6 @@ const subCategoryRoutes = require("./routes/subcategoryRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const aiRoutes = require("./routes/aiRoutes");
-const bootstrapDemoOrders = require("./utils/bootstrapDemoOrders");
 const app = express();
 
 /* ================= MIDDLEWARE ================= */
@@ -43,14 +42,7 @@ app.use("/api/ai", aiRoutes);
 /* ================= DB ================= */
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(async () => {
-    console.log("MongoDB Connected");
-    try {
-      await bootstrapDemoOrders();
-    } catch (err) {
-      console.error("Demo order bootstrap error:", err);
-    }
-  })
+  .then(() => console.log("MongoDB Connected"))
   .catch(err => console.error("Mongo error:", err));
 
 /* ================= SERVER ================= */

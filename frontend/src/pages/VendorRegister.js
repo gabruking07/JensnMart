@@ -55,7 +55,6 @@ export default function VendorRegister() {
   return (
     <div className="auth-page-root" style={{ backgroundImage: `url(${bg})` }}>
       <div className="auth-overlay">
-        <Header title="Vendor Registration" />
 
         <div className="login-container">
           <div className="auth-card">

@@ -470,10 +470,6 @@ export default function VendorDashboard() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-  const lowStockProductsCount = products.filter((product) => {
-    const stock = Number(product.stock || 0);
-    return stock > 0 && stock < 10;
-  }).length;
   const compareProducts = compareIds
     .map((id) => products.find((product) => product._id === id))
     .filter(Boolean);
@@ -689,11 +685,6 @@ export default function VendorDashboard() {
                 <span>Categories</span>
                 <strong>{categories.length}</strong>
                 <small>browse lanes</small>
-              </article>
-              <article className="vendor-stat-card">
-                <span>Low Stock</span>
-                <strong>{lowStockProductsCount}</strong>
-                <small>running low</small>
               </article>
             </div>
           </div>

@@ -54,7 +54,6 @@ export default function AdminRegister() {
   return (
     <div className="auth-page-root" style={{ backgroundImage: `url(${bg})` }}>
       <div className="auth-overlay">
-        <Header title="Admin Portal" />
 
         <div className="login-container">
           <div className="auth-card">

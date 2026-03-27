@@ -7,7 +7,6 @@ const Vendor = require("../models/Vendor");
 const Cart = require("../models/Cart");
 const Payment = require("../models/Payment");
 const { notifyVendor, notifyAdmins } = require("../utils/notificationService");
-const attachPaymentDetails = require("../utils/attachPaymentDetails");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const approvedVendorOnly = require("../middleware/approveVendorOnly");
@@ -17,6 +16,35 @@ const getRazorpayCredentials = () => {
   const keyId = (process.env.RAZORPAY_KEY_ID || "").trim();
   const keySecret = ((process.env.RAZORPAY_SECRET || process.env.RAZORPAY_KEY_SECRET) || "").trim();
   return { keyId, keySecret };
+};
+
+const attachPaymentDetails = async (orders) => {
+  if (!Array.isArray(orders) || orders.length === 0) {
+    return [];
+  }
+
+  const orderIds = orders.map((order) => order._id).filter(Boolean);
+  const payments = await Payment.find({ order: { $in: orderIds } }).lean();
+  const paymentByOrderId = new Map(
+    payments.map((payment) => [String(payment.order), payment])
+  );
+
+  return orders.map((orderDoc) => {
+    const order =
+      typeof orderDoc?.toObject === "function" ? orderDoc.toObject() : orderDoc;
+    const payment = paymentByOrderId.get(String(order._id)) || null;
+
+    return {
+      ...order,
+      payment,
+      paymentMethod: payment?.method || "Online",
+      paymentStatus:
+        payment?.status || (order.status === "Delivered" ? "Paid" : "Pending"),
+      transactionId:
+        payment?.transactionId || payment?.razorpayPaymentId || "",
+      razorpayPaymentId: payment?.razorpayPaymentId || "",
+    };
+  });
 };
 
 /* =====================================================
