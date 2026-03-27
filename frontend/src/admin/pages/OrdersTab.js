@@ -56,17 +56,28 @@ export default function OrdersTab() {
   }, [orders]);
 
   const filtered = useMemo(() => {
-    return orders.filter((order) => {
-      if (statusFilter !== "all" && order.status !== statusFilter) return false;
-      if (
-        search &&
-        !String(order.orderNumber || "").toLowerCase().includes(search.toLowerCase())
-      ) {
-        return false;
-      }
-      if (vendorFilter !== "all" && order.vendor?._id !== vendorFilter) return false;
-      return true;
-    });
+    return orders
+      .filter((order) => {
+        if (statusFilter !== "all" && order.status !== statusFilter) return false;
+        if (
+          search &&
+          !String(order.orderNumber || "").toLowerCase().includes(search.toLowerCase())
+        ) {
+          return false;
+        }
+        if (vendorFilter !== "all" && order.vendor?._id !== vendorFilter) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const orderNumberDiff = Number(b.orderNumber || 0) - Number(a.orderNumber || 0);
+        if (orderNumberDiff !== 0) return orderNumberDiff;
+
+        const createdAtDiff =
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        if (createdAtDiff !== 0) return createdAtDiff;
+
+        return String(b._id || "").localeCompare(String(a._id || ""));
+      });
   }, [orders, statusFilter, search, vendorFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
@@ -220,6 +231,9 @@ export default function OrdersTab() {
           const products = order.products || [];
           const isExpanded = Boolean(expandedOrders[order._id]);
           const firstProduct = products[0];
+          const hasPendingPayment =
+            order.paymentStatus === "Pending" || order.payment?.status === "Pending";
+          const displayStatus = hasPendingPayment ? "Placed" : order.status;
           const vendorName =
             order.vendor?.name ||
             order.customerName ||
@@ -294,7 +308,8 @@ export default function OrdersTab() {
                 <td>
                   <select
                     className="orders-table-status"
-                    value={order.status}
+                    value={displayStatus}
+                    disabled={hasPendingPayment}
                     onChange={(e) => updateStatus(order._id, e.target.value)}
                   >
                     <option value="Placed">Placed</option>
@@ -306,7 +321,10 @@ export default function OrdersTab() {
                   </select>
                 </td>
                 <td>
-                  <div className="orders-table-address">{order.deliveryAddress || "-"}</div>
+                  <div className="orders-table-address">
+                    {order.deliveryAddress || "-"}
+                    {hasPendingPayment ? " (Payment pending: status locked)" : ""}
+                  </div>
                 </td>
                 <td>
                   <button
@@ -404,7 +422,7 @@ export default function OrdersTab() {
                         </div>
 
                         <div className="timeline-box-dark">
-                          <OrderTimeline status={order.status} />
+                          <OrderTimeline status={displayStatus} />
                           <div className="order-address-mini">Address: {order.deliveryAddress}</div>
                         </div>
                       </div>

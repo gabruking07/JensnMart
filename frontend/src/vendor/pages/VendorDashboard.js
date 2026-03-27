@@ -275,7 +275,7 @@ export default function VendorDashboard() {
   const [sortBy, setSortBy] = useState("");
   const [compareIds, setCompareIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(4);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   const categoryScrollerRef = useRef(null);
   const categoryRowRef = useRef(null);
   const subcategoryScrollerRef = useRef(null);
@@ -470,10 +470,6 @@ export default function VendorDashboard() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-  const lowStockProductsCount = products.filter((product) => {
-    const stock = Number(product.stock || 0);
-    return stock > 0 && stock < 10;
-  }).length;
   const compareProducts = compareIds
     .map((id) => products.find((product) => product._id === id))
     .filter(Boolean);
@@ -501,7 +497,7 @@ export default function VendorDashboard() {
 
   const handleItemsPerPageChange = (event) => {
     const nextSize = Number.parseInt(event.target.value, 10);
-    const safeSize = [4, 8, 12, 16].includes(nextSize) ? nextSize : 4;
+    const safeSize = [6, 12, 18, 24].includes(nextSize) ? nextSize : 12;
     setItemsPerPage(safeSize);
     setCurrentPage(1);
   };
@@ -690,11 +686,6 @@ export default function VendorDashboard() {
                 <strong>{categories.length}</strong>
                 <small>browse lanes</small>
               </article>
-              <article className="vendor-stat-card">
-                <span>Low Stock</span>
-                <strong>{lowStockProductsCount}</strong>
-                <small>running low</small>
-              </article>
             </div>
           </div>
 
@@ -820,10 +811,10 @@ export default function VendorDashboard() {
               value={itemsPerPage}
               onChange={handleItemsPerPageChange}
             >
-              <option value={4}>4</option>
-              <option value={8}>8</option>
+              <option value={6}>6</option>
               <option value={12}>12</option>
-              <option value={16}>16</option>
+              <option value={18}>18</option>
+              <option value={24}>24</option>
             </select>
           </div>
         </div>

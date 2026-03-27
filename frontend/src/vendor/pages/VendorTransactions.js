@@ -54,19 +54,27 @@ export default function VendorTransactions() {
     };
   }, [transactions]);
 
-  const filtered = transactions.filter((t) => {
-    const orderNumber = String(t.order?.orderNumber || "");
-    const paymentId = String(t.razorpayPaymentId || t.transactionId || "");
+  const filtered = transactions
+    .filter((t) => {
+      const orderNumber = String(t.order?.orderNumber || "");
+      const paymentId = String(t.razorpayPaymentId || t.transactionId || "");
 
-    const matchesSearch =
-      !search ||
-      orderNumber.includes(search) ||
-      paymentId.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch =
+        !search ||
+        orderNumber.includes(search) ||
+        paymentId.toLowerCase().includes(search.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || t.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || t.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      const orderNumberDiff =
+        Number(b.order?.orderNumber || 0) - Number(a.order?.orderNumber || 0);
+      if (orderNumberDiff !== 0) return orderNumberDiff;
+
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;

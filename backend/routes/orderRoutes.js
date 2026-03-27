@@ -18,6 +18,35 @@ const getRazorpayCredentials = () => {
   return { keyId, keySecret };
 };
 
+const attachPaymentDetails = async (orders) => {
+  if (!Array.isArray(orders) || orders.length === 0) {
+    return [];
+  }
+
+  const orderIds = orders.map((order) => order._id).filter(Boolean);
+  const payments = await Payment.find({ order: { $in: orderIds } }).lean();
+  const paymentByOrderId = new Map(
+    payments.map((payment) => [String(payment.order), payment])
+  );
+
+  return orders.map((orderDoc) => {
+    const order =
+      typeof orderDoc?.toObject === "function" ? orderDoc.toObject() : orderDoc;
+    const payment = paymentByOrderId.get(String(order._id)) || null;
+
+    return {
+      ...order,
+      payment,
+      paymentMethod: payment?.method || "Online",
+      paymentStatus:
+        payment?.status || (order.status === "Delivered" ? "Paid" : "Pending"),
+      transactionId:
+        payment?.transactionId || payment?.razorpayPaymentId || "",
+      razorpayPaymentId: payment?.razorpayPaymentId || "",
+    };
+  });
+};
+
 /* =====================================================
    PLACE SINGLE PRODUCT ORDER (VENDOR)
 ===================================================== */
@@ -65,7 +94,8 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
           productId: product._id,
           name: product.name,
           price: product.price,
-          qty
+          qty,
+          image: product.image
         }
       ],
       total,
@@ -102,7 +132,8 @@ router.get("/vendor/orders", authMiddleware, async (req, res) => {
     vendor: req.user.id,
     status: { $ne: "PendingPayment" }
   }).sort({ createdAt: -1, orderNumber: -1 });
-  res.json(orders);
+  const ordersWithPayments = await attachPaymentDetails(orders);
+  res.json(ordersWithPayments);
 });
 
 /* =====================================================
@@ -297,7 +328,8 @@ router.get("/admin", authMiddleware, async (req, res) => {
     })
     .sort({ createdAt: -1 });
 
-  res.json(orders);
+  const ordersWithPayments = await attachPaymentDetails(orders);
+  res.json(ordersWithPayments);
 });
 
 /* =====================================================
@@ -328,6 +360,15 @@ router.put("/status/:id", authMiddleware, async (req, res) => {
 
   if (!order) {
     return res.status(404).json({ message: "Order not found" });
+  }
+
+  const payment = await Payment.findOne({ order: order._id });
+  const hasPendingPayment = payment?.status === "Pending";
+
+  if (hasPendingPayment && status !== "Placed") {
+    return res.status(400).json({
+      message: "Pending-payment orders are locked to Placed until payment is completed"
+    });
   }
 
   if (

@@ -85,7 +85,7 @@ export default function Login() {
                 <input
                   type="email"
                   className="auth-input"
-                  placeholder="admin@gmail.com"
+                  placeholder="user@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
