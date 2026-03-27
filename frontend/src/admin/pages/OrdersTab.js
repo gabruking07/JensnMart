@@ -1,53 +1,8 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import toast from "react-hot-toast";
-import {
-  ArrowUpDown,
-  Columns3,
-  Download,
-  EllipsisVertical,
-  Funnel,
-  GripHorizontal,
-  LayoutGrid,
-  Maximize2,
-  Menu,
-  RefreshCw,
-  Search,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 import OrderTimeline from "../../components/OrderTimeline";
-import { Button } from "../../components/ui/button";
-
-const STATUS_OPTIONS = [
-  "all",
-  "Placed",
-  "Processing",
-  "Shipped",
-  "Delivered",
-  "Returned",
-  "Cancelled",
-];
-
-const SUMMARY_STATUSES = ["Placed", "Processing", "Shipped", "Delivered", "Returned", "Cancelled"];
-
-const getStatusTone = (status) => {
-  switch (status) {
-    case "Delivered":
-      return "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/20";
-    case "Processing":
-      return "bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/20";
-    case "Shipped":
-      return "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20";
-    case "Returned":
-      return "bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/20";
-    case "Cancelled":
-      return "bg-red-500/15 text-red-300 ring-1 ring-red-500/20";
-    default:
-      return "bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/20";
-  }
-};
+import "../admin.css";
 
 export default function OrdersTab() {
   const [orders, setOrders] = useState([]);
@@ -56,14 +11,9 @@ export default function OrdersTab() {
   const [search, setSearch] = useState("");
   const [vendorFilter, setVendorFilter] = useState("all");
   const [expandedOrders, setExpandedOrders] = useState({});
-  const [compactRows, setCompactRows] = useState(false);
-  const [showAddressColumn, setShowAddressColumn] = useState(true);
-  const [showSummaryStrip, setShowSummaryStrip] = useState(true);
-  const [fullWidthMode, setFullWidthMode] = useState(false);
-  const [sortConfig, setSortConfig] = useState({ key: "orderId", direction: "desc" });
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
-  const searchInputRef = useRef(null);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
 
   const loadOrders = async () => {
     try {
@@ -105,72 +55,29 @@ export default function OrdersTab() {
     return Array.from(map.entries()).map(([id, email]) => ({ id, email }));
   }, [orders]);
 
-  const filteredOrders = useMemo(() => {
+  const filtered = useMemo(() => {
     return orders.filter((order) => {
       if (statusFilter !== "all" && order.status !== statusFilter) return false;
+      if (
+        search &&
+        !String(order.orderNumber || "").toLowerCase().includes(search.toLowerCase())
+      ) {
+        return false;
+      }
       if (vendorFilter !== "all" && order.vendor?._id !== vendorFilter) return false;
-      if (!search.trim()) return true;
-
-      const needle = search.trim().toLowerCase();
-      return [
-        order.orderNumber,
-        order.vendor?.email,
-        order.deliveryAddress,
-        order.products?.[0]?.name,
-      ]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(needle));
+      return true;
     });
-  }, [orders, search, statusFilter, vendorFilter]);
+  }, [orders, statusFilter, search, vendorFilter]);
 
-  const sortedOrders = useMemo(() => {
-    const list = [...filteredOrders];
-
-    const getValue = (order, key) => {
-      switch (key) {
-        case "vendor":
-          return String(order.vendor?.email || "");
-        case "items":
-          return String(order.products?.[0]?.name || "");
-        case "total":
-          return Number(order.total || 0);
-        case "status":
-          return String(order.status || "");
-        case "address":
-          return String(order.deliveryAddress || "");
-        default:
-          return String(order.orderNumber || order._id || "");
-      }
-    };
-
-    list.sort((a, b) => {
-      const aValue = getValue(a, sortConfig.key);
-      const bValue = getValue(b, sortConfig.key);
-
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
-      }
-
-      const compared = String(aValue).localeCompare(String(bValue), undefined, {
-        numeric: true,
-        sensitivity: "base",
-      });
-
-      return sortConfig.direction === "asc" ? compared : -compared;
-    });
-
-    return list;
-  }, [filteredOrders, sortConfig]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedOrders.length / itemsPerPage));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const paginatedOrders = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return sortedOrders.slice(start, start + itemsPerPage);
-  }, [sortedOrders, currentPage, itemsPerPage]);
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage, itemsPerPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, statusFilter, vendorFilter, itemsPerPage, sortConfig]);
+  }, [statusFilter, search, vendorFilter, itemsPerPage]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -189,80 +96,6 @@ export default function OrdersTab() {
     };
   }, [orders]);
 
-  const commissionRupees = Math.round(Number(commission || 0));
-
-  const resetOrdersView = () => {
-    setStatusFilter("all");
-    setSearch("");
-    setVendorFilter("all");
-    setExpandedOrders({});
-    setSortConfig({ key: "orderId", direction: "desc" });
-    toast.success("Orders view reset");
-  };
-
-  const handleRefresh = async () => {
-    await Promise.all([loadOrders(), loadCommission()]);
-    toast.success("Orders refreshed");
-  };
-
-  const toggleSort = (key) => {
-    setSortConfig((prev) =>
-      prev.key === key
-        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
-        : { key, direction: "asc" }
-    );
-  };
-
-  const cycleHeaderFilter = (key) => {
-    if (key === "status") {
-      const currentIndex = STATUS_OPTIONS.indexOf(statusFilter);
-      setStatusFilter(STATUS_OPTIONS[(currentIndex + 1) % STATUS_OPTIONS.length]);
-      return;
-    }
-
-    if (key === "vendor" && vendors.length) {
-      setVendorFilter((prev) => {
-        const ids = ["all", ...vendors.map((vendor) => vendor.id)];
-        const currentIndex = ids.indexOf(prev);
-        return ids[(currentIndex + 1) % ids.length];
-      });
-      return;
-    }
-
-    searchInputRef.current?.focus();
-  };
-
-  const exportOrders = () => {
-    if (!sortedOrders.length) {
-      toast.error("No orders to export");
-      return;
-    }
-
-    const headers = ["Order ID", "Vendor", "Items", "Total", "Status", "Address"];
-    const csvRows = sortedOrders.map((order) =>
-      [
-        order.orderNumber || order._id,
-        order.vendor?.email || "-",
-        (order.products || []).map((product) => `${product.name} x${product.qty}`).join(" | "),
-        order.total || 0,
-        order.status || "-",
-        String(order.deliveryAddress || "").replace(/\r?\n/g, " "),
-      ]
-        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
-        .join(",")
-    );
-
-    const blob = new Blob([[headers.join(","), ...csvRows].join("\n")], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "orders-export.csv";
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   const toggleOrderProducts = (orderId) => {
     setExpandedOrders((prev) => ({
       ...prev,
@@ -270,383 +103,329 @@ export default function OrdersTab() {
     }));
   };
 
-  const renderHeader = (label, key) => (
-    <div className="flex items-center justify-between gap-3">
-      <span>{label}</span>
-      <div className="flex items-center gap-1 text-zinc-500">
-        <button
-          type="button"
-          className="rounded p-1 transition hover:bg-white/5 hover:text-zinc-200"
-          onClick={() => cycleHeaderFilter(key)}
-          aria-label={`${label} filter`}
-        >
-          <Funnel className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          className="rounded p-1 transition hover:bg-white/5 hover:text-zinc-200"
-          onClick={() => toggleSort(key)}
-          aria-label={`${label} sort`}
-        >
-          <ArrowUpDown className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          className="rounded p-1 transition hover:bg-white/5 hover:text-zinc-200"
-          onClick={() => setCompactRows((prev) => !prev)}
-          aria-label={`${label} density`}
-        >
-          <GripHorizontal className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          className="rounded p-1 transition hover:bg-white/5 hover:text-zinc-200"
-          onClick={() => setExpandedOrders({})}
-          aria-label={`${label} more`}
-        >
-          <EllipsisVertical className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
+  const commissionRupees = Math.round(Number(commission || 0));
 
   return (
-    <div className={`${fullWidthMode ? "max-w-none" : "mx-auto max-w-[1500px]"} px-0 py-5`}>
-      <div className="overflow-hidden rounded-[22px] border border-white/10 bg-[#1a1a1f] text-zinc-100 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
-        <div className="border-b border-white/6 bg-[#1f1f24] px-5 py-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="mb-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-zinc-500">
-                Order Management
-              </p>
-              <h1 className="text-4xl font-extrabold tracking-[-0.04em] text-white">ORDERS</h1>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-                  In View
-                </div>
-                <div className="text-lg font-extrabold text-white">{sortedOrders.length}</div>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-                  Commission
-                </div>
-                <div className="text-lg font-extrabold text-white">Rs {commissionRupees.toLocaleString()}</div>
-              </div>
-            </div>
-          </div>
+    <div className="admin-container admin-panel-page">
+      <section className="admin-page-hero">
+        <div className="admin-page-hero-copy">
+          <p className="admin-page-eyebrow">Order oversight</p>
+          <h1>Track vendor orders and fulfillment from a unified admin command view.</h1>
+          <p>
+            Review live order volume, filter by vendor or status, and update
+            fulfillment without losing the big-picture view.
+          </p>
         </div>
 
-        {showSummaryStrip && (
-          <div className="grid gap-2 border-b border-white/6 bg-[#1b1b20] px-5 py-3 md:grid-cols-3 xl:grid-cols-6">
-            {SUMMARY_STATUSES.map((status) => (
-              <div key={status} className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                  {status}
-                </div>
-                <div className="mt-1 text-lg font-extrabold text-white">{stats[status.toLowerCase()]}</div>
-              </div>
-            ))}
+        <div className="admin-page-hero-status">
+          <span>Orders in view</span>
+          <strong>{filtered.length}</strong>
+          <p>
+            {orders.length} total orders are loaded, with commission at Rs{" "}
+            {commissionRupees.toLocaleString()}.
+          </p>
+        </div>
+      </section>
+
+      <div className="stats-row">
+        {["Placed", "Processing", "Shipped", "Delivered", "Returned", "Cancelled"].map((status) => (
+          <div className="stat-card" key={status}>
+            <span>{status}</span>
+            <h3>{stats[status.toLowerCase()]}</h3>
           </div>
-        )}
+        ))}
+        <div className="stat-card highlight">
+          <span>Commission</span>
+          <h3>Rs {commissionRupees.toLocaleString()}</h3>
+        </div>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-b border-white/6 bg-[#18181d] px-4 py-3">
-          <Button
-            onClick={exportOrders}
-            className="bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white hover:from-violet-500 hover:to-fuchsia-400"
-          >
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
+      <div className="filter-bar">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <option value="all">All Status</option>
+          <option value="Placed">Placed</option>
+          <option value="Processing">Processing</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Returned">Returned</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
 
-          <div className="flex flex-1 flex-wrap items-center gap-2">
-            <label className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-zinc-300">
-              <Search className="h-4 w-4 text-zinc-500" />
-              <input
-                ref={searchInputRef}
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search order id"
-                className="h-11 w-full border-0 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
-              />
-            </label>
+        <input
+          placeholder="Search Order #"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
+        <select value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)}>
+          <option value="all">All Vendors</option>
+          {vendors.map((vendor) => (
+            <option key={vendor.id} value={vendor.id}>
+              {vendor.email}
+            </option>
+          ))}
+        </select>
+
+        <button
+          className="reset-btn"
+          onClick={() => {
+            setStatusFilter("all");
+            setSearch("");
+            setVendorFilter("all");
+          }}
+        >
+          Reset
+        </button>
+
+        <div className="orders-page-toolbar">
+          <div className="orders-page-size">
+            <label htmlFor="orders-page-size">Items per page</label>
             <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              className="h-11 min-w-[150px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-zinc-100 outline-none"
-            >
-              {STATUS_OPTIONS.map((status) => (
-                <option key={status} value={status} className="bg-zinc-900">
-                  {status === "all" ? "All Status" : status}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={vendorFilter}
-              onChange={(event) => setVendorFilter(event.target.value)}
-              className="h-11 min-w-[180px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-zinc-100 outline-none"
-            >
-              <option value="all" className="bg-zinc-900">All Vendors</option>
-              {vendors.map((vendor) => (
-                <option key={vendor.id} value={vendor.id} className="bg-zinc-900">
-                  {vendor.email}
-                </option>
-              ))}
-            </select>
-
-            <select
+              id="orders-page-size"
               value={itemsPerPage}
-              onChange={(event) => setItemsPerPage(Number(event.target.value))}
-              className="h-11 min-w-[120px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-zinc-100 outline-none"
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
             >
-              {[4, 6, 8, 12].map((count) => (
-                <option key={count} value={count} className="bg-zinc-900">
-                  {count} / page
-                </option>
-              ))}
+              <option value={4}>4</option>
+              <option value={6}>6</option>
+              <option value={8}>8</option>
+              <option value={12}>12</option>
             </select>
-
-            <Button
-              variant="outline"
-              onClick={resetOrdersView}
-              className="border-white/10 bg-white/[0.04] text-zinc-200 hover:bg-white/[0.08] hover:text-white"
-            >
-              Reset
-            </Button>
-          </div>
-
-          <div className="ml-auto flex items-center gap-1">
-            <button
-              type="button"
-              className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-zinc-300 transition hover:bg-white/[0.08] hover:text-white"
-              onClick={() => searchInputRef.current?.focus()}
-              aria-label="Focus search"
-            >
-              <Search className="h-4.5 w-4.5" />
-            </button>
-            <button
-              type="button"
-              className={`rounded-xl border p-2.5 transition ${
-                compactRows
-                  ? "border-violet-500/40 bg-violet-500/15 text-violet-200"
-                  : "border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.08] hover:text-white"
-              }`}
-              onClick={() => setCompactRows((prev) => !prev)}
-              aria-label="Toggle compact rows"
-            >
-              <LayoutGrid className="h-4.5 w-4.5" />
-            </button>
-            <button
-              type="button"
-              className={`rounded-xl border p-2.5 transition ${
-                showAddressColumn
-                  ? "border-violet-500/40 bg-violet-500/15 text-violet-200"
-                  : "border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.08] hover:text-white"
-              }`}
-              onClick={() => setShowAddressColumn((prev) => !prev)}
-              aria-label="Toggle address column"
-            >
-              <Columns3 className="h-4.5 w-4.5" />
-            </button>
-            <button
-              type="button"
-              className={`rounded-xl border p-2.5 transition ${
-                fullWidthMode
-                  ? "border-violet-500/40 bg-violet-500/15 text-violet-200"
-                  : "border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.08] hover:text-white"
-              }`}
-              onClick={() => setFullWidthMode((prev) => !prev)}
-              aria-label="Toggle full width"
-            >
-              <Maximize2 className="h-4.5 w-4.5" />
-            </button>
-            <button
-              type="button"
-              className={`rounded-xl border p-2.5 transition ${
-                showSummaryStrip
-                  ? "border-violet-500/40 bg-violet-500/15 text-violet-200"
-                  : "border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.08] hover:text-white"
-              }`}
-              onClick={() => setShowSummaryStrip((prev) => !prev)}
-              aria-label="Toggle summary strip"
-            >
-              <Menu className="h-4.5 w-4.5" />
-            </button>
-            <button
-              type="button"
-              className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-zinc-300 transition hover:bg-white/[0.08] hover:text-white"
-              onClick={handleRefresh}
-              aria-label="Refresh orders"
-            >
-              <RefreshCw className="h-4.5 w-4.5" />
-            </button>
-            <button
-              type="button"
-              className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-zinc-300 transition hover:bg-white/[0.08] hover:text-white"
-              onClick={resetOrdersView}
-              aria-label="Reset orders view"
-            >
-              <Trash2 className="h-4.5 w-4.5" />
-            </button>
           </div>
         </div>
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-[1080px] w-full border-collapse">
+      <div className="orders-table-shell">
+        <div className="orders-table-header">
+          <p className="orders-table-title">Orders Table</p>
+          <span className="orders-table-count">
+            Showing {paginatedOrders.length} of {filtered.length} orders
+          </span>
+        </div>
+
+        <div className="orders-table-wrap">
+          <table className="orders-table">
             <thead>
-              <tr className="bg-[#17171c] text-left text-sm font-bold text-zinc-200">
-                <th className="border-b border-white/8 px-6 py-4">{renderHeader("Order Id", "orderId")}</th>
-                <th className="border-b border-white/8 px-6 py-4">{renderHeader("Vendor", "vendor")}</th>
-                <th className="border-b border-white/8 px-6 py-4">{renderHeader("Items", "items")}</th>
-                <th className="border-b border-white/8 px-6 py-4">{renderHeader("Total", "total")}</th>
-                <th className="border-b border-white/8 px-6 py-4">{renderHeader("Status", "status")}</th>
-                {showAddressColumn && (
-                  <th className="border-b border-white/8 px-6 py-4">{renderHeader("Address", "address")}</th>
-                )}
-                <th className="border-b border-white/8 px-6 py-4 text-center">Details</th>
+              <tr>
+                <th>Order ID</th>
+                <th>Vendor</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Address</th>
+                <th>More</th>
               </tr>
             </thead>
             <tbody>
-              {paginatedOrders.map((order) => {
-                const products = order.products || [];
-                const previewProduct = products[0];
-                const isExpanded = Boolean(expandedOrders[order._id]);
-                const cellPadding = compactRows ? "py-3" : "py-4";
+        {paginatedOrders.map((order) => {
+          const products = order.products || [];
+          const isExpanded = Boolean(expandedOrders[order._id]);
+          const firstProduct = products[0];
+          const vendorName =
+            order.vendor?.name ||
+            order.customerName ||
+            order.shippingAddress?.name ||
+            "Not available";
+          const vendorEmail = order.vendor?.email || order.customerEmail || "Not available";
+          const vendorPhone =
+            order.vendor?.phone ||
+            order.phone ||
+            order.shippingAddress?.phone ||
+            "Not available";
+          const vendorCountry =
+            order.vendor?.country ||
+            order.country ||
+            order.shippingAddress?.country ||
+            "India";
+          const paymentMethod = order.paymentMethod || order.payment?.method || "Online";
+          const transactionId =
+            order.razorpayPaymentId ||
+            order.transactionId ||
+            order.payment?.razorpayPaymentId ||
+            order.payment?.transactionId ||
+            "Not available";
+          const transactionStatus =
+            order.paymentStatus ||
+            order.payment?.status ||
+            (order.status === "Delivered" ? "Paid" : "Pending");
+          const orderDate = order.createdAt
+            ? new Date(order.createdAt).toLocaleString()
+            : "Not available";
+          const totalItems = products.reduce((sum, product) => sum + Number(product.qty || 0), 0);
+          const subtotalAmount = products.reduce(
+            (sum, product) => sum + Number(product.price || 0) * Number(product.qty || 0),
+            0
+          );
 
-                return (
-                  <Fragment key={order._id}>
-                    <tr className="border-b border-white/6 bg-[#1b1b21] text-sm text-zinc-300 transition hover:bg-[#23232b]">
-                      <td className={`px-6 ${cellPadding}`}>
-                        <div className="font-semibold text-zinc-100">
-                          order_{order.orderNumber || order._id?.slice(-10)}
-                        </div>
-                      </td>
-                      <td className={`px-6 ${cellPadding}`}>
-                        <div className="max-w-[260px] truncate">{order.vendor?.email || "-"}</div>
-                      </td>
-                      <td className={`px-6 ${cellPadding}`}>
-                        {previewProduct ? (
-                          <div className="flex min-w-[240px] items-center gap-3">
-                            <img
-                              src={`http://localhost:5000/uploads/${previewProduct.image}`}
-                              alt=""
-                              className={`${compactRows ? "h-10 w-10" : "h-12 w-12"} rounded-xl object-cover bg-white`}
-                            />
-                            <div>
-                              <div className="font-semibold text-zinc-100">{previewProduct.name}</div>
-                              <div className="mt-1 text-xs text-zinc-500">
-                                Qty {previewProduct.qty}
-                                {products.length > 1 ? ` + ${products.length - 1} more` : ""}
-                              </div>
+          return (
+            <Fragment key={order._id}>
+              <tr className="orders-table-row">
+                <td>
+                  <div className="orders-table-order-id">
+                    <strong>#{order.orderNumber}</strong>
+                    <span>{order._id?.slice(-8)}</span>
+                  </div>
+                </td>
+                <td>
+                  <div className="orders-table-vendor">
+                    <strong>{order.vendor?.email || "-"}</strong>
+                  </div>
+                </td>
+                <td>
+                  {firstProduct ? (
+                    <div className="orders-table-item">
+                      <img src={`http://localhost:5000/uploads/${firstProduct.image}`} alt="" />
+                      <div>
+                        <strong>{firstProduct.name}</strong>
+                        <span>
+                          Qty {firstProduct.qty}
+                          {products.length > 1 ? ` + ${products.length - 1} more item(s)` : ""}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="orders-table-muted">No products</span>
+                  )}
+                </td>
+                <td>
+                  <span className="orders-table-total">
+                    Rs {Number(order.total || 0).toLocaleString()}
+                  </span>
+                </td>
+                <td>
+                  <select
+                    className="orders-table-status"
+                    value={order.status}
+                    onChange={(e) => updateStatus(order._id, e.target.value)}
+                  >
+                    <option value="Placed">Placed</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Returned">Returned</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </td>
+                <td>
+                  <div className="orders-table-address">{order.deliveryAddress || "-"}</div>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="orders-table-expand"
+                    onClick={() => toggleOrderProducts(order._id)}
+                  >
+                    {isExpanded ? "Hide" : "View"}
+                  </button>
+                </td>
+              </tr>
+              {isExpanded && (
+                <tr className="orders-table-expanded-row">
+                  <td colSpan={7}>
+                    <div className="orders-table-expanded">
+                      <div className="orders-table-products">
+                        {products.map((product, index) => (
+                          <div key={`${order._id}-${index}`} className="product-chip">
+                            <img src={`http://localhost:5000/uploads/${product.image}`} alt="" />
+                            <div className="product-info">
+                              <span className="p-name">{product.name}</span>
+                              <span className="p-details">Qty: {product.qty} | Rs {product.price}</span>
                             </div>
                           </div>
-                        ) : (
-                          <span className="text-zinc-500">No items</span>
-                        )}
-                      </td>
-                      <td className={`px-6 ${cellPadding}`}>
-                        <div className="font-semibold text-zinc-100">
-                          Rs {Number(order.total || 0).toLocaleString()}
-                        </div>
-                      </td>
-                      <td className={`px-6 ${cellPadding}`}>
-                        <div className="flex min-w-[170px] items-center gap-3">
-                          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${getStatusTone(order.status)}`}>
-                            {order.status}
-                          </span>
-                          <select
-                            value={order.status}
-                            onChange={(event) => updateStatus(order._id, event.target.value)}
-                            className="h-9 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs font-medium text-zinc-100 outline-none"
-                          >
-                            {STATUS_OPTIONS.filter((status) => status !== "all").map((status) => (
-                              <option key={status} value={status} className="bg-zinc-900">
-                                {status}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </td>
-                      {showAddressColumn && (
-                        <td className={`px-6 ${cellPadding}`}>
-                          <div className="max-w-[280px] truncate text-zinc-400">
-                            {order.deliveryAddress || "-"}
-                          </div>
-                        </td>
-                      )}
-                      <td className={`px-6 text-center ${cellPadding}`}>
-                        <button
-                          type="button"
-                          onClick={() => toggleOrderProducts(order._id)}
-                          className="rounded-xl border border-white/10 bg-white/[0.03] p-2 text-zinc-300 transition hover:bg-white/[0.08] hover:text-white"
-                        >
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </button>
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <tr className="bg-[#17171c]">
-                        <td colSpan={showAddressColumn ? 7 : 6} className="border-b border-white/8 px-6 py-5">
-                          <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-                            <div className="grid gap-3">
-                              {products.map((product, index) => (
-                                <div
-                                  key={`${order._id}-${index}`}
-                                  className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-3"
-                                >
-                                  <img
-                                    src={`http://localhost:5000/uploads/${product.image}`}
-                                    alt=""
-                                    className="h-12 w-12 rounded-xl object-cover bg-white"
-                                  />
-                                  <div>
-                                    <div className="font-semibold text-zinc-100">{product.name}</div>
-                                    <div className="mt-1 text-xs text-zinc-500">
-                                      Qty {product.qty} | Rs {product.price}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                        ))}
+                      </div>
 
-                            <div className="grid gap-3">
-                              <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                                <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-zinc-500">
-                                  Timeline
-                                </div>
-                                <OrderTimeline status={order.status} />
+                      <div className="orders-table-side">
+                        <div className="orders-detail-grid">
+                          <div className="orders-detail-card">
+                            <span className="orders-detail-kicker">Vendor Details</span>
+                            <div className="orders-detail-list">
+                              <div>
+                                <label>Name</label>
+                                <strong>{vendorName}</strong>
                               </div>
-                              <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                                <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-zinc-500">
-                                  Delivery Address
-                                </div>
-                                <p className="m-0 text-sm leading-6 text-zinc-300">
-                                  {order.deliveryAddress || "-"}
-                                </p>
+                              <div>
+                                <label>Email</label>
+                                <strong>{vendorEmail}</strong>
+                              </div>
+                              <div>
+                                <label>Phone</label>
+                                <strong>{vendorPhone}</strong>
+                              </div>
+                              <div>
+                                <label>Country</label>
+                                <strong>{vendorCountry}</strong>
                               </div>
                             </div>
                           </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
+
+                          <div className="orders-detail-card">
+                            <span className="orders-detail-kicker">Order Details</span>
+                            <div className="orders-detail-list">
+                              <div>
+                                <label>Order No.</label>
+                                <strong>#{order.orderNumber}</strong>
+                              </div>
+                              <div>
+                                <label>Created At</label>
+                                <strong>{orderDate}</strong>
+                              </div>
+                              <div>
+                                <label>Total Items</label>
+                                <strong>{totalItems}</strong>
+                              </div>
+                              <div>
+                                <label>Subtotal</label>
+                                <strong>Rs {subtotalAmount.toLocaleString()}</strong>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="orders-detail-card">
+                            <span className="orders-detail-kicker">Transaction Details</span>
+                            <div className="orders-detail-list">
+                              <div>
+                                <label>Method</label>
+                                <strong>{paymentMethod}</strong>
+                              </div>
+                              <div>
+                                <label>Transaction ID</label>
+                                <strong>{transactionId}</strong>
+                              </div>
+                              <div>
+                                <label>Payment Status</label>
+                                <strong>{transactionStatus}</strong>
+                              </div>
+                              <div>
+                                <label>Total Amount</label>
+                                <strong>Rs {Number(order.total || 0).toLocaleString()}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="timeline-box-dark">
+                          <OrderTimeline status={order.status} />
+                          <div className="order-address-mini">Address: {order.deliveryAddress}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </Fragment>
+          );
+        })}
             </tbody>
           </table>
         </div>
       </div>
 
       {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-2">
+        <div className="pagination-container">
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((page) => page - 1)}
-            className="rounded-xl border border-white/10 bg-[#1b1b21] px-4 py-2 text-sm font-semibold text-zinc-200 transition hover:bg-[#23232b] disabled:cursor-not-allowed disabled:opacity-40"
+            className="pag-btn"
           >
             Prev
           </button>
@@ -654,11 +433,7 @@ export default function OrdersTab() {
             <button
               key={index}
               onClick={() => setCurrentPage(index + 1)}
-              className={`h-10 w-10 rounded-xl border text-sm font-bold transition ${
-                currentPage === index + 1
-                  ? "border-violet-500/40 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white"
-                  : "border-white/10 bg-[#1b1b21] text-zinc-200 hover:bg-[#23232b]"
-              }`}
+              className={`page-num ${currentPage === index + 1 ? "active" : ""}`}
             >
               {index + 1}
             </button>
@@ -666,7 +441,7 @@ export default function OrdersTab() {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((page) => page + 1)}
-            className="rounded-xl border border-white/10 bg-[#1b1b21] px-4 py-2 text-sm font-semibold text-zinc-200 transition hover:bg-[#23232b] disabled:cursor-not-allowed disabled:opacity-40"
+            className="pag-btn"
           >
             Next
           </button>

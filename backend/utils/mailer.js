@@ -72,6 +72,17 @@ const sendOtpEmail = async ({ to, name, otp }) => {
   return { delivered: true, mode: "smtp" };
 };
 
+const sendOtpSms = async ({ to, name, otp }) => {
+  const normalizedPhone = String(to || "").replace(/\D/g, "");
+
+  if (!/^\d{10,15}$/.test(normalizedPhone)) {
+    throw new Error("Invalid phone number for OTP SMS");
+  }
+
+  console.log(`OTP for ${name || "User"} on ${normalizedPhone}: ${otp}`);
+  return { delivered: false, mode: "dev_console_sms" };
+};
+
 const sendNotificationEmail = async ({
   to,
   subject,
@@ -150,4 +161,4 @@ const sendNotificationEmail = async ({
   return { delivered: true, mode: "smtp" };
 };
 
-module.exports = { sendOtpEmail, sendNotificationEmail };
+module.exports = { sendOtpEmail, sendOtpSms, sendNotificationEmail };

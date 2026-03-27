@@ -14,7 +14,8 @@ export default function ForgotPassword() {
   const initialRole = searchParams.get("role") === "vendor" ? "vendor" : "admin";
 
   const [role, setRole] = useState(initialRole);
-  const [email, setEmail] = useState("");
+  const [contactType, setContactType] = useState("email");
+  const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -25,14 +26,26 @@ export default function ForgotPassword() {
   const otpVerified = Boolean(resetToken);
 
   const sendOtp = async () => {
-    if (!email.trim()) {
-      return toast.error("Please enter your registered email");
+    const normalizedIdentifier =
+      contactType === "phone" ? identifier.replace(/\D/g, "") : identifier.trim().toLowerCase();
+
+    if (!normalizedIdentifier) {
+      return toast.error(
+        contactType === "phone"
+          ? "Please enter your registered mobile number"
+          : "Please enter your registered email"
+      );
+    }
+
+    if (contactType === "phone" && !/^\d{10}$/.test(normalizedIdentifier)) {
+      return toast.error("Phone must be exactly 10 digits");
     }
 
     try {
       setLoading(true);
       const res = await api.post(`${basePath}/forgot-password/request-otp`, {
-        email: email.trim().toLowerCase()
+        contactType,
+        identifier: normalizedIdentifier
       });
       toast.success(res.data?.message || "OTP has been sent");
     } catch (err) {
@@ -43,14 +56,20 @@ export default function ForgotPassword() {
   };
 
   const verifyOtp = async () => {
-    if (!email.trim() || !otp.trim()) {
-      return toast.error("Please enter email and OTP");
+    const normalizedIdentifier =
+      contactType === "phone" ? identifier.replace(/\D/g, "") : identifier.trim().toLowerCase();
+
+    if (!normalizedIdentifier || !otp.trim()) {
+      return toast.error(
+        contactType === "phone" ? "Please enter mobile number and OTP" : "Please enter email and OTP"
+      );
     }
 
     try {
       setLoading(true);
       const res = await api.post(`${basePath}/forgot-password/verify-otp`, {
-        email: email.trim().toLowerCase(),
+        contactType,
+        identifier: normalizedIdentifier,
         otp: otp.trim()
       });
       setResetToken(res.data.resetToken);
@@ -75,8 +94,11 @@ export default function ForgotPassword() {
 
     try {
       setLoading(true);
+      const normalizedIdentifier =
+        contactType === "phone" ? identifier.replace(/\D/g, "") : identifier.trim().toLowerCase();
       await api.post(`${basePath}/forgot-password/reset`, {
-        email: email.trim().toLowerCase(),
+        contactType,
+        identifier: normalizedIdentifier,
         newPassword,
         resetToken
       });
@@ -91,6 +113,8 @@ export default function ForgotPassword() {
 
   const onRoleChange = (nextRole) => {
     setRole(nextRole);
+    setContactType("email");
+    setIdentifier("");
     setOtp("");
     setResetToken("");
     setNewPassword("");
@@ -108,38 +132,79 @@ export default function ForgotPassword() {
             <h2 className="card-title">Forgot Password</h2>
             <p className="card-subtitle">Verify OTP and reset your password</p>
 
-            <label className="input-label">Account Type</label>
-            <div className="role-buttons">
-              <button
-                type="button"
-                className={role === "admin" ? "active" : ""}
-                onClick={() => onRoleChange("admin")}
-              >
-                Admin / Manager
-              </button>
-              <button
-                type="button"
-                className={role === "vendor" ? "active" : ""}
-                onClick={() => onRoleChange("vendor")}
-              >
-                Vendor
-              </button>
+            <div className="form-group">
+              <label className="input-label">Account Type</label>
+              <div className="role-buttons">
+                <button
+                  type="button"
+                  className={role === "admin" ? "active" : ""}
+                  onClick={() => onRoleChange("admin")}
+                >
+                  Admin / Manager
+                </button>
+                <button
+                  type="button"
+                  className={role === "vendor" ? "active" : ""}
+                  onClick={() => onRoleChange("vendor")}
+                >
+                  Vendor
+                </button>
+              </div>
             </div>
 
             <div className="form-group">
-              <label className="input-label">Registered Email</label>
+              <label className="input-label">OTP Via</label>
+              <div className="role-buttons">
+                <button
+                  type="button"
+                  className={contactType === "email" ? "active" : ""}
+                  onClick={() => {
+                    setContactType("email");
+                    setIdentifier("");
+                    setOtp("");
+                    setResetToken("");
+                  }}
+                >
+                  Gmail
+                </button>
+                <button
+                  type="button"
+                  className={contactType === "phone" ? "active" : ""}
+                  onClick={() => {
+                    setContactType("phone");
+                    setIdentifier("");
+                    setOtp("");
+                    setResetToken("");
+                  }}
+                >
+                  Mobile
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="input-label">
+                {contactType === "phone" ? "Registered Mobile Number" : "Registered Email"}
+              </label>
               <input
-                type="email"
+                type={contactType === "phone" ? "tel" : "email"}
                 className="auth-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your registered email"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={
+                  contactType === "phone"
+                    ? "Enter your registered mobile number"
+                    : "Enter your registered email"
+                }
+                maxLength={contactType === "phone" ? 10 : undefined}
               />
             </div>
 
-            <button type="button" className="btn-sign-in" disabled={loading} onClick={sendOtp}>
-              Send OTP
-            </button>
+            <div className="forgot-action-row">
+              <button type="button" className="btn-sign-in" disabled={loading} onClick={sendOtp}>
+                Send OTP
+              </button>
+            </div>
 
             <div className="form-group">
               <label className="input-label">OTP</label>
@@ -153,9 +218,11 @@ export default function ForgotPassword() {
               />
             </div>
 
-            <button type="button" className="btn-sign-in secondary-btn" disabled={loading} onClick={verifyOtp}>
-              Verify OTP
-            </button>
+            <div className="forgot-action-row">
+              <button type="button" className="btn-sign-in secondary-btn" disabled={loading} onClick={verifyOtp}>
+                Verify OTP
+              </button>
+            </div>
 
             <div className="form-group">
               <label className="input-label">New Password</label>
@@ -181,9 +248,11 @@ export default function ForgotPassword() {
               />
             </div>
 
-            <button type="button" className="btn-sign-in" disabled={loading || !otpVerified} onClick={resetPassword}>
-              Update Password
-            </button>
+            <div className="forgot-action-row forgot-action-row-last">
+              <button type="button" className="btn-sign-in" disabled={loading || !otpVerified} onClick={resetPassword}>
+                Update Password
+              </button>
+            </div>
 
             <button type="button" className="forgot-back-link" onClick={() => navigate("/")}>
               Back to login

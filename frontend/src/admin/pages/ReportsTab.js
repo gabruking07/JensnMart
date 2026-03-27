@@ -28,6 +28,8 @@ import api from "../../services/api";
 import "../admin.css";
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6"];
+const REVENUE_STATUSES = new Set(["Delivered", "Completed"]);
+const PENDING_TRANSACTION_STATUSES = new Set(["Placed", "Processing", "Shipped"]);
 
 const BAR_COLORS = [
   "#3b82f6",
@@ -150,6 +152,10 @@ export default function ReportsTab() {
     }));
 
     orders.forEach((order) => {
+      if (!REVENUE_STATUSES.has(order.status)) {
+        return;
+      }
+
       const date = new Date(order.createdAt);
       if (date.getFullYear() !== year) {
         return;
@@ -191,6 +197,10 @@ export default function ReportsTab() {
 
     return orders
       .filter((order) => {
+        if (!REVENUE_STATUSES.has(order.status)) {
+          return false;
+        }
+
         const date = new Date(order.createdAt);
         return (
           date.getMonth() === now.getMonth() &&
@@ -201,11 +211,21 @@ export default function ReportsTab() {
   }, [orders]);
 
   const totalRevenue = useMemo(() => {
-    return orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    return orders.reduce((sum, order) => {
+      if (!REVENUE_STATUSES.has(order.status)) {
+        return sum;
+      }
+
+      return sum + Number(order.total || 0);
+    }, 0);
   }, [orders]);
 
+  const totalStatusOrders = useMemo(() => {
+    return statusData.reduce((sum, entry) => sum + Number(entry.value || 0), 0);
+  }, [statusData]);
+
   const pendingTransactions = useMemo(() => {
-    return orders.filter((order) => order.status === "PendingPayment").length;
+    return orders.filter((order) => PENDING_TRANSACTION_STATUSES.has(order.status)).length;
   }, [orders]);
 
   const topProduct = topProducts[0]?.name || "-";
@@ -319,7 +339,7 @@ export default function ReportsTab() {
             </div>
 
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData} margin={{ top: 8, right: 8, left: -20, bottom: 8 }}>
+              <BarChart data={revenueData} margin={{ top: 28, right: 8, left: -20, bottom: 8 }}>
                 <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
                 <XAxis
                   dataKey="date"
@@ -349,7 +369,17 @@ export default function ReportsTab() {
                   fill="url(#reportsSalesGradient)"
                   radius={[6, 6, 0, 0]}
                   maxBarSize={64}
-                />
+                >
+                  <LabelList
+                    dataKey="total"
+                    position="top"
+                    offset={8}
+                    formatter={(value) =>
+                      Number(value) > 0 ? `Rs ${Number(value).toLocaleString()}` : ""
+                    }
+                    style={{ fill: "#6d28d9", fontSize: 12, fontWeight: 700 }}
+                  />
+                </Bar>
                 <defs>
                   <linearGradient id="reportsSalesGradient" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stopColor="#9f5cff" />
@@ -364,35 +394,41 @@ export default function ReportsTab() {
         <div className="chart-card reports-status-card">
           <div className="card-title">Order Status</div>
 
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie
-                data={statusData}
-                dataKey="value"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
-                stroke="none"
-              >
-                <LabelList
+          <div className="reports-chart-shell reports-status-chart-shell">
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={statusData}
                   dataKey="value"
-                  position="outside"
-                  offset={15}
-                  style={{ fill: "#4b5563", fontSize: "14px", fontWeight: "bold" }}
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  stroke="none"
+                >
+                  <LabelList
+                    dataKey="value"
+                    position="outside"
+                    offset={15}
+                    style={{ fill: "#4b5563", fontSize: "14px", fontWeight: "bold" }}
+                  />
+                  {statusData.map((entry, index) => (
+                    <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: "10px",
+                    border: "none",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)"
+                  }}
                 />
-                {statusData.map((entry, index) => (
-                  <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "10px",
-                  border: "none",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)"
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="reports-status-center-label" aria-hidden="true">
+              <strong>{totalStatusOrders}</strong>
+              <span>Orders</span>
+            </div>
+          </div>
 
           <div className="reports-status-legend">
             {statusData.map((entry, index) => (
