@@ -2688,16 +2688,39 @@
 
 .payments-container .payment-search-input {
   display:block;
-  margin-bottom: 15px;
   padding: 11px 13px;
-  width: min(420px, 100%);
+  width: min(260px, 100%);
   border-radius: 10px;
   border: 1px solid #cbd5e1;
   background: #ffffff;
   font-size: 14px;
 }
 
+.payments-container .payments-search-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 520px;
+  flex-wrap: wrap;
+}
+
+.payments-container .payment-sort-select {
+  min-width: 170px;
+  padding: 11px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #182131;
+}
+
 .payments-container .payment-search-input:focus{
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+
+.payments-container .payment-sort-select:focus {
   outline: none;
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
@@ -2987,6 +3010,14 @@
   .payment-search-input{
     width:100%;
     max-width:100%;
+  }
+
+  .payments-container .payments-search-filters {
+    width: 100%;
+  }
+
+  .payments-container .payment-sort-select {
+    width: 100%;
   }
 
   .payments-toolbar{

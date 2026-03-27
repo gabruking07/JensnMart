@@ -22,6 +22,7 @@ const razorpay = new Razorpay({
 /* ================= ADMIN VIEW PAYMENTS ================= */
 router.get("/", authMiddleware, roleOnly("admin"), async (req, res) => {
   const payments = await Payment.find()
+    .sort({ createdAt: -1 })
     .populate("order")
     .populate("vendor", "email");
 
