@@ -14,7 +14,7 @@ const upload = require("../config/upload");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly"); // adminOnly middleware
 const { sendNotificationEmail } = require("../utils/mailer");
-const IMPORT_PLACEHOLDER_IMAGE = "product-placeholder.svg";
+const IMPORT_PLACEHOLDER_IMAGE = "products/product-placeholder.svg";
 
 const importUpload = multer({
   storage: multer.memoryStorage(),
@@ -183,7 +183,7 @@ router.post(
         name,
         price,
         stock,
-        image: req.file.filename,
+        image: `products/${req.file.filename}`,
         category,
         subcategory: subcategory || null,
         vendor: null

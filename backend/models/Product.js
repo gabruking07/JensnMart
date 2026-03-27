@@ -20,7 +20,7 @@ const ProductSchema = new mongoose.Schema(
       min: 0
     },
 
-    // Stored filename from multer (not URL)
+    // Stored relative uploads path from multer, e.g. "products/12345.png"
     image: {
       type: String,
       required: true
