@@ -8,7 +8,6 @@ export default function PaymentsTab() {
   const [notifyingId, setNotifyingId] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [transactionSort, setTransactionSort] = useState("latest");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -48,12 +47,12 @@ export default function PaymentsTab() {
     .sort((a, b) => {
       const aTime = new Date(a.createdAt || 0).getTime();
       const bTime = new Date(b.createdAt || 0).getTime();
-      return transactionSort === "latest" ? bTime - aTime : aTime - bTime;
+      return bTime - aTime;
     });
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, transactionSort, pageSize]);
+  }, [search, statusFilter, pageSize]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPayments.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -128,16 +127,6 @@ export default function PaymentsTab() {
           />
 
           <select
-            value={transactionSort}
-            onChange={(e) => setTransactionSort(e.target.value)}
-            className="payment-sort-select"
-            aria-label="Sort transactions"
-          >
-            <option value="latest">Latest first</option>
-            <option value="oldest">Oldest first</option>
-          </select>
-
-          <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="payment-sort-select"
@@ -151,7 +140,9 @@ export default function PaymentsTab() {
         </div>
 
         <div className="payments-page-size top-right">
-          <label htmlFor="payments-page-size-top">Rows per page</label>
+          <label htmlFor="payments-page-size-top" className="payments-page-size-text">
+            Rows per page
+          </label>
           <select
             id="payments-page-size-top"
             value={pageSize}

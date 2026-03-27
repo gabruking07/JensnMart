@@ -2858,6 +2858,23 @@
   font-weight: 600;
 }
 
+.payments-empty-state {
+  padding: 32px 18px 22px;
+  text-align: center;
+  color: #475569;
+}
+
+.payments-empty-state strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.payments-empty-state p {
+  margin: 0;
+}
+
 .payments-pagination{
   margin-top: 14px;
   display: flex;
@@ -2873,6 +2890,16 @@
   gap: 8px;
   color: #475569;
   font-size: 13px;
+}
+
+.payments-page-size .payments-page-size-text {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .payments-page-size.top-right{

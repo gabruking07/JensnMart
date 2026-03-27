@@ -8,7 +8,9 @@ const storage = multer.diskStorage({
     const targetDir =
       file.fieldname === "profileImage"
         ? path.join(baseDir, "vendorProfile")
-        : baseDir;
+        : file.fieldname === "image"
+          ? path.join(baseDir, "products")
+          : baseDir;
 
     fs.mkdirSync(targetDir, { recursive: true });
     cb(null, targetDir);
