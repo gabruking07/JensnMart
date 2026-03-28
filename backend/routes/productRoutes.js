@@ -159,6 +159,44 @@ const buildSubcategoryLookup = (subcategories = []) => {
   return map;
 };
 
+const ensureCategoryDocument = async (categoryValue, categoryLookup) => {
+  const directMatch =
+    categoryLookup.get(categoryValue) || categoryLookup.get(normalizeValue(categoryValue));
+  if (directMatch) return { categoryDoc: directMatch, created: false };
+
+  const categoryDoc = await Category.create({ name: categoryValue });
+  categoryLookup.set(String(categoryDoc._id), categoryDoc);
+  categoryLookup.set(normalizeValue(categoryDoc.name), categoryDoc);
+  return { categoryDoc, created: true };
+};
+
+const ensureSubcategoryDocument = async (
+  subcategoryValue,
+  categoryDoc,
+  subcategoryLookup
+) => {
+  const byId = subcategoryLookup.get(subcategoryValue);
+  const byNameAndCategory = subcategoryLookup.get(
+    `${normalizeValue(subcategoryValue)}::${String(categoryDoc._id)}`
+  );
+  const existingSubcategory = byId || byNameAndCategory;
+  if (existingSubcategory) {
+    return { subcategoryDoc: existingSubcategory, created: false };
+  }
+
+  const subcategoryDoc = await SubCategory.create({
+    name: subcategoryValue,
+    category: categoryDoc._id,
+  });
+  subcategoryLookup.set(String(subcategoryDoc._id), subcategoryDoc);
+  subcategoryLookup.set(
+    `${normalizeValue(subcategoryDoc.name)}::${String(categoryDoc._id)}`,
+    subcategoryDoc
+  );
+
+  return { subcategoryDoc, created: true };
+};
+
 /* =====================================================
    ADD PRODUCT (ADMIN + MANAGER)
 ===================================================== */
@@ -223,8 +261,10 @@ router.post(
       const subcategoryLookup = buildSubcategoryLookup(subcategories);
       const errors = [];
       const documents = [];
+      const createdCategories = new Set();
+      const createdSubcategories = new Set();
 
-      rows.forEach((row, index) => {
+      for (const [index, row] of rows.entries()) {
         const excelRowNumber = index + 2;
         const name = String(
           getRowValue(row, ["name", "productname", "product", "title"])
@@ -243,47 +283,46 @@ router.post(
 
         // Skip completely empty rows.
         if (![name, priceValue, stockValue, categoryValue, subcategoryValue, imageValue].some(Boolean)) {
-          return;
+          continue;
         }
 
         if (!name || priceValue === "" || stockValue === "" || !categoryValue) {
           errors.push(`Row ${excelRowNumber}: name, price, stock, and category are required.`);
-          return;
+          continue;
         }
 
         const price = Number(priceValue);
         const stock = Number(stockValue);
         if (Number.isNaN(price) || price < 0) {
           errors.push(`Row ${excelRowNumber}: price must be a valid non-negative number.`);
-          return;
+          continue;
         }
 
         if (!Number.isInteger(stock) || stock < 0) {
           errors.push(`Row ${excelRowNumber}: stock must be a valid whole number.`);
-          return;
+          continue;
         }
 
-        const categoryDoc =
-          categoryLookup.get(categoryValue) || categoryLookup.get(normalizeValue(categoryValue));
-
-        if (!categoryDoc) {
-          errors.push(`Row ${excelRowNumber}: category "${categoryValue}" was not found.`);
-          return;
+        const { categoryDoc, created: categoryCreated } = await ensureCategoryDocument(
+          categoryValue,
+          categoryLookup
+        );
+        if (categoryCreated) {
+          createdCategories.add(String(categoryDoc._id));
         }
 
         let subcategoryId = null;
         if (subcategoryValue) {
-          const byId = subcategoryLookup.get(subcategoryValue);
-          const byNameAndCategory = subcategoryLookup.get(
-            `${normalizeValue(subcategoryValue)}::${String(categoryDoc._id)}`
+          const {
+            subcategoryDoc,
+            created: subcategoryCreated,
+          } = await ensureSubcategoryDocument(
+            subcategoryValue,
+            categoryDoc,
+            subcategoryLookup
           );
-          const subcategoryDoc = byId || byNameAndCategory;
-
-          if (!subcategoryDoc) {
-            errors.push(
-              `Row ${excelRowNumber}: subcategory "${subcategoryValue}" was not found under "${categoryDoc.name}".`
-            );
-            return;
+          if (subcategoryCreated) {
+            createdSubcategories.add(String(subcategoryDoc._id));
           }
 
           subcategoryId = subcategoryDoc._id;
@@ -298,7 +337,7 @@ router.post(
           image: imageValue || IMPORT_PLACEHOLDER_IMAGE,
           vendor: null,
         });
-      });
+      }
 
       if (!documents.length) {
         return res.status(400).json({
@@ -312,6 +351,8 @@ router.post(
         message: `Imported ${inserted.length} products successfully`,
         importedCount: inserted.length,
         skippedCount: errors.length,
+        createdCategoryCount: createdCategories.size,
+        createdSubcategoryCount: createdSubcategories.size,
         errors,
       });
     } catch (err) {
