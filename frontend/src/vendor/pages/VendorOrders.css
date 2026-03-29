@@ -300,9 +300,15 @@
 
 .order-links {
   margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .order-link-btn,
+.order-receipt-btn,
 .btn-secondary {
   border: none;
   border-radius: 999px;
@@ -316,8 +322,26 @@
   padding: 10px 14px;
 }
 
+.order-receipt-btn {
+  margin-left: auto;
+  background: linear-gradient(135deg, #0a6a68, #095f61);
+  color: #fff;
+  padding: 10px 16px;
+  box-shadow: 0 14px 26px rgba(10, 106, 104, 0.18);
+}
+
 .order-link-btn:hover {
   background: linear-gradient(135deg, #e16a2f, #bc4917);
+}
+
+.order-receipt-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e16a2f, #bc4917);
+}
+
+.order-receipt-btn:disabled {
+  opacity: 0.72;
+  cursor: wait;
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -387,14 +411,17 @@
   .order-footer,
   .orders-filter-bar,
   .orders-pagination-toolbar,
-  .orders-page-size {
+  .orders-page-size,
+  .order-links {
     flex-direction: column;
     align-items: stretch;
   }
 
   .orders-filter-bar select,
   .orders-filter-bar input,
-  .orders-page-size select {
+  .orders-page-size select,
+  .order-receipt-btn,
+  .order-link-btn {
     width: 100%;
   }
 }

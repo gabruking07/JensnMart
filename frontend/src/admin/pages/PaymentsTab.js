@@ -9,7 +9,7 @@ export default function PaymentsTab() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(12);
 
   const loadPayments = async () => {
     try {
@@ -152,10 +152,10 @@ export default function PaymentsTab() {
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
           >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={20}>20</option>
+            <option value={6}>6</option>
+            <option value={12}>12</option>
+            <option value={18}>18</option>
+            <option value={24}>24</option>
           </select>
         </div>
       </div>

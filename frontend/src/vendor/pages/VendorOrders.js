@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import Footer from "../../components/Footer";
 import OrderTimeline from "../../components/OrderTimeline";
 import "./VendorOrders.css";
 import VendorLayout from "./VendorLayout";
+
+const formatCurrency = (amount) => `Rs ${Number(amount || 0).toLocaleString("en-IN")}`;
 
 export default function VendorOrders() {
   const navigate = useNavigate();
@@ -17,6 +21,7 @@ export default function VendorOrders() {
   const [dateFilter, setDateFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(4);
+  const [downloadingOrderId, setDownloadingOrderId] = useState("");
   const selectedOrderNumber = searchParams.get("order") || "";
 
   useEffect(() => {
@@ -106,6 +111,101 @@ export default function VendorOrders() {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
+
+  const downloadReceipt = (order) => {
+    try {
+      setDownloadingOrderId(order._id);
+
+      const products = Array.isArray(order.products) ? order.products : [];
+      const paymentMethod = order.paymentMethod || order.payment?.method || "Online";
+      const vendorName = order.vendor?.name || "Not available";
+      const transactionId =
+        order.razorpayPaymentId ||
+        order.transactionId ||
+        order.payment?.razorpayPaymentId ||
+        order.payment?.transactionId ||
+        "Not available";
+      const transactionStatus =
+        order.paymentStatus ||
+        order.payment?.status ||
+        (order.status === "Delivered" ? "Paid" : "Pending");
+      const orderDate = order.createdAt
+        ? new Date(order.createdAt).toLocaleString("en-IN")
+        : "Not available";
+
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      doc.setFillColor(8, 46, 79);
+      doc.rect(0, 0, pageWidth, 30, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("JensnMart Receipt", 14, 18);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(
+        `Generated on ${new Date().toLocaleString("en-IN")}`,
+        pageWidth - 14,
+        18,
+        { align: "right" }
+      );
+
+      doc.setTextColor(15, 23, 42);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("Order Details", 14, 44);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Order No: #${order.orderNumber || "N/A"}`, 14, 52);
+      doc.text(`Name: ${vendorName}`, 14, 58);
+      doc.text(`Created At: ${orderDate}`, 14, 64);
+      doc.text(`Status: ${order.status || "Not available"}`, 14, 70);
+      doc.text(`Payment Method: ${paymentMethod}`, 110, 52);
+      doc.text(`Payment Status: ${transactionStatus}`, 110, 58);
+      doc.text(`Transaction ID: ${transactionId}`, 110, 64);
+
+      autoTable(doc, {
+        startY: 82,
+        head: [["Product", "Qty", "Unit Price", "Line Total"]],
+        body: products.map((product) => [
+          product.name || "Unnamed product",
+          String(product.qty || 0),
+          formatCurrency(product.price),
+          formatCurrency(Number(product.price || 0) * Number(product.qty || 0)),
+        ]),
+        styles: {
+          fontSize: 10,
+          cellPadding: 4,
+          textColor: [15, 23, 42],
+        },
+        headStyles: {
+          fillColor: [8, 46, 79],
+          textColor: [255, 255, 255],
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252],
+        },
+        margin: { left: 14, right: 14 },
+      });
+
+      const finalY = doc.lastAutoTable?.finalY || 82;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(`Total: ${formatCurrency(order.total)}`, pageWidth - 14, finalY + 14, {
+        align: "right",
+      });
+
+      doc.save(`jensnmart-receipt-order-${order.orderNumber || order._id || "download"}.pdf`);
+      toast.success(`Receipt downloaded for order #${order.orderNumber}`);
+    } catch (error) {
+      console.error("Vendor receipt download failed:", error);
+      toast.error("Failed to download receipt");
+    } finally {
+      setDownloadingOrderId("");
+    }
+  };
 
   if (loading) {
     return (
@@ -256,6 +356,16 @@ export default function VendorOrders() {
                           onClick={() => navigate(`/vendor/transactions?order=${order.orderNumber}`)}
                         >
                           View Transaction
+                        </button>
+                        <button
+                          type="button"
+                          className="order-receipt-btn"
+                          onClick={() => downloadReceipt(order)}
+                          disabled={downloadingOrderId === order._id}
+                        >
+                          {downloadingOrderId === order._id
+                            ? "Preparing Receipt..."
+                            : "Download Receipt"}
                         </button>
                       </div>
                     </div>
