@@ -131,7 +131,9 @@ router.get("/vendor/orders", authMiddleware, async (req, res) => {
   const orders = await Order.find({
     vendor: req.user.id,
     status: { $ne: "PendingPayment" }
-  }).sort({ createdAt: -1, orderNumber: -1 });
+  })
+    .populate("vendor", "name email phone")
+    .sort({ createdAt: -1, orderNumber: -1 });
   const ordersWithPayments = await attachPaymentDetails(orders);
   res.json(ordersWithPayments);
 });

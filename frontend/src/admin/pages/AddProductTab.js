@@ -93,7 +93,22 @@ export default function AddProductTab() {
         try {
             setIsImporting(true);
             const res = await api.post("/products/import", data);
-            toast.success(res.data?.message || "Products imported");
+            const importedCount = res.data?.importedCount || 0;
+            const createdCategoryCount = res.data?.createdCategoryCount || 0;
+            const createdSubcategoryCount = res.data?.createdSubcategoryCount || 0;
+            const createdSummary = [
+                createdCategoryCount ? `${createdCategoryCount} categories` : "",
+                createdSubcategoryCount ? `${createdSubcategoryCount} subcategories` : ""
+            ].filter(Boolean).join(", ");
+
+            toast.success(
+                createdSummary
+                    ? `Imported ${importedCount} products. Created ${createdSummary}.`
+                    : res.data?.message || "Products imported"
+            );
+
+            loadCategories();
+            loadSub();
             setImportFile(null);
         } catch (err) {
             const errorList = err?.response?.data?.errors;
