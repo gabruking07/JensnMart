@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { RotateCcw, Sparkles } from "lucide-react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import OrderTimeline from "../../components/OrderTimeline";
@@ -10,6 +11,73 @@ const formatCurrency = (amount) => `Rs ${Number(amount || 0).toLocaleString("en-
 
 const formatDateTime = (value) =>
   value ? new Date(value).toLocaleString("en-IN") : "Not available";
+
+const getOrderAgeHours = (value) => {
+  const createdAt = new Date(value || 0).getTime();
+  if (Number.isNaN(createdAt) || createdAt <= 0) return 0;
+  return Math.max(0, (Date.now() - createdAt) / (1000 * 60 * 60));
+};
+
+const getOrderRisk = (order) => {
+  const ageHours = getOrderAgeHours(order.createdAt);
+  const total = Number(order.total || 0);
+  const paymentStatus = order.paymentStatus || order.payment?.status || "";
+  const itemCount = Array.isArray(order.products)
+    ? order.products.reduce((sum, product) => sum + Number(product.qty || 0), 0)
+    : 0;
+
+  let score = 0;
+  const reasons = [];
+
+  if (paymentStatus === "Pending") {
+    score += 2;
+    reasons.push("payment pending");
+  }
+
+  if (["Returned", "Cancelled"].includes(order.status)) {
+    score += 3;
+    reasons.push(order.status.toLowerCase());
+  }
+
+  if (ageHours >= 72 && ["Placed", "Processing", "Shipped"].includes(order.status)) {
+    score += 3;
+    reasons.push("aging order");
+  } else if (ageHours >= 36 && ["Placed", "Processing"].includes(order.status)) {
+    score += 2;
+    reasons.push("slow progress");
+  }
+
+  if (total >= 10000) {
+    score += 2;
+    reasons.push("high value");
+  } else if (total >= 5000) {
+    score += 1;
+    reasons.push("large value");
+  }
+
+  if (itemCount >= 10) {
+    score += 1;
+    reasons.push("bulk quantity");
+  }
+
+  if (order.status === "Delivered" && paymentStatus === "Paid") {
+    score = Math.max(0, score - 2);
+  }
+
+  let level = "Low";
+  if (score >= 5) level = "High";
+  else if (score >= 3) level = "Medium";
+
+  const tone = level.toLowerCase();
+  const summary =
+    reasons.length > 0 ? reasons.slice(0, 2).join(" • ") : "stable order flow";
+
+  return {
+    level,
+    tone,
+    summary,
+  };
+};
 
 export default function OrdersTab() {
   const [orders, setOrders] = useState([]);
@@ -23,6 +91,7 @@ export default function OrdersTab() {
   const [receiptDateFrom, setReceiptDateFrom] = useState("");
   const [receiptDateTo, setReceiptDateTo] = useState("");
   const [isReceiptPanelOpen, setIsReceiptPanelOpen] = useState(false);
+  const [isAiSummaryOpen, setIsAiSummaryOpen] = useState(false);
   const [downloadingOrderId, setDownloadingOrderId] = useState("");
   const [isBulkDownloading, setIsBulkDownloading] = useState(false);
 
@@ -118,6 +187,132 @@ export default function OrdersTab() {
       delivered: orders.filter((order) => order.status === "Delivered").length,
       returned: orders.filter((order) => order.status === "Returned").length,
       cancelled: orders.filter((order) => order.status === "Cancelled").length,
+    };
+  }, [orders]);
+
+  const aiSummary = useMemo(() => {
+    const processingOrders = orders.filter((order) => order.status === "Processing");
+    const shippedOrders = orders.filter((order) => order.status === "Shipped");
+    const pendingPaymentOrders = orders.filter(
+      (order) => order.paymentStatus === "Pending" || order.payment?.status === "Pending"
+    );
+    const highValueOrders = orders.filter((order) => Number(order.total || 0) >= 5000);
+    const staleOrders = orders.filter((order) => {
+      const ageHours = getOrderAgeHours(order.createdAt);
+      return (
+        ageHours >= 48 &&
+        ["Placed", "Processing", "Shipped"].includes(order.status) &&
+        order.paymentStatus !== "Paid" &&
+        order.payment?.status !== "Paid"
+      );
+    });
+
+    const vendorStats = new Map();
+    orders.forEach((order) => {
+      const vendorKey = order.vendor?._id || order.vendor?.email || "unknown";
+      const current = vendorStats.get(vendorKey) || {
+        name: order.vendor?.name || order.vendor?.email || "Unknown vendor",
+        email: order.vendor?.email || "Not available",
+        processing: 0,
+        returned: 0,
+        pending: 0,
+      };
+
+      if (order.status === "Processing") current.processing += 1;
+      if (order.status === "Returned") current.returned += 1;
+      if (order.paymentStatus === "Pending" || order.payment?.status === "Pending") {
+        current.pending += 1;
+      }
+
+      vendorStats.set(vendorKey, current);
+    });
+
+    const vendorHighlights = Array.from(vendorStats.values()).sort((a, b) => {
+      const scoreA = a.returned * 3 + a.processing * 2 + a.pending;
+      const scoreB = b.returned * 3 + b.processing * 2 + b.pending;
+      return scoreB - scoreA;
+    });
+
+    const topVendor = vendorHighlights[0];
+    const newestOrder = [...orders].sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    )[0];
+    const deliveredRevenue = orders
+      .filter((order) => order.status === "Delivered")
+      .reduce((sum, order) => sum + Number(order.total || 0), 0);
+
+    const overview = [
+      `${processingOrders.length} orders are actively processing across the marketplace.`,
+      `${pendingPaymentOrders.length} orders still have pending payment status.`,
+      `${highValueOrders.length} high-value orders are above Rs 5,000.`,
+      `Delivered orders have generated ${formatCurrency(deliveredRevenue)} in completed value.`,
+    ];
+
+    const attention = [];
+    if (staleOrders.length > 0) {
+      const staleOrder = staleOrders
+        .slice()
+        .sort((a, b) => Number(b.total || 0) - Number(a.total || 0))[0];
+      attention.push(
+        `Order #${staleOrder.orderNumber || "N/A"} has been open for more than 48 hours with payment or fulfillment still unresolved.`
+      );
+    }
+    if (topVendor && (topVendor.returned > 0 || topVendor.processing > 2 || topVendor.pending > 1)) {
+      attention.push(
+        `${topVendor.name} is the busiest risk vendor right now with ${topVendor.processing} processing, ${topVendor.pending} pending-payment, and ${topVendor.returned} returned orders.`
+      );
+    }
+    if (shippedOrders.length > 0) {
+      const oldestShipped = shippedOrders
+        .slice()
+        .sort((a, b) => getOrderAgeHours(b.createdAt) - getOrderAgeHours(a.createdAt))[0];
+      if (getOrderAgeHours(oldestShipped.createdAt) >= 72) {
+        attention.push(
+          `Shipped order #${oldestShipped.orderNumber || "N/A"} looks aged in transit and may need a delivery follow-up.`
+        );
+      }
+    }
+    if (newestOrder) {
+      attention.push(
+        `Latest order received: #${newestOrder.orderNumber || "N/A"} for ${formatCurrency(newestOrder.total)} on ${formatDateTime(newestOrder.createdAt)}.`
+      );
+    }
+
+    const actions = [];
+    if (pendingPaymentOrders.length > 0) {
+      actions.push("Review pending-payment orders before advancing their fulfillment status.");
+    }
+    if (staleOrders.length > 0) {
+      actions.push("Prioritize orders older than 48 hours that are still placed, processing, or shipped.");
+    }
+    if (topVendor && topVendor.returned > 0) {
+      actions.push(`Audit return reasons for ${topVendor.name} and confirm any catalog or packing issues.`);
+    }
+    if (highValueOrders.length > 0) {
+      actions.push("Double-check the highest-value orders before marking them delivered or returned.");
+    }
+
+    return {
+      overview,
+      attention: attention.slice(0, 4),
+      actions: actions.slice(0, 4),
+      metrics: [
+        {
+          label: "Needs review",
+          value: staleOrders.length + pendingPaymentOrders.length,
+          caption: "stale or pending-payment orders",
+        },
+        {
+          label: "High value",
+          value: highValueOrders.length,
+          caption: "orders above Rs 5,000",
+        },
+        {
+          label: "Top vendor watch",
+          value: topVendor?.name || "None",
+          caption: topVendor ? `${topVendor.returned} returns flagged` : "no vendor risk pattern",
+        },
+      ],
     };
   }, [orders]);
 
@@ -603,16 +798,30 @@ export default function OrdersTab() {
           ))}
         </select>
 
-        <button
-          className="reset-btn"
-          onClick={() => {
-            setStatusFilter("all");
-            setSearch("");
-            setVendorFilter("all");
-          }}
-        >
-          Reset
-        </button>
+        <div className="orders-filter-actions">
+          <button
+            className="reset-btn orders-filter-btn orders-filter-btn-secondary"
+            onClick={() => {
+              setStatusFilter("all");
+              setSearch("");
+              setVendorFilter("all");
+            }}
+          >
+            <RotateCcw size={15} aria-hidden="true" />
+            Reset
+          </button>
+
+          <button
+            type="button"
+            className={`orders-ai-summary-toggle orders-filter-btn ${
+              isAiSummaryOpen ? "is-open" : ""
+            }`}
+            onClick={() => setIsAiSummaryOpen((open) => !open)}
+          >
+            <Sparkles size={15} aria-hidden="true" />
+            {isAiSummaryOpen ? "Hide AI Summary" : "Show AI Summary"}
+          </button>
+        </div>
 
         <div className="orders-page-toolbar">
           <div className="orders-page-size">
@@ -630,6 +839,64 @@ export default function OrdersTab() {
           </div>
         </div>
       </div>
+
+      {isAiSummaryOpen && (
+        <section className="orders-ai-summary">
+          <div className="orders-ai-summary-hero">
+            <div>
+              <p className="orders-ai-summary-kicker">AI Summary</p>
+              <h2>What deserves attention in orders right now?</h2>
+              <p>
+                A quick plain-language read of payment friction, fulfillment delays,
+                vendor pressure, and recent order movement.
+              </p>
+            </div>
+
+            <div className="orders-ai-summary-metrics">
+              {aiSummary.metrics.map((metric) => (
+                <article key={metric.label} className="orders-ai-metric-card">
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                  <small>{metric.caption}</small>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div className="orders-ai-summary-grid">
+            <article className="orders-ai-card">
+              <span className="orders-ai-card-title">Overview</span>
+              <div className="orders-ai-list">
+                {aiSummary.overview.map((item) => (
+                  <p key={item}>{item}</p>
+                ))}
+              </div>
+            </article>
+
+            <article className="orders-ai-card">
+              <span className="orders-ai-card-title">Attention Alerts</span>
+              <div className="orders-ai-list">
+                {aiSummary.attention.length > 0 ? (
+                  aiSummary.attention.map((item) => <p key={item}>{item}</p>)
+                ) : (
+                  <p>No urgent order risk patterns are standing out right now.</p>
+                )}
+              </div>
+            </article>
+
+            <article className="orders-ai-card">
+              <span className="orders-ai-card-title">Suggested Actions</span>
+              <div className="orders-ai-list">
+                {aiSummary.actions.length > 0 ? (
+                  aiSummary.actions.map((item) => <p key={item}>{item}</p>)
+                ) : (
+                  <p>Orders look steady. Keep monitoring status changes and payment updates.</p>
+                )}
+              </div>
+            </article>
+          </div>
+        </section>
+      )}
 
       <div className="orders-table-shell">
         <div className="orders-table-header">
@@ -752,6 +1019,7 @@ export default function OrdersTab() {
                 <th>Vendor</th>
                 <th>Items</th>
                 <th>Total</th>
+                <th>Risk</th>
                 <th>Status</th>
                 <th>Address</th>
                 <th>More</th>
@@ -794,6 +1062,7 @@ export default function OrdersTab() {
             order.payment?.status ||
             (order.status === "Delivered" ? "Paid" : "Pending");
           const orderDate = formatDateTime(order.createdAt);
+          const risk = getOrderRisk(order);
           const totalItems = products.reduce((sum, product) => sum + Number(product.qty || 0), 0);
           const subtotalAmount = products.reduce(
             (sum, product) => sum + Number(product.price || 0) * Number(product.qty || 0),
@@ -847,6 +1116,12 @@ export default function OrdersTab() {
                   </span>
                 </td>
                 <td>
+                  <div className="orders-risk-wrap">
+                    <span className={`orders-risk-badge ${risk.tone}`}>{risk.level} Risk</span>
+                    <small>{risk.summary}</small>
+                  </div>
+                </td>
+                <td>
                   <select
                     className="orders-table-status"
                     value={displayStatus}
@@ -879,7 +1154,7 @@ export default function OrdersTab() {
               </tr>
               {isExpanded && (
                 <tr className="orders-table-expanded-row">
-                  <td colSpan={8}>
+                  <td colSpan={9}>
                     <div className="orders-table-expanded">
                       <div className="orders-table-products">
                         {products.map((product, index) => (
@@ -1009,3 +1284,4 @@ export default function OrdersTab() {
     </div>
   );
 }
+

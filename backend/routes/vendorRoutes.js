@@ -414,6 +414,10 @@ router.put("/profile", auth, upload.single("profileImage"), async (req, res) => 
 
 router.get("/addresses", authMiddleware, async (req, res) => {
   try {
+    if (req.user.role !== "vendor") {
+      return res.status(403).json({ message: "Vendor only" });
+    }
+
     const vendor = await Vendor.findById(req.user.id);
     if (!vendor) {
       return res.status(404).json({ message: "Vendor not found" });
@@ -426,6 +430,10 @@ router.get("/addresses", authMiddleware, async (req, res) => {
 
 router.post("/addresses", authMiddleware, async (req, res) => {
   try {
+    if (req.user.role !== "vendor") {
+      return res.status(403).json({ message: "Vendor only" });
+    }
+
     const vendor = await Vendor.findById(req.user.id);
     if (!vendor) {
       return res.status(404).json({ message: "Vendor not found" });
@@ -452,6 +460,10 @@ router.post("/addresses", authMiddleware, async (req, res) => {
 
 router.put("/addresses/:index", authMiddleware, async (req, res) => {
   try {
+    if (req.user.role !== "vendor") {
+      return res.status(403).json({ message: "Vendor only" });
+    }
+
     const vendor = await Vendor.findById(req.user.id);
     if (!vendor) {
       return res.status(404).json({ message: "Vendor not found" });
@@ -484,6 +496,10 @@ router.put("/addresses/:index", authMiddleware, async (req, res) => {
 
 router.delete("/addresses/:index", authMiddleware, async (req, res) => {
   try {
+    if (req.user.role !== "vendor") {
+      return res.status(403).json({ message: "Vendor only" });
+    }
+
     const vendor = await Vendor.findById(req.user.id);
     if (!vendor) {
       return res.status(404).json({ message: "Vendor not found" });

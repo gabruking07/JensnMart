@@ -46,15 +46,48 @@ router.get("/vendor", authMiddleware, async (req, res) => {
 /* ================= CREATE RAZORPAY ORDER ================= */
 router.post("/create-order", authMiddleware, async (req, res) => {
   try {
-    const { amount, orderId } = req.body;
+    if (req.user.role !== "vendor") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { orderId } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ message: "Order is required" });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (String(order.vendor) !== String(req.user.id)) {
+      return res.status(403).json({ message: "You cannot create payment for this order" });
+    }
+
+    if (order.status !== "PendingPayment") {
+      return res.status(400).json({ message: "Order is not awaiting payment" });
+    }
+
+    const payment = await Payment.findOne({ order: orderId, vendor: req.user.id });
+    if (!payment) {
+      return res.status(404).json({ message: "Payment record not found" });
+    }
+
+    if (payment.status === "Paid") {
+      return res.status(400).json({ message: "Order is already paid" });
+    }
 
     const options = {
-      amount: amount * 100,
+      amount: Math.round(Number(payment.amount || order.total || 0) * 100),
       currency: "INR",
       receipt: `receipt_${orderId}`,
     };
 
     const razorpayOrder = await razorpay.orders.create(options);
+    await Payment.findByIdAndUpdate(payment._id, {
+      razorpayOrderId: razorpayOrder.id,
+      method: "UPI",
+    });
 
     res.json(razorpayOrder);
   } catch (err) {
@@ -66,6 +99,10 @@ router.post("/create-order", authMiddleware, async (req, res) => {
 
 /* ================= VERIFY PAYMENT ================= */
 router.post("/verify", authMiddleware, async (req, res) => {
+  if (req.user.role !== "vendor") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
   const {
     razorpay_order_id,
     razorpay_payment_id,
@@ -88,8 +125,28 @@ router.post("/verify", authMiddleware, async (req, res) => {
     return res.status(404).json({ message: "Order not found" });
   }
 
+  if (String(order.vendor) !== String(req.user.id)) {
+    return res.status(403).json({ message: "You cannot verify payment for this order" });
+  }
+
   if (order.status !== "PendingPayment") {
     return res.status(400).json({ message: "Order is not awaiting payment" });
+  }
+
+  const existingPayment = await Payment.findOne({ order: orderId, vendor: req.user.id });
+  if (!existingPayment) {
+    return res.status(404).json({ message: "Payment record not found" });
+  }
+
+  if (
+    existingPayment.razorpayOrderId &&
+    existingPayment.razorpayOrderId !== razorpay_order_id
+  ) {
+    return res.status(400).json({ message: "Payment order mismatch" });
+  }
+
+  if (existingPayment.status === "Paid") {
+    return res.status(400).json({ message: "Payment already verified" });
   }
 
   for (const item of order.products) {
@@ -108,7 +165,7 @@ router.post("/verify", authMiddleware, async (req, res) => {
   }
 
   const payment = await Payment.findOneAndUpdate(
-    { order: orderId },
+    { order: orderId, vendor: req.user.id },
     {
       status: "Paid",
       method: "UPI",
@@ -169,14 +226,39 @@ router.post("/verify", authMiddleware, async (req, res) => {
 /* ================= ADMIN UPDATE PAYMENT ================= */
 router.put("/:id", authMiddleware, roleOnly("admin"), async (req, res) => {
   const { status } = req.body;
+  const allowedStatuses = ["Pending", "Paid", "Failed"];
 
-  const payment = await Payment.findById(req.params.id).populate("order", "orderNumber");
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({ message: "Invalid payment status" });
+  }
+
+  const payment = await Payment.findById(req.params.id).populate("order");
   if (!payment) {
     return res.status(404).json({ message: "Payment not found" });
   }
 
+  const order = payment.order;
   payment.status = status;
   await payment.save();
+
+  const isOnlinePayment = payment.method === "UPI" || Boolean(payment.razorpayOrderId);
+  if (order && isOnlinePayment) {
+    if (status === "Paid" && order.status === "PendingPayment") {
+      order.status = "Placed";
+      order.statusHistory.push({ status: "Placed" });
+      await order.save();
+    }
+
+    if (
+      (status === "Pending" || status === "Failed") &&
+      order.status === "Placed" &&
+      !order.statusHistory.some((entry) => entry.status === "Processing" || entry.status === "Shipped")
+    ) {
+      order.status = "PendingPayment";
+      order.statusHistory.push({ status: "PendingPayment" });
+      await order.save();
+    }
+  }
 
   await notifyVendor({
     vendorId: payment.vendor,
@@ -192,7 +274,7 @@ router.put("/:id", authMiddleware, roleOnly("admin"), async (req, res) => {
     sendEmail: true,
   });
 
-  res.json({ message: "Payment updated", payment });
+  res.json({ message: "Payment updated", payment, order });
 });
 
 router.post("/:id/notify-vendor", authMiddleware, roleOnly("admin"), async (req, res) => {
