@@ -888,22 +888,198 @@
 .filter-bar {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 14px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background:
+    radial-gradient(circle at top right, rgba(244, 187, 80, 0.14), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 240, 0.9));
+  box-shadow: 0 22px 44px rgba(40, 28, 17, 0.1);
   margin-bottom: 20px;
 }
 
 .filter-bar input,
 .filter-bar select {
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.orders-filter-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.orders-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #082e4f, #1f6ea7);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.1);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.orders-filter-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.14);
+}
+
+.orders-filter-btn svg {
+  flex: 0 0 auto;
 }
 
 .reset-btn {
-  background: #ef4444;
+  background: linear-gradient(135deg, #f97316, #dc2626);
   color: white;
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
+}
+
+.orders-filter-btn-secondary {
+  background: linear-gradient(135deg, #f97316, #dc2626);
+}
+
+.orders-ai-summary {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background:
+    radial-gradient(circle at top right, rgba(31, 110, 167, 0.1), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(255, 248, 240, 0.9));
+  box-shadow: 0 24px 48px rgba(40, 28, 17, 0.12);
+}
+
+.orders-ai-summary-toggle {
+  background: linear-gradient(135deg, #082e4f, #1f6ea7);
+}
+
+.orders-ai-summary-toggle:hover,
+.orders-filter-btn-secondary:hover {
+  background: linear-gradient(135deg, #e16a2f, #bc4917);
+}
+
+.orders-ai-summary-toggle.is-open {
+  border-color: rgba(10, 106, 104, 0.28);
+  background: linear-gradient(135deg, #0a6a68, #1f6ea7);
+  box-shadow:
+    0 0 0 4px rgba(31, 110, 167, 0.1),
+    0 18px 34px rgba(10, 106, 104, 0.22);
+}
+
+.orders-ai-summary-toggle.is-open:hover {
+  background: linear-gradient(135deg, #0d7b78, #2b7cba);
+}
+
+.orders-ai-summary-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.orders-ai-summary-kicker,
+.orders-ai-card-title {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.orders-ai-summary h2 {
+  margin: 0;
+  color: #082e4f;
+  font-size: clamp(1.1rem, 2vw, 1.55rem);
+  line-height: 1.12;
+}
+
+.orders-ai-summary-hero > div > p:last-child {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.orders-ai-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.orders-ai-metric-card,
+.orders-ai-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
+}
+
+.orders-ai-metric-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.orders-ai-metric-card strong {
+  display: block;
+  color: #082e4f;
+  font-size: 1.35rem;
+  line-height: 1.15;
+  word-break: break-word;
+}
+
+.orders-ai-metric-card small {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.orders-ai-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.orders-ai-list {
+  display: grid;
+  gap: 10px;
+}
+
+.orders-ai-list p {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.86));
+  color: #182131;
+  font-size: 0.93rem;
+  line-height: 1.55;
 }
 
 .orders-page-toolbar {
@@ -1157,7 +1333,7 @@
 
 .orders-table {
   width: 100%;
-  min-width: 1120px;
+  min-width: 1240px;
   border-collapse: collapse;
 }
 
@@ -1331,6 +1507,53 @@
   color: #9a3412;
   font-size: 1rem;
   font-weight: 900;
+}
+
+.orders-risk-wrap {
+  display: grid;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.orders-risk-wrap small {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.35;
+  text-transform: capitalize;
+}
+
+.orders-risk-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+.orders-risk-badge.low {
+  color: #166534;
+  background: linear-gradient(135deg, rgba(220, 252, 231, 0.95), rgba(187, 247, 208, 0.92));
+  border-color: rgba(34, 197, 94, 0.18);
+}
+
+.orders-risk-badge.medium {
+  color: #9a3412;
+  background: linear-gradient(135deg, rgba(255, 237, 213, 0.95), rgba(254, 215, 170, 0.92));
+  border-color: rgba(249, 115, 22, 0.18);
+}
+
+.orders-risk-badge.high {
+  color: #991b1b;
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.97), rgba(252, 165, 165, 0.92));
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 .orders-table-status {
@@ -1518,6 +1741,29 @@
 }
 
 @media (max-width:900px) {
+  .orders-ai-summary-hero,
+  .orders-ai-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-ai-summary-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-bar {
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .orders-filter-actions {
+    width: 100%;
+  }
+
+  .orders-filter-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
   .orders-table-header {
     flex-direction: column;
     align-items: flex-start;

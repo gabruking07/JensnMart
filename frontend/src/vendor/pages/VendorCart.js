@@ -98,7 +98,7 @@ export default function VendorCart() {
     const address = await getCheckoutAddress();
     if (!address) {
       toast.error("No saved address found.");
-      navigate("/profile");
+      navigate("/vendor/profile");
       return;
     }
 

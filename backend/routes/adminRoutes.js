@@ -10,10 +10,30 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly");
 const { notifyVendor } = require("../utils/notificationService");
 
+const sanitizeVendor = (vendorDoc) => {
+  if (!vendorDoc) return null;
+  const vendor =
+    typeof vendorDoc.toObject === "function" ? vendorDoc.toObject() : vendorDoc;
+
+  return {
+    _id: vendor._id,
+    name: vendor.name,
+    email: vendor.email,
+    phone: vendor.phone,
+    approved: vendor.approved,
+    role: vendor.role,
+    profileImage: vendor.profileImage || "",
+    address: vendor.address || {},
+    addresses: Array.isArray(vendor.addresses) ? vendor.addresses : [],
+    createdAt: vendor.createdAt,
+    updatedAt: vendor.updatedAt,
+  };
+};
+
 /* GET ALL VENDORS (ADMIN ONLY) */
 router.get("/vendors", authMiddleware, roleOnly("admin", "manager"), async (req, res) => {
   const vendors = await Vendor.find().sort({ createdAt: -1 });
-  res.json(vendors);
+  res.json(vendors.map(sanitizeVendor));
 });
 
 /* =====================================================
@@ -47,7 +67,7 @@ router.post(
         approved: false
       });
 
-      res.json(vendor);
+      res.json(sanitizeVendor(vendor));
     } catch (err) {
       console.error("CREATE VENDOR ERROR:", err);
       res.status(500).json({ message: "Vendor creation failed" });
@@ -72,7 +92,7 @@ router.put(
         { new: true }
       );
 
-      res.json(vendor);
+      res.json(sanitizeVendor(vendor));
     } catch {
       res.status(500).json({ message: "Update failed" });
     }
@@ -135,10 +155,10 @@ router.delete(
    ADMIN / MANAGER 
 ===================================================== */
 // GET ALL ADMINS
-router.get("/all-admins", async (req, res) => {
+router.get("/all-admins", authMiddleware, roleOnly("admin"), async (req, res) => {
   const admins = await Admin.find({
     role: { $in: ["admin", "manager"] }
-  });
+  }).select("name email role approved createdAt updatedAt");
   res.json(admins);
 });
 
@@ -187,7 +207,13 @@ router.post(
         approved: false
       });
 
-      res.json(newAdmin);
+      res.json({
+        _id: newAdmin._id,
+        email: newAdmin.email,
+        role: newAdmin.role,
+        approved: newAdmin.approved,
+        createdAt: newAdmin.createdAt,
+      });
 
     } catch (err) {
       console.error("CREATE ADMIN ERROR:", err);
