@@ -656,11 +656,11 @@ export default function VendorDashboard() {
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
                 >
-                  <option value="">✨ Default</option>
-                  <option value="bestsell">🔥 Most Sold</option>
-                  <option value="priceHigh">💸 Price High to Low</option>
-                  <option value="priceLow">🪙 Price Low to High</option>
-                  <option value="new">🆕 New Arrivals</option>
+                  <option value="">Default ??</option>
+                  <option value="bestsell">Most Sold ??</option>
+                  <option value="priceHigh">Price High to Low ??</option>
+                  <option value="priceLow">Price Low to High ??</option>
+                  <option value="new">New Arrivals ?</option>
                 </select>
               </div>
             </div>

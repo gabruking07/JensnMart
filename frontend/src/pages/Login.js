@@ -83,7 +83,7 @@ export default function Login() {
               <div className="form-group">
                 <label className="input-label">Email Address</label>
                 <input
-                  type="email"
+                  type="email" 
                   className="auth-input"
                   placeholder="user@example.com"
                   value={email}
