@@ -69,7 +69,7 @@
 }
 
 .admin-inventory .vendor-dashboard-sort-card {
-  width: 150px;
+  width: 190px;
   padding: 0;
   border-radius: 0;
   background: transparent;
@@ -129,11 +129,53 @@
   background: rgba(255, 255, 255, 0.95);
 }
 
+.admin-inventory .inventory-select-wrap {
+  position: relative;
+}
+
+.admin-inventory .inventory-select-wrap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #17324f;
+  border-bottom: 2px solid #17324f;
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+}
+
 .admin-inventory .vendor-dashboard-sort-card select {
   height: 46px;
-  padding: 0 14px;
+  padding: 0 42px 0 16px;
   border-radius: 999px;
+  border: 1px solid rgba(225, 106, 47, 0.28);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+  color: #17324f;
+  font-size: 15px;
   font-weight: 700;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.admin-inventory .vendor-dashboard-sort-card select:hover {
+  border-color: rgba(225, 106, 47, 0.45);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+}
+
+.admin-inventory .vendor-dashboard-sort-card select:focus {
+  outline: none;
+  border-color: rgba(225, 106, 47, 0.68);
+  box-shadow: 0 0 0 4px rgba(225, 106, 47, 0.16), 0 12px 28px rgba(15, 23, 42, 0.2);
+}
+
+.admin-inventory .vendor-dashboard-sort-card select option {
+  color: #182131;
+  background: #fffaf5;
 }
 
 .admin-inventory .ai-chat-input-row input {
@@ -198,6 +240,73 @@
   margin: 0;
   font-size: 14px;
   color: #64748b;
+}
+
+.admin-inventory .inventory-toolbar-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-inventory .inventory-stock-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-inventory .inventory-stock-card {
+  min-width: 120px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  appearance: none;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.admin-inventory .inventory-stock-card strong {
+  font-size: 20px;
+  line-height: 1;
+  color: #182131;
+}
+
+.admin-inventory .inventory-stock-card-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-inventory .inventory-stock-card.ok {
+  background: rgba(10, 114, 91, 0.08);
+  border-color: rgba(10, 114, 91, 0.16);
+  color: #0a725b;
+}
+
+.admin-inventory .inventory-stock-card.low {
+  background: rgba(225, 106, 47, 0.1);
+  border-color: rgba(225, 106, 47, 0.18);
+  color: #c2541f;
+}
+
+.admin-inventory .inventory-stock-card.out {
+  background: rgba(185, 28, 28, 0.08);
+  border-color: rgba(185, 28, 28, 0.16);
+  color: #b91c1c;
+}
+
+.admin-inventory .inventory-stock-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.admin-inventory .inventory-stock-card.active {
+  border-color: currentColor;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 12px 24px rgba(15, 23, 42, 0.12);
 }
 
 .admin-inventory .inventory-toolbar-controls {
@@ -596,6 +705,14 @@
   .admin-inventory .inventory-page-size {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .admin-inventory .inventory-stock-summary {
+    width: 100%;
+  }
+
+  .admin-inventory .inventory-stock-card {
+    flex: 1 1 100%;
   }
 
   .admin-inventory .inventory-search {

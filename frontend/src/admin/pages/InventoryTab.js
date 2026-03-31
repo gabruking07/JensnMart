@@ -6,6 +6,7 @@ import "../admin.css";
 import { confirmToast } from "../../components/confirmToast";
 
 export default function InventoryTab() {
+  const LOW_STOCK_THRESHOLD = 100;
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -14,6 +15,7 @@ export default function InventoryTab() {
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("");
+  const [selectedStockStatus, setSelectedStockStatus] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -63,7 +65,7 @@ export default function InventoryTab() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage, searchTerm, sortBy, selectedCategory, selectedSubcategory]);
+  }, [itemsPerPage, searchTerm, sortBy, selectedCategory, selectedSubcategory, selectedStockStatus]);
 
   const visibleSubcategoryChips = selectedCategory
     ? subcategories.filter((subcategory) => subcategory.category?._id === selectedCategory)
@@ -73,8 +75,13 @@ export default function InventoryTab() {
   let filteredProducts = products.filter((product) => {
     const categoryMatch = !selectedCategory || product.category?._id === selectedCategory;
     const subcategoryMatch = !selectedSubcategory || product.subcategory?._id === selectedSubcategory;
+    const quantity = Number(product.stock || 0);
+    const stockStatus =
+      quantity === 0 ? "out" : quantity < LOW_STOCK_THRESHOLD ? "low" : "ok";
+    const stockStatusMatch = !selectedStockStatus || stockStatus === selectedStockStatus;
     if (!categoryMatch) return false;
     if (!subcategoryMatch) return false;
+    if (!stockStatusMatch) return false;
     if (!normalizedSearch) return true;
 
     return [
@@ -103,6 +110,23 @@ export default function InventoryTab() {
   if (sortBy === "bestsell") {
     filteredProducts.sort((a, b) => Number(b.sold || 0) - Number(a.sold || 0));
   }
+
+  const stockSummary = filteredProducts.reduce(
+    (summary, product) => {
+      const quantity = Number(product.stock || 0);
+
+      if (quantity === 0) {
+        summary.out += 1;
+      } else if (quantity < LOW_STOCK_THRESHOLD) {
+        summary.low += 1;
+      } else {
+        summary.ok += 1;
+      }
+
+      return summary;
+    },
+    { ok: 0, low: 0, out: 0 }
+  );
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -210,6 +234,10 @@ export default function InventoryTab() {
     }
   };
 
+  const toggleStockFilter = (status) => {
+    setSelectedStockStatus((currentStatus) => (currentStatus === status ? "" : status));
+  };
+
   return (
     <div className="admin-inventory">
       <section className="vendor-storefront-strip">
@@ -227,16 +255,18 @@ export default function InventoryTab() {
           <div className="vendor-dashboard-tools">
             <div className="filter-item vendor-dashboard-sort-card">
               <label>Sort By</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="">Default</option>
-                <option value="bestsell">Most Sold</option>
-                <option value="priceHigh">Price High to Low</option>
-                <option value="priceLow">Price Low to High</option>
-                <option value="new">New Arrivals</option>
-              </select>
+              <div className="inventory-select-wrap">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="">Default ⚙️</option>
+                  <option value="bestsell">Most Sold 🔥</option>
+                  <option value="priceHigh">Price High to Low 📈</option>
+                  <option value="priceLow">Price Low to High 📉</option>
+                  <option value="new">New Arrivals ✨</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -302,10 +332,40 @@ export default function InventoryTab() {
       </section>
 
       <div className="inventory-toolbar">
-        <p className="inventory-count">
-          Showing {filteredProducts.length === 0 ? 0 : startIndex + 1}-
-          {Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
-        </p>
+        <div className="inventory-toolbar-summary">
+          <p className="inventory-count">
+            Showing {filteredProducts.length === 0 ? 0 : startIndex + 1}-
+            {Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
+          </p>
+
+          <div className="inventory-stock-summary">
+            <button
+              type="button"
+              className={`inventory-stock-card ok ${selectedStockStatus === "ok" ? "active" : ""}`}
+              onClick={() => toggleStockFilter("ok")}
+            >
+              <span className="inventory-stock-card-label">In stock</span>
+              <strong>{stockSummary.ok}</strong>
+            </button>
+            <button
+              type="button"
+              className={`inventory-stock-card low ${selectedStockStatus === "low" ? "active" : ""}`}
+              onClick={() => toggleStockFilter("low")}
+            >
+              <span className="inventory-stock-card-label">Low stock</span>
+              <strong>{stockSummary.low}</strong>
+            </button>
+            <button
+              type="button"
+              className={`inventory-stock-card out ${selectedStockStatus === "out" ? "active" : ""}`}
+              onClick={() => toggleStockFilter("out")}
+            >
+              <span className="inventory-stock-card-label">Out of stock</span>
+              <strong>{stockSummary.out}</strong>
+            </button>
+          </div>
+        </div>
+
         <div className="inventory-toolbar-controls">
           <div className="inventory-page-size">
             <label htmlFor="inventory-page-size">Items per page</label>
@@ -326,8 +386,15 @@ export default function InventoryTab() {
       <div className="inventory-grid">
         {visibleProducts.map((p) => {
           const isEditing = editingId === p._id;
-          const stockState = p.stock === 0 ? "out" : p.stock < 6 ? "low" : "ok";
-          const stockLabel = p.stock === 0 ? "Out of stock" : p.stock < 6 ? "Low stock" : "In stock";
+          const stockQuantity = Number(p.stock || 0);
+          const stockState =
+            stockQuantity === 0 ? "out" : stockQuantity < LOW_STOCK_THRESHOLD ? "low" : "ok";
+          const stockLabel =
+            stockQuantity === 0
+              ? "Out of stock"
+              : stockQuantity < LOW_STOCK_THRESHOLD
+                ? "Low stock"
+                : "In stock";
 
           return (
             <div key={p._id} className="product-card premium-product-card">
@@ -400,7 +467,9 @@ export default function InventoryTab() {
                       }
                     />
                   ) : (
-                    <p className="field-value">{p.stock}</p>
+                    <p className="field-value">
+                      {stockQuantity} {stockQuantity === 1 ? "unit" : "units"}
+                    </p>
                   )}
                 </div>
 
