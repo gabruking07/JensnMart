@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const Product = require("../models/Product");
 const Vendor = require("../models/Vendor");
 const Admin = require("../models/Admin");
+const ContactMessage = require("../models/ContactMessage");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly");
@@ -35,6 +36,21 @@ router.get("/vendors", authMiddleware, roleOnly("admin", "manager"), async (req,
   const vendors = await Vendor.find().sort({ createdAt: -1 });
   res.json(vendors.map(sanitizeVendor));
 });
+
+router.get(
+  "/contact-messages",
+  authMiddleware,
+  roleOnly("admin", "manager"),
+  async (req, res) => {
+    try {
+      const messages = await ContactMessage.find().sort({ createdAt: -1 });
+      res.json(messages);
+    } catch (err) {
+      console.error("CONTACT MESSAGES LIST ERROR:", err);
+      res.status(500).json({ message: "Failed to load contact messages" });
+    }
+  }
+);
 
 /* =====================================================
    CREATE NEW VENDOR (ADMIN ONLY)

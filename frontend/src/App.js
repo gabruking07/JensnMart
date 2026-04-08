@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import AdminRegister from "./pages/AdminRegister";
 import VendorRegister from "./pages/VendorRegister";
 import ForgotPassword from "./pages/ForgotPassword";
+import ContactUs from "./pages/ContactUs";
 
 import VendorCart from "./vendor/pages/VendorCart";
 import VendorDashboard from "./vendor/pages/VendorDashboard";
@@ -26,6 +27,7 @@ import AddProductTab from "./admin/pages/AddProductTab";
 import CategoryTab from "./admin/pages/CategoryTab";
 import ReportsTab from "./admin/pages/ReportsTab";
 import NotificationsTab from "./admin/pages/NotificationsTab";
+import ContactMessagesTab from "./admin/pages/ContactMessagesTab";
 import VendorNotifications from "./vendor/pages/VendorNotifications";
 
 function App() {
@@ -113,6 +115,7 @@ function App() {
           <Route path="categories" element={<CategoryTab />} />
           <Route path="reports" element={<ReportsTab />} />
           <Route path="notifications" element={<NotificationsTab />} />
+          <Route path="contact-messages" element={<ContactMessagesTab />} />
         </Route>
 
         {/* VENDOR */}
@@ -170,6 +173,7 @@ function App() {
           }
         />
         <Route path="/" element={<Login />} />
+        <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/admin-register" element={<AdminRegister />} />
         <Route path="/vendor-register" element={<VendorRegister />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

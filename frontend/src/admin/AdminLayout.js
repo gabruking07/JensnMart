@@ -8,6 +8,7 @@ import {
     ShoppingCart,
     CreditCard,
     Bell,
+    MessageSquareText,
     Store,
     Users,
     BarChart3,
@@ -78,6 +79,12 @@ export default function AdminLayout() {
             name: "Notifications",
             path: "/admin/notifications",
             icon: Bell,
+            roles: ["admin", "manager"]
+        },
+        {
+            name: "Contact Messages",
+            path: "/admin/contact-messages",
+            icon: MessageSquareText,
             roles: ["admin", "manager"]
         },
         {

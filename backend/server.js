@@ -15,6 +15,7 @@ const subCategoryRoutes = require("./routes/subcategoryRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 const app = express();
 
 /* ================= MIDDLEWARE ================= */
@@ -38,6 +39,7 @@ app.use("/api/subcategories", subCategoryRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/contact", contactRoutes);
 
 /* ================= DB ================= */
 mongoose
