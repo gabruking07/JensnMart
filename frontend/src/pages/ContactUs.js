@@ -11,7 +11,8 @@ import "./ContactUs.css";
 const contactHighlights = [
   {
     label: "Email Support",
-    value: "support@jensnmart.com",
+    value: "jensnmart@gmail.com",
+    displayLines: ["jensnmart@gmail", ".com"],
     note: "Replies within one business day"
   },
   {
@@ -21,7 +22,7 @@ const contactHighlights = [
   },
   {
     label: "Head Office",
-    value: "MG Road, Bengaluru, Karnataka",
+    value: "Road, District, State",
     note: "Vendor onboarding and operations desk"
   }
 ];
@@ -94,7 +95,17 @@ export default function ContactUs() {
                 {contactHighlights.map((item) => (
                   <article key={item.label} className="contact-highlight-card">
                     <p className="contact-highlight-label">{item.label}</p>
-                    <h2>{item.value}</h2>
+                    <h2 className="contact-highlight-value">
+                      {item.displayLines ? (
+                        item.displayLines.map((line) => (
+                          <span key={line} className="contact-highlight-value-line">
+                            {line}
+                          </span>
+                        ))
+                      ) : (
+                        item.value
+                      )}
+                    </h2>
                     <span>{item.note}</span>
                   </article>
                 ))}
