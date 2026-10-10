@@ -1,0 +1,199 @@
+/* Styles for the login feature; controls layout, visual states, and responsive presentation without changing application data. */
+
+.auth-page-root {
+  min-height: 100vh;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-overlay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.7);
+  color: blue;
+}
+
+.login-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+/* SOLID CARD FOR VISIBILITY */
+.auth-card {
+  width: 100%;
+  max-width: 600px;
+  background: #ffffff;
+  padding: 30px 20px;
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+/* logo */
+.auth-logo {
+  height: auto;
+  width: 450px;
+  display: block;
+  margin: 0 auto 20px auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.9));
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.auth-card:hover .auth-logo {
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 1));
+  transform: scale(1.2);
+}
+
+.card-title {
+  color: #000000 !important;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.card-subtitle {
+  color: #000000 !important;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 25px;
+}
+
+/* ROLE SELECTOR */
+.role-buttons {
+  display: flex;
+  background: #edf2f7;
+  padding: 5px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.role-buttons button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  color: #000000;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.role-buttons button.active {
+  background: #fff;
+  color: #005eff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* INPUTS */
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.input-label {
+  display: block;
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: #000000 !important;
+  margin-bottom: 5px;
+  text-align: left;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #000000;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #2b6cb0;
+}
+
+/* HIGH VISIBILITY SIGN IN BUTTON */
+.btn-sign-in {
+  width: 100%;
+  padding: 14px;
+  background: #2b6cb0;
+  /* Solid Blue */
+  color: white !important;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  margin-top: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(43, 108, 176, 0.3);
+  display: block;
+}
+
+.btn-sign-in:hover {
+  background: #2c5282;
+}
+
+.forgot-password-link {
+  margin-top: 12px;
+  border: none;
+  background: transparent;
+  color: #2b6cb0;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* REGISTRATION BUTTONS */
+.auth-footer {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #edf2f7;
+}
+
+.footer-text {
+  color: #718096 !important;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+}
+
+.reg-button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-reg {
+  flex: 1;
+  padding: 8px;
+  border: 2px solid #2b6cb0;
+  background: transparent;
+  color: #2b6cb0;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.btn-reg:hover {
+  background: #ebf8ff;
+}
+
+.error-text {
+  color: #e53e3e;
+  font-size: 0.75rem;
+  margin-top: 5px;
+  text-align: left;
+}

@@ -1,0 +1,229 @@
+/* Styles for the contact us feature; controls layout, visual states, and responsive presentation without changing application data. */
+
+.contact-page-root {
+  min-height: 100vh;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-overlay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(135deg, rgba(5, 23, 43, 0.92), rgba(8, 47, 73, 0.86)),
+    rgba(0, 0, 0, 0.4);
+}
+
+.contact-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px 56px;
+}
+
+.contact-hero-card {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: 1.15fr 0.95fr;
+  gap: 28px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 28px;
+  padding: 32px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.contact-hero-copy {
+  color: #f8fafc;
+}
+
+.contact-kicker {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.18);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  color: #fde68a;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.contact-logo {
+  width: min(320px, 100%);
+  margin: 22px 0 10px;
+  display: block;
+  filter: drop-shadow(0 0 24px rgba(255, 255, 255, 0.18));
+}
+
+.contact-hero-copy h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 1.05;
+}
+
+.contact-hero-copy > p {
+  max-width: 640px;
+  margin: 18px 0 0;
+  color: rgba(226, 232, 240, 0.92);
+  font-size: 1.04rem;
+  line-height: 1.7;
+}
+
+.contact-highlight-grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.contact-highlight-card {
+  min-width: 0;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.contact-highlight-label {
+  margin: 0 0 12px;
+  color: #93c5fd;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.contact-highlight-value {
+  margin: 0 0 10px;
+  font-size: 1.18rem;
+  line-height: 1.4;
+}
+
+.contact-highlight-value-line {
+  display: block;
+}
+
+.contact-highlight-card span {
+  display: block;
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.contact-form-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.22);
+}
+
+.contact-form-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.8rem;
+}
+
+.contact-form-header p {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.contact-field {
+  display: block;
+  margin-top: 18px;
+}
+
+.contact-field span {
+  display: block;
+  margin-bottom: 8px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.contact-field input,
+.contact-field textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.98rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  resize: vertical;
+}
+
+.contact-field input:focus,
+.contact-field textarea:focus {
+  outline: none;
+  border-color: #0369a1;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12);
+}
+
+.contact-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.contact-submit-btn,
+.contact-secondary-btn {
+  flex: 1;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-weight: 800;
+}
+
+.contact-submit-btn {
+  background: linear-gradient(135deg, #0369a1, #0f766e);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(3, 105, 161, 0.28);
+}
+
+.contact-submit-btn:hover {
+  transform: translateY(-1px);
+}
+
+.contact-secondary-btn {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.contact-secondary-btn:hover {
+  background: #cbd5e1;
+}
+
+@media (max-width: 960px) {
+  .contact-hero-card {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-highlight-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .contact-shell {
+    padding: 24px 14px 32px;
+  }
+
+  .contact-hero-card,
+  .contact-form-card {
+    padding: 22px;
+  }
+
+  .contact-form-actions {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,172 @@
+/* Styles for the timeline feature; controls layout, visual states, and responsive presentation without changing application data. */
+
+.timeline-card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px 24px 22px;
+  margin-top: 18px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(88, 184, 217, 0.16), transparent 24%),
+    linear-gradient(145deg, #071f36 0%, #0d3558 54%, #15527f 100%);
+  color: #fff;
+  box-shadow: 0 22px 44px rgba(8, 24, 44, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.timeline-card::before,
+.timeline-card::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.timeline-card::before {
+  inset: auto auto -48px -48px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(244, 187, 80, 0.18), transparent 72%);
+}
+
+.timeline-card::after {
+  top: -46px;
+  right: -24px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 72%);
+}
+
+.timeline-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.timeline-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #dbe7f3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+}
+
+.status-pill.placed,
+.status-pill.processing,
+.status-pill.shipped,
+.status-pill.delivered {
+  color: #fff;
+}
+
+.timeline-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.timeline-step {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(148, 163, 184, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9fb4ca;
+  transition: transform 0.35s ease, background 0.35s ease, color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+  z-index: 2;
+}
+
+.circle.active {
+  background: linear-gradient(135deg, #22c55e, #86efac);
+  color: #03210f;
+  border-color: transparent;
+  box-shadow:
+    0 0 0 7px rgba(34, 197, 94, 0.12),
+    0 18px 26px rgba(34, 197, 94, 0.24);
+  transform: scale(1.06);
+}
+
+.line {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  width: 100%;
+  height: 5px;
+  background: rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  z-index: 1;
+}
+
+.line.active {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  animation: fill 0.5s ease;
+}
+
+@keyframes fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.label {
+  margin-top: 12px;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 0.74rem;
+  line-height: 1.25;
+  color: #8fa2b5;
+}
+
+.label.active {
+  color: #dfffea;
+  font-weight: 700;
+}
+
+@media (max-width: 420px) {
+  .timeline-card {
+    padding: 18px 16px;
+  }
+
+  .circle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .line {
+    top: 18px;
+  }
+
+  .label {
+    font-size: 0.66rem;
+  }
+}

@@ -1,0 +1,136 @@
+/* Styles for the notifications tab feature; controls layout, visual states, and responsive presentation without changing application data. */
+
+.admin-notifications-root {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+}
+
+.admin-notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-notifications-header h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #083a47;
+}
+
+.admin-notifications-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-notifications-count {
+  font-size: 13px;
+  color: #334155;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.admin-notifications-mark-all {
+  border: none;
+  background: linear-gradient(135deg, #082e4f, #1f6ea7);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-notifications-mark-all:hover {
+  background: linear-gradient(135deg, #e16a2f, #bc4917);
+}
+
+.admin-notifications-mark-all:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-notification-card {
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 20px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 248, 240, 0.84));
+  box-shadow: 0 22px 44px rgba(40, 28, 17, 0.1);
+}
+
+.admin-notification-card.unread {
+  border-color: rgba(225, 106, 47, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(244, 187, 80, 0.16), transparent 48%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 240, 0.9));
+}
+
+.admin-notification-card.read {
+  opacity: 0.9;
+}
+
+.admin-notification-main h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: #083a47;
+}
+
+.admin-notification-main p {
+  margin: 0 0 6px;
+  color: #334155;
+}
+
+.admin-notification-main small {
+  color: #64748b;
+}
+
+.admin-notification-card button {
+  height: fit-content;
+  border: none;
+  background: linear-gradient(135deg, #082e4f, #1f6ea7);
+  color: #fff;
+  border-radius: 999px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.admin-notification-card button:hover {
+  background: linear-gradient(135deg, #e16a2f, #bc4917);
+}
+
+.admin-notifications-empty,
+.admin-notifications-loading {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 20px;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .admin-notifications-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-notification-card {
+    flex-direction: column;
+  }
+}

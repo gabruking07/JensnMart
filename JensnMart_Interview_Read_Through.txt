@@ -1,0 +1,394 @@
+JENSNMART MERN INTERVIEW - READ-THROUGH GUIDE
+============================================================
+
+HOW TO USE THIS FILE
+--------------------
+Read it aloud once from start to finish. Do not try to memorize every line.
+Learn the request flow first, then practice explaining the files that implement
+that flow. If you can explain login, product creation, and checkout, you can
+answer many follow-up questions about React, Express, MongoDB, and security.
+
+Suggested order:
+1. Learn the 30-second introduction.
+2. Practice the architecture flow until you can say it without looking.
+3. Trace login and checkout in the actual code.
+4. Review the roles and database models.
+5. Practice the questions near the end.
+
+Pronunciation:
+MERN: say each letter, M-E-R-N.
+API: A-P-I.
+JWT: say each letter, J-W-T.
+Axios: AK-see-ohs.
+Mongoose: MUNG-goose.
+MongoDB: Mongo D B.
+CRUD: say the letters, C-R-U-D.
+
+
+1. MY PROJECT INTRODUCTION
+--------------------------
+
+30-second answer:
+
+"JensnMart is a marketplace application built with the MERN stack. Vendors
+can browse products, manage a cart, place orders, and view their account
+information. Admins and managers manage the catalog and operations. React
+provides the user interface, Express provides the API, and MongoDB stores the
+data through Mongoose. JWTs protect signed-in requests, and Razorpay supports
+online payments."
+
+60-second answer:
+
+"JensnMart is a role-based marketplace for vendors and administrators. The
+React frontend uses React Router for pages and Axios for API requests. Vendors
+can browse products, manage their cart, check out, and view orders and
+transactions. Admins and managers can manage products, categories, and orders;
+some tasks are limited to admins. The backend runs on Node.js and Express.
+Route handlers apply authentication and business rules, then use Mongoose
+models to read or write MongoDB records. Passwords are hashed with bcryptjs,
+and JWTs identify users on later requests. Product images are uploaded with
+Multer, and online payment uses Razorpay."
+
+Honest project note:
+
+"I used AI assistance while developing the project. I am preparing by tracing
+the code myself so I can explain what each layer does and answer questions
+honestly about its current limitations."
+
+
+2. THE ARCHITECTURE - SAY THIS SLOWLY
+------------------------------------
+
+User action
+-> React component
+-> shared Axios client
+-> Express route
+-> authentication and role middleware
+-> route handler and business rules
+-> Mongoose model
+-> MongoDB
+-> JSON response
+-> React state update and UI
+
+JensnMart does not have a separate controllers folder. The functions inside
+backend/routes perform the controller work. The shared notification and mail
+helpers are in backend/utils.
+
+Example: the vendor checks out.
+
+VendorCart.placeOrder() gets an address and posts the address and payment method
+to /api/orders/checkout using the shared API client. The Axios interceptor adds
+the token. The order route runs authMiddleware and approvedVendorOnly. Its
+handler loads the active cart, populates products, checks stock, calculates
+the total and commission, and creates an order. For online payment it creates
+a Razorpay order and a pending Payment record. The frontend opens Razorpay. The
+payment callback is sent to /api/payments/verify. The backend checks the
+signature and ownership, updates payment/order/stock/cart records, and returns
+JSON. The frontend then shows a success message and navigates to the vendor
+orders screen.
+
+If asked why the backend checks stock again:
+
+"The browser may have stale data, and a user can alter browser requests. The
+server must be the authority before it creates an order or changes inventory."
+
+
+3. FRONTEND - WHAT TO SAY
+-------------------------
+
+The React entry point is frontend/src/index.js. It mounts App into the HTML
+root. App.js maps URLs to screens using React Router. For example, /vendor
+opens VendorDashboard and /vendor/orders opens VendorOrders.
+
+Components hold UI and state. VendorCart has cart and checkout behavior.
+VendorDashboard displays the catalog and handles search/filter behavior.
+AdminLayout provides administrator navigation. AddProductTab submits a product.
+
+useState stores values that change the screen, such as a form field, products,
+loading state, or notifications. useEffect loads data or sets up side effects.
+Controlled inputs get their value from state and update state in onChange.
+map() converts records into UI rows. Conditional rendering shows loading and
+error states.
+
+The app uses Axios, not fetch, for its normal API client. frontend/src/services/
+api.js sets the backend base URL and adds Authorization: Bearer <token> when a
+token is in localStorage.
+
+No Redux or React Context was found. The code mainly uses component state and
+localStorage for the login values.
+
+Frontend route protection is useful for navigation, but it is not the security
+boundary. A caller can send HTTP requests without using the browser UI, so the
+backend must also check permissions.
+
+What frontend/src/components/ProtectedRoute.js does:
+
+ProtectedRoute is a small React component that wraps a page which should only
+be shown to a signed-in user. It reads "token" and "role" from localStorage.
+If there is no token, it redirects to the login page. If the route requested a
+role and the saved role does not match, it also redirects to login. If both
+checks pass, it renders the wrapped page using the children prop.
+
+For example, App.js wraps VendorDashboard in ProtectedRoute with role="vendor".
+The admin section allows admin or manager. Some nested admin pages require the
+admin role specifically.
+
+Interview answer:
+
+"ProtectedRoute is a frontend navigation guard. It checks whether a token is
+stored and whether the saved role is allowed, then either renders the child
+page or redirects to login. It improves the user experience, but it is not a
+security boundary because localStorage can be changed and APIs can be called
+directly. The Express middleware and route checks enforce access on the server."
+
+Important distinction:
+
+ProtectedRoute does not verify the JWT signature. The backend
+authMiddleware.js verifies the token with JWT_SECRET and attaches the verified
+user ID and role to req.user. Backend routes then enforce their own role or
+vendor-approval rules.
+
+If asked about React:
+
+"React builds the UI from components. In JensnMart, state stores form values
+and API results, effects load data, and React Router maps paths to screens. The
+shared Axios client sends requests and the returned data updates component
+state."
+
+
+4. BACKEND AND EXPRESS
+----------------------
+
+backend/server.js is the entry point. It loads backend/.env with dotenv,
+configures CORS and JSON parsing, serves the uploads directory, mounts routers,
+starts the MongoDB connection, and listens on port 5000.
+
+Routes are grouped by feature:
+/api/admin, /api/vendor, /api/products, /api/orders, /api/cart,
+/api/categories, /api/subcategories, /api/payments, /api/notifications,
+/api/ai, and /api/contact.
+
+Middleware runs before or around route handlers. authMiddleware reads the
+Bearer token, verifies it with JWT_SECRET, and puts the user ID and role in
+req.user. adminOnly creates middleware that allows the listed roles.
+approveVendorOnly checks that the vendor exists and has admin approval.
+
+Useful examples:
+
+GET /api/products?category=ID&sort=priceLow
+Reads product filters from req.query and returns matching products.
+
+POST /api/orders/checkout
+Reads address and paymentMethod from req.body. It requires a signed-in,
+approved vendor and creates an order from the current cart.
+
+PUT /api/orders/status/ORDER_ID
+Reads the order ID from req.params.id and the new status from req.body. The
+handler checks that the user is an admin or manager.
+
+Express uses res.status(code).json(data) to return an HTTP status and JSON.
+Expected invalid input usually returns 400, missing/invalid login returns 401,
+wrong role returns 403, missing record returns 404, and unexpected errors
+usually return 500.
+
+There is no separate controller folder or shared custom error middleware
+visible. Many routes handle errors locally with try/catch.
+
+
+5. LOGIN, JWT, AND ROLES
+------------------------
+
+Login flow:
+
+1. Login.js reads email, password, and selected account type.
+2. It posts to /api/admin/login or /api/vendor/login.
+3. The backend finds the account and uses bcryptjs.compare to check the
+   submitted password against the saved hash.
+4. When accepted, the route creates a signed JWT with the user's ID and role.
+5. Admin tokens last 7 days; vendor tokens last 1 day.
+6. Login.js saves token, role, and approved in localStorage.
+7. api.js attaches the token to future requests.
+8. authMiddleware verifies the token and sets req.user.
+
+Authentication means identifying the user. Authorization means checking what
+that user may do. A valid vendor token does not authorize an admin-only API;
+that should result in 403 Forbidden.
+
+Roles actually used are admin, manager, and vendor. Admins and managers share
+some access. Managing admin accounts, vendors, and payments is restricted to
+admin in relevant screens/routes. Vendor-specific workflows check for vendor
+role; checkout additionally checks vendor approval.
+
+Passwords are hashed with bcryptjs using cost 10. Password reset OTPs are
+hashed, stored with a 10-minute expiration, and checked before a 15-minute
+reset token is issued. The normal login token is stored in localStorage; this
+is convenient but deserves XSS/security consideration in a production system.
+
+If asked how to improve auth:
+
+"I would review token storage, add rate limiting around login and OTP routes,
+and make token/session invalidation behavior explicit."
+
+
+6. MONGODB AND MONGOOSE
+-----------------------
+
+Mongoose is the ODM between Node and MongoDB. A schema defines field types,
+required values, defaults, references, enums, and indexes. A model provides
+methods such as find(), findOne(), findById(), create(), save(), and delete.
+populate() loads data referenced by an ObjectId for a query response.
+
+Main models:
+
+Admin: account, email/password hash, role, approval, reset fields.
+Vendor: account, profile, address book, approval, role.
+Category and SubCategory: product grouping.
+Product: name, price, stock, image path, category/subcategory refs, sold count.
+Cart: vendor ref and embedded item list; each item references a Product.
+Order: vendor ref, totals, status, embedded product snapshot, status history.
+Payment: order and vendor refs, amount, method, status, provider identifiers.
+Notification: recipient, message, read state, optional related-record metadata.
+ContactMessage: public contact form message and review status.
+RestockSubscription: vendor/product refs and alert status.
+
+Order product snapshots preserve the name, price, quantity, and image at the
+time of purchase. Later product edits should not rewrite the historical
+receipt. Cart items and address/status histories are embedded arrays.
+
+The project uses references for shared entities such as Vendor, Product,
+Category, and Order. RestockSubscription has a compound unique index. Do not
+claim the Payment schema enforces one payment per order: its order field is
+not declared unique. No aggregation pipeline was found; some totals use
+JavaScript reduce().
+
+
+7. PRODUCT FLOW
+---------------
+
+AddProductTab loads categories and subcategories. Its publish() handler builds
+FormData with name, price, stock, category, optional subcategory, and image. It
+posts to /api/products. The route checks the user's token and admin/manager
+role, then Multer stores the image under backend/uploads/products. Product
+stores the relative image path and other fields in MongoDB.
+
+VendorDashboard reads GET /api/products and filters/sorts the results. The GET
+route supports category, subcategory, and sort query parameters and populates
+category/subcategory names. PUT /api/products/:id updates a product. DELETE
+/api/products/:id is admin-only. Product import uses the xlsx package for CSV
+or Excel files.
+
+
+8. ORDER AND PAYMENT FLOW
+-------------------------
+
+VendorCart.placeOrder() sends the saved address and "Online" to checkout. The
+backend validates address, cart, and stock. It calculates total and 10 percent
+admin commission in that route and stores product snapshots in Order. The
+online route creates a Razorpay order and pending Payment record. The UI opens
+Razorpay; its callback sends the provider response to /api/payments/verify.
+That route verifies the HMAC signature and checks that the order belongs to
+the current vendor. It then marks Payment Paid, changes Order to Placed,
+decrements stock, marks Cart ordered, and sends notifications.
+
+The backend also has a COD branch, but the observed VendorCart UI sends
+paymentMethod: "Online". Do not say COD is offered by that screen unless you
+have verified another UI path.
+
+Honest improvement answer:
+
+"Checkout updates multiple records and calls an external payment provider. I
+would improve reliability with idempotency and transactional/atomic inventory
+updates, and define how pending or failed payments are cleaned up."
+
+
+9. ERROR HANDLING AND LIMITATIONS
+---------------------------------
+
+Backend route handlers often use try/catch and return JSON error messages.
+Frontend handlers catch Axios failures and display a toast. Loading state is
+commonly cleared in finally blocks.
+
+When MongoDB connection fails, server.js logs the error but still starts the
+HTTP listener. A DB-backed request can then fail. A production improvement
+would be readiness/health checks and a deliberate startup policy.
+
+Security and reliability features actually visible include password hashing,
+JWT verification, role checks, vendor approval checks, Razorpay signature
+verification, and image-extension filtering. Possible improvements include
+centralized error handling, stronger upload validation, rate limiting,
+checkout idempotency/transactions, and more automated tests.
+
+
+10. TOP FILES TO OPEN DURING PRACTICE
+------------------------------------
+
+1. frontend/src/App.js
+2. frontend/src/services/api.js
+3. frontend/src/pages/Login.js
+4. frontend/src/components/ProtectedRoute.js
+5. frontend/src/vendor/pages/VendorDashboard.js
+6. frontend/src/vendor/pages/VendorCart.js
+7. frontend/src/admin/pages/AddProductTab.js
+8. backend/server.js
+9. backend/routes/adminAuth.js
+10. backend/routes/vendorRoutes.js
+11. backend/middleware/authMiddleware.js
+12. backend/middleware/adminOnly.js
+13. backend/routes/productRoutes.js
+14. backend/routes/orderRoutes.js
+15. backend/routes/paymentRoutes.js
+16. backend/models/Product.js
+17. backend/models/Cart.js
+18. backend/models/Order.js
+19. backend/models/Payment.js
+20. backend/utils/notificationService.js
+
+
+11. QUICK INTERVIEW QUESTIONS
+-----------------------------
+
+Q: How does the frontend communicate with the backend?
+A: Pages use Axios through api.js. The interceptor adds a bearer token, and
+   Express returns JSON.
+
+Q: What is the difference between authentication and authorization?
+A: Authentication verifies identity. Authorization checks permission.
+
+Q: Why use both ProtectedRoute and backend middleware?
+A: ProtectedRoute improves navigation, but only backend checks protect APIs.
+
+Q: What does populate() do?
+A: It loads referenced MongoDB records into a Mongoose query result.
+
+Q: Why copy product details into an order?
+A: It preserves what the buyer purchased even if the catalog changes.
+
+Q: Is JWT payload encrypted?
+A: No. A standard signed JWT is readable; its signature detects tampering.
+
+Q: What would you improve first?
+A: I would improve checkout consistency with idempotency and atomic stock/order
+   updates, then add tests for payment and inventory failure cases.
+
+Q: Does this project have Redux, Context, PATCH routes, or aggregation?
+A: I did not find those in the code. It uses component state/localStorage,
+   GET/POST/PUT/DELETE routes, and JavaScript aggregation with reduce where
+   needed rather than a Mongo aggregation pipeline.
+
+
+12. FINAL 60-SECOND PRACTICE
+----------------------------
+
+"JensnMart is a MERN marketplace with vendor and administrator workflows.
+React Router maps pages and Axios calls the Express API. The API verifies JWTs,
+checks roles and vendor approval, and uses Mongoose models to read and update
+MongoDB. A vendor checkout loads the saved cart, checks stock, stores an order
+snapshot, and starts Razorpay. The payment verification route checks the
+provider signature before updating payment, order, inventory, and cart state.
+I understand that the code uses inline route handlers rather than separate
+controllers, and I would improve checkout reliability with idempotency,
+transactional updates, and more tests."
+
+Before the interview, practice the request flow without this page. If you get
+stuck, name the next file: React page, api.js, backend route, middleware, model,
+MongoDB, response, UI.

@@ -1,0 +1,358 @@
+/* Styles for the vendor notifications feature; controls layout, visual states, and responsive presentation without changing application data. */
+
+.vendor-notifications-root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.vendor-notifications-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.9fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.vendor-notifications-copy,
+.vendor-notifications-summary,
+.vendor-notifications-top,
+.vendor-notification-card,
+.vendor-notifications-empty {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 24px 44px rgba(29, 22, 16, 0.1);
+}
+
+.vendor-notifications-copy {
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 86% 14%, rgba(255, 214, 148, 0.18), transparent 18%),
+    radial-gradient(circle at 72% 100%, rgba(92, 166, 209, 0.16), transparent 24%),
+    linear-gradient(135deg, #08243d 0%, #0b3153 48%, #0e4974 78%, #2d7fb3 100%);
+  color: #fff8ef;
+}
+
+.vendor-notifications-copy::after {
+  content: "";
+  position: absolute;
+  right: -42px;
+  bottom: -54px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 187, 80, 0.28), transparent 72%);
+}
+
+.vendor-notifications-copy::before {
+  content: "";
+  position: absolute;
+  right: 22px;
+  top: 18px;
+  width: 96px;
+  height: 96px;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transform: rotate(16deg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent);
+}
+
+.vendor-notifications-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.vendor-notifications-eyebrow {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 248, 239, 0.74);
+}
+
+.vendor-notifications-copy h1 {
+  margin: 0;
+  max-width: none;
+  font-size: clamp(1.7rem, 2.7vw, 2.5rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.vendor-notifications-subtext {
+  margin: 10px 0 0;
+  max-width: none;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: rgba(255, 248, 239, 0.82);
+}
+
+.vendor-notifications-summary {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 250, 252, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #082e4f;
+  z-index: 1;
+}
+
+.vendor-notifications-summary::after {
+  content: "";
+  position: absolute;
+  right: -24px;
+  bottom: -28px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(8, 46, 79, 0.08), transparent 72%);
+}
+
+.vendor-notifications-summary > span,
+.vendor-notifications-summary > strong,
+.vendor-notifications-summary > p,
+.vendor-notifications-stats-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.vendor-notifications-summary > span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.vendor-notifications-summary > strong {
+  display: block;
+  font-size: 2.1rem;
+  line-height: 1;
+  color: #082e4f;
+}
+
+.vendor-notifications-summary > p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+  font-size: 0.92rem;
+}
+
+.vendor-notifications-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.vendor-notifications-stat {
+  padding: 12px 12px 10px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(8, 46, 79, 0.06), rgba(8, 46, 79, 0.02));
+  border: 1px solid rgba(8, 46, 79, 0.08);
+}
+
+.vendor-notifications-stat span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.vendor-notifications-stat strong {
+  display: block;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: #082e4f;
+}
+
+.vendor-notifications-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.vendor-notifications-unread {
+  width: fit-content;
+  font-size: 13px;
+  color: #082e4f;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.vendor-notifications-mark-all {
+  border: none;
+  background: linear-gradient(135deg, #e16a2f, #bc4917);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 14px 24px rgba(225, 106, 47, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vendor-notifications-mark-all:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 28px rgba(225, 106, 47, 0.26);
+}
+
+.vendor-notifications-mark-all:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.vendor-notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vendor-notification-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 15px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 249, 242, 0.82));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.vendor-notification-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 28px 48px rgba(29, 22, 16, 0.12);
+}
+
+.vendor-notification-card.unread {
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.95), rgba(255, 251, 245, 0.88));
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+.vendor-notification-card.read {
+  border-color: rgba(203, 213, 225, 0.8);
+}
+
+.vendor-notification-content {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+}
+
+.vendor-notification-thumb {
+  width: 82px;
+  height: 82px;
+  flex: 0 0 82px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.vendor-notification-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
+}
+
+.vendor-notification-tag {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(8, 46, 79, 0.08);
+  color: #082e4f;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vendor-notification-card h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.96rem;
+}
+
+.vendor-notification-card p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.6;
+  font-size: 0.92rem;
+}
+
+.vendor-notification-card small {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.vendor-notification-card button {
+  border: none;
+  background: linear-gradient(135deg, #082e4f, #1f6ea7);
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  height: fit-content;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 14px 24px rgba(8, 46, 79, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vendor-notification-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 28px rgba(8, 46, 79, 0.24);
+}
+
+.vendor-notifications-empty {
+  padding: 20px;
+  border-radius: 18px;
+  color: #475569;
+  background: rgba(255, 255, 255, 0.82);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .vendor-notifications-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .vendor-notifications-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .vendor-notification-card {
+    flex-direction: column;
+  }
+}
