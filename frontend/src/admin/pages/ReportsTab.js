@@ -472,7 +472,7 @@ export default function ReportsTab() {
                   <tr key={`${product.name}-${index}`}>
                     <td>
                       <img
-                        src={`http://localhost:5000/uploads/${product.image}`}
+                        src={`/uploads/${product.image}`}
                         alt=""
                       />
                     </td>

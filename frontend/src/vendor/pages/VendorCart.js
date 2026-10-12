@@ -255,7 +255,7 @@ export default function VendorCart() {
                   .map((item) => (
                     <div className="admin-card cart-item-card" key={item.product._id}>
                       <img
-                        src={`http://localhost:5000/uploads/${item.product.image}`}
+                        src={`/uploads/${item.product.image}`}
                         alt=""
                         className="cart-item-img"
                       />

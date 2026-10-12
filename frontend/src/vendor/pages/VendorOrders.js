@@ -353,7 +353,7 @@ export default function VendorOrders() {
                         {order.products.map((p, idx) => (
                           <div key={idx} className="order-product-row">
                             <img
-                              src={`http://localhost:5000/uploads/${p.image}`}
+                              src={`/uploads/${p.image}`}
                               alt={p.name}
                             />
                             <div>

@@ -463,7 +463,7 @@ export default function InventoryTab() {
             <div key={p._id} className="product-card premium-product-card">
               <div className="product-media-wrap">
                 <img
-                  src={`http://localhost:5000/uploads/${p.image}`}
+                  src={`/uploads/${p.image}`}
                   alt={p.name}
                 />
                 <span className={`stock-pill ${stockState}`}>{stockLabel}</span>

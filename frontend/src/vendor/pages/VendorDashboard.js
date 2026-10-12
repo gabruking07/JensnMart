@@ -968,7 +968,7 @@ export default function VendorDashboard() {
           {paginatedProducts.map(p => (
             <div className="vendor-product-card" key={p._id}>
               <div className="v-card-img">
-                <img src={`http://localhost:5000/uploads/${p.image}`} alt={p.name} />
+                <img src={`/uploads/${p.image}`} alt={p.name} />
                 <span className={`stock-label ${Number(p.stock || 0) === 0 ? "out" : ""}`}>
                   {Number(p.stock || 0) === 0 ? "Sold out" : `${p.stock} in stock`}
                 </span>
@@ -1138,7 +1138,7 @@ export default function VendorDashboard() {
               {compareProducts.map((product) => (
                 <article key={product._id} className="vendor-compare-card">
                   <div className="vendor-compare-card-top">
-                    <img src={`http://localhost:5000/uploads/${product.image}`} alt={product.name} />
+                    <img src={`/uploads/${product.image}`} alt={product.name} />
                     <div>
                       <h4>{product.name}</h4>
                       <span>{product.category?.name || "Uncategorized"}</span>

@@ -43,7 +43,8 @@ const importUpload = multer({
 >>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getProductImageUrl = (imageName) => {
   if (!imageName) return "";
-  const baseUrl = process.env.PUBLIC_BACKEND_URL || "http://localhost:5000";
+  const vercelHost = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
+  const baseUrl = process.env.PUBLIC_BACKEND_URL || vercelHost || "http://localhost:5000";
   return `${baseUrl.replace(/\/$/, "")}/uploads/${imageName}`;
 };
 

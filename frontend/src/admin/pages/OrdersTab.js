@@ -1189,7 +1189,7 @@ export default function OrdersTab() {
                 <td>
                   {firstProduct ? (
                     <div className="orders-table-item">
-                      <img src={`http://localhost:5000/uploads/${firstProduct.image}`} alt="" />
+                      <img src={`/uploads/${firstProduct.image}`} alt="" />
                       <div>
                         <strong>{firstProduct.name}</strong>
                         <span>
@@ -1251,7 +1251,7 @@ export default function OrdersTab() {
                       <div className="orders-table-products">
                         {products.map((product, index) => (
                           <div key={`${order._id}-${index}`} className="product-chip">
-                            <img src={`http://localhost:5000/uploads/${product.image}`} alt="" />
+                      <img src={`/uploads/${product.image}`} alt="" />
                             <div className="product-info">
                               <span className="p-name">{product.name}</span>
                               <span className="p-details">Qty: {product.qty} | Rs {product.price}</span>

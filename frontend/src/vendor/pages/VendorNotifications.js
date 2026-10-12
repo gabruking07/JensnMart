@@ -142,7 +142,7 @@ export default function VendorNotifications() {
                   {n.meta?.productImage && (
                     <div className="vendor-notification-thumb">
                       <img
-                        src={`http://localhost:5000/uploads/${n.meta.productImage}`}
+                        src={`/uploads/${n.meta.productImage}`}
                         alt={n.meta?.productName || n.title}
                       />
                     </div>
