@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Public admin register screen; supports an account or customer-facing flow before entering the protected application areas. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -11,7 +14,10 @@ import "./Login.css";
 import logo from "../assets/logo.png";
 import bg from "../assets/bg.png";
 
+<<<<<<< HEAD
 /** Renders the admin register interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function AdminRegister() {
   const [adminName, setAdminName] = useState("");
   const [phone, setPhone] = useState("");
@@ -22,14 +28,21 @@ export default function AdminRegister() {
   
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   /** Checks the email format before the form is submitted. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     return regex.test(email);
   };
 
+<<<<<<< HEAD
     /** Validates and submits the account registration form. */
     const handleRegister = async () => {
+=======
+  const handleRegister = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!validateEmail(email)) {
       toast.error("Invalid email format");
       return;

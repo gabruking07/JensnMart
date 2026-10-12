@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Express API endpoints for notification routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const router = express.Router();
 
@@ -10,14 +13,20 @@ const Vendor = require("../models/Vendor");
 const authMiddleware = require("../middleware/authMiddleware");
 const { notifyAdmins } = require("../utils/notificationService");
 
+<<<<<<< HEAD
 /** Maps the signed-in role to the Mongoose model used to find its notification records. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getRecipientModelByRole = (role) => {
   if (role === "vendor") return "Vendor";
   if (role === "admin" || role === "manager") return "Admin";
   return null;
 };
 
+<<<<<<< HEAD
 // GET /: Lists notifications for the signed-in admin or vendor.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const recipientModel = getRecipientModelByRole(req.user.role);
@@ -39,7 +48,10 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // GET /unread-count: Returns the signed-in user unread notification count.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/unread-count", authMiddleware, async (req, res) => {
   try {
     const recipientModel = getRecipientModelByRole(req.user.role);
@@ -58,7 +70,10 @@ router.get("/unread-count", authMiddleware, async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // POST /restock-request: Subscribes the signed-in vendor to a back-in-stock alert for a product.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/restock-request", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -123,7 +138,10 @@ router.post("/restock-request", authMiddleware, async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // DELETE /restock-request/:productId: Cancels the vendor back-in-stock alert for a product.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.delete("/restock-request/:productId", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -147,7 +165,10 @@ router.delete("/restock-request/:productId", authMiddleware, async (req, res) =>
   }
 });
 
+<<<<<<< HEAD
 // PUT /read-all: Marks the signed-in user notifications as read.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put("/read-all", authMiddleware, async (req, res) => {
   try {
     const recipientModel = getRecipientModelByRole(req.user.role);
@@ -165,7 +186,10 @@ router.put("/read-all", authMiddleware, async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // PUT /:id/read: Marks one notification as read for its recipient.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put("/:id/read", authMiddleware, async (req, res) => {
   try {
     const recipientModel = getRecipientModelByRole(req.user.role);

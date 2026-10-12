@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /* Styles for the timeline feature; controls layout, visual states, and responsive presentation without changing application data. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 .timeline-card {
   position: relative;
   overflow: hidden;

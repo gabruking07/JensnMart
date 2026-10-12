@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Express API endpoints for ai routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const router = require("express").Router();
 const Product = require("../models/Product");
 const optionalAuth = require("../middleware/optionalAuthMiddleware");
@@ -36,7 +39,10 @@ const ROLE_CONFIG = {
   },
 };
 
+<<<<<<< HEAD
 /** Lowercases a search phrase, removes punctuation, and collapses spaces so matching is consistent. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const normalizeText = (value = "") =>
   String(value || "")
     .toLowerCase()
@@ -44,10 +50,15 @@ const normalizeText = (value = "") =>
     .replace(/\s+/g, " ")
     .trim();
 
+<<<<<<< HEAD
 /** Splits normalized text into the individual search words used by fuzzy matching. */
 const tokenize = (value = "") => normalizeText(value).split(" ").filter(Boolean);
 
 /** Cleans and limits chat history before it is sent to the AI service. */
+=======
+const tokenize = (value = "") => normalizeText(value).split(" ").filter(Boolean);
+
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const normalizeHistory = (history = []) =>
   history
     .filter((entry) => entry && typeof entry.content === "string")
@@ -59,7 +70,10 @@ const normalizeHistory = (history = []) =>
     }))
     .filter((entry) => entry.content);
 
+<<<<<<< HEAD
 /** Builds a compact product catalog context for the assistant to use when answering shopping questions. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const buildCatalogContext = (products = []) =>
   products
     .slice(0, 40)
@@ -70,7 +84,10 @@ const buildCatalogContext = (products = []) =>
     })
     .join("\n");
 
+<<<<<<< HEAD
 /** Finds catalog items related to the user's question so the assistant can suggest products. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getSuggestedProducts = (products = [], message = "", reply = "") => {
   const terms = new Set([...tokenize(message), ...tokenize(reply)]);
   if (!terms.size) return [];
@@ -101,7 +118,10 @@ const getSuggestedProducts = (products = [], message = "", reply = "") => {
     }));
 };
 
+<<<<<<< HEAD
 // POST /chat: Sends a chat question and catalog context to the configured assistant, then returns its reply.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/chat", optionalAuth, async (req, res) => {
   try {
     const message = String(req.body.message || "").trim();

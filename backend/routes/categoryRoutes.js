@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Express API endpoints for category routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const router = express.Router();
 const Category = require("../models/Category");
@@ -8,7 +11,10 @@ const authMiddleware = require("../middleware/authMiddleware");
 /* ================= CREATE CATEGORY ================= */
 /* ADMIN + MANAGER */
 const roleOnly = require("../middleware/adminOnly");
+<<<<<<< HEAD
 // POST /: Creates a product category after admin/manager authorization.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post(
   "/",
   authMiddleware,
@@ -37,7 +43,10 @@ router.post(
 });
 
 /* GET ALL CATEGORIES */
+<<<<<<< HEAD
 // GET /: Lists product categories alphabetically.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const categories = await Category.find().sort({ name: 1 });
@@ -49,7 +58,10 @@ router.get("/", authMiddleware, async (req, res) => {
 
 /* ================= UPDATE CATEGORY ================= */
 /* ADMIN + MANAGER */
+<<<<<<< HEAD
 // PUT /:id: Renames the selected product category.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/:id",
   authMiddleware,
@@ -81,7 +93,10 @@ router.put(
 
 /* ================= DELETE CATEGORY ================= */
 /* ADMIN + MANAGER */
+<<<<<<< HEAD
 // DELETE /:id: Deletes the selected product category.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.delete(
   "/:id",
   authMiddleware,

@@ -1,12 +1,18 @@
+<<<<<<< HEAD
 /** Administrator admins tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
 import { confirmToast } from "../../components/confirmToast";
 
+<<<<<<< HEAD
 /** Renders the admins tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function AdminsTab() {
   const [admins, setAdmins] = useState([]);
   const [pending, setPending] = useState([]);
@@ -20,8 +26,12 @@ export default function AdminsTab() {
   });
 
   /* ================= LOAD ================= */
+<<<<<<< HEAD
     /** Fetches admin and manager records for account management. */
     const loadAdmins = async () => {
+=======
+  const loadAdmins = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/admin/all-admins");
       setAdmins(res.data);
@@ -30,8 +40,12 @@ export default function AdminsTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Fetches admin accounts awaiting approval. */
     const loadPending = async () => {
+=======
+  const loadPending = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/admin/pending-admins");
       setPending(res.data);
@@ -60,8 +74,12 @@ export default function AdminsTab() {
   }, [itemsPerPage]);
 
   /* ================= CREATE ================= */
+<<<<<<< HEAD
     /** Submits the new administrator form and refreshes the account list after success. */
     const createAdmin = async () => {
+=======
+  const createAdmin = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!form.email || !form.password) {
       toast.error("Email & password required");
       return;
@@ -85,8 +103,12 @@ export default function AdminsTab() {
   };
 
   /* ================= APPROVE ================= */
+<<<<<<< HEAD
     /** Approves a pending administrator account so it can access the admin area. */
     const approveAdmin = async (id) => {
+=======
+  const approveAdmin = async (id) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       await api.put(`/admin/approve-admin/${id}`);
       toast.success("Approved");
@@ -98,7 +120,10 @@ export default function AdminsTab() {
   };
 
   /* ================= REMOVE ================= */
+<<<<<<< HEAD
   /** Performs the remove admin step used by this module's workflow. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const removeAdmin = async (id) => {
     const confirmed = await confirmToast({
       title: "Remove admin?",

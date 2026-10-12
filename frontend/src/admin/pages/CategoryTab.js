@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Administrator category tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useMemo, useState } from "react";
 import { FolderTree, Layers3, Plus, Tag } from "lucide-react";
 import api from "../../services/api";
@@ -7,7 +10,10 @@ import toast from "react-hot-toast";
 import "../admin.css";
 import { confirmToast } from "../../components/confirmToast";
 
+<<<<<<< HEAD
 /** Renders the category tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function CategoryTab() {
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
@@ -17,14 +23,22 @@ export default function CategoryTab() {
     category: ""
   });
 
+<<<<<<< HEAD
     /** Fetches categories used to populate the screen and its selection controls. */
     const loadCategories = async () => {
+=======
+  const loadCategories = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const res = await api.get("/categories");
     setCategories(res.data);
   };
 
+<<<<<<< HEAD
     /** Fetches subcategories used by the category or product form. */
     const loadSub = async () => {
+=======
+  const loadSub = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const res = await api.get("/subcategories");
     setSubcategories(res.data);
   };
@@ -34,8 +48,12 @@ export default function CategoryTab() {
     loadSub();
   }, []);
 
+<<<<<<< HEAD
     /** Validates and creates a product category through the API. */
     const createCategory = async () => {
+=======
+  const createCategory = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!newCategory.trim()) return toast.error("Enter name");
 
     try {
@@ -48,8 +66,12 @@ export default function CategoryTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Deletes the selected category through the admin API. */
     const deleteCategory = async (id) => {
+=======
+  const deleteCategory = async (id) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const confirmed = await confirmToast({
       title: "Delete category?",
       message: "Deleting this category may affect linked products.",
@@ -63,8 +85,12 @@ export default function CategoryTab() {
     toast.success("Deleted");
   };
 
+<<<<<<< HEAD
     /** Creates a subcategory linked to the selected parent category. */
     const createSub = async () => {
+=======
+  const createSub = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!subForm.name.trim() || !subForm.category) {
       return toast.error("Fill fields");
     }
@@ -79,8 +105,12 @@ export default function CategoryTab() {
     loadSub();
   };
 
+<<<<<<< HEAD
     /** Deletes the selected subcategory through the admin API. */
     const deleteSub = async (id) => {
+=======
+  const deleteSub = async (id) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const confirmed = await confirmToast({
       title: "Delete subcategory?",
       message: "This subcategory will be removed from the catalog structure.",

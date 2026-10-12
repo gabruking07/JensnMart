@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Public vendor register screen; supports an account or customer-facing flow before entering the protected application areas. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -11,7 +14,10 @@ import "./Login.css";
 import logo from "../assets/logo.png";
 import bg from "../assets/bg.png";
 
+<<<<<<< HEAD
 /** Renders the vendor register interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function VendorRegister() {
   const navigate = useNavigate();
 
@@ -28,8 +34,12 @@ export default function VendorRegister() {
     country: "India"
   });
 
+<<<<<<< HEAD
     /** Validates and submits the account registration form. */
     const handleRegister = async () => {
+=======
+  const handleRegister = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       if (!formData.name || !formData.email || !formData.password || !formData.phone) {
         toast.error("Fill all required fields");

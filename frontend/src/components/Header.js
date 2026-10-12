@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 /** Reusable header UI component; packages interface behavior used by one or more application screens. */
 
 /** Renders the header interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function Header({ title }) {
   return (
     <div

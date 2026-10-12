@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Frontend route table; connects URLs to public pages and role-protected admin or vendor screens. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -32,7 +35,10 @@ import NotificationsTab from "./admin/pages/NotificationsTab";
 import ContactMessagesTab from "./admin/pages/ContactMessagesTab";
 import VendorNotifications from "./vendor/pages/VendorNotifications";
 
+<<<<<<< HEAD
 /** Renders the app interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 function App() {
   return (
     <BrowserRouter>

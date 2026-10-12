@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Administrator profile tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useState, useCallback } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
@@ -19,7 +22,10 @@ import {
 } from "lucide-react";
 import "../admin.css";
 
+<<<<<<< HEAD
 /** Renders the profile tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function ProfileTab() {
   const [form, setForm] = useState({
     name: "", email: "", phone: "", role: "", password: ""
@@ -57,7 +63,10 @@ export default function ProfileTab() {
   const isPhoneValid = /^[6-9]\d{9}$/.test(rawPhone);
   const isFormValid = isPhoneValid && form.name.trim().length > 2;
 
+<<<<<<< HEAD
   /** Handles the update user action and coordinates its UI or API response. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const handleUpdate = async () => {
     if (!isFormValid) return;
 

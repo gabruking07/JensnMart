@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Administrator inventory tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../../services/api";
@@ -7,7 +10,10 @@ import toast from "react-hot-toast";
 import "../admin.css";
 import { confirmToast } from "../../components/confirmToast";
 
+<<<<<<< HEAD
 /** Renders the inventory tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function InventoryTab() {
   const LOW_STOCK_THRESHOLD = 100;
   const [searchParams] = useSearchParams();
@@ -24,15 +30,22 @@ export default function InventoryTab() {
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({ name: "", price: "", stock: "", image: null });
 
+<<<<<<< HEAD
   /** Cleans a product name for consistent display in the inventory table. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const formatDisplayName = (value) => {
     const normalized = String(value || "").trim().toLowerCase();
     if (!normalized) return "-";
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   };
 
+<<<<<<< HEAD
     /** Fetches catalog products and refreshes the screen's inventory data. */
     const loadProducts = async () => {
+=======
+  const loadProducts = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/products");
       setProducts(res.data);
@@ -41,16 +54,24 @@ export default function InventoryTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Fetches categories used to populate the screen and its selection controls. */
     const loadCategories = async () => {
+=======
+  const loadCategories = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/categories");
       setCategories(res.data);
     } catch {}
   };
 
+<<<<<<< HEAD
     /** Fetches subcategories used by the category or product form. */
     const loadSub = async () => {
+=======
+  const loadSub = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/subcategories");
       setSubcategories(res.data);
@@ -147,8 +168,12 @@ export default function InventoryTab() {
   }, [currentPage, totalPages]);
 
   /* ================= DELETE ================= */
+<<<<<<< HEAD
     /** Deletes the selected product and refreshes the inventory list. */
     const deleteProduct = async (id) => {
+=======
+  const deleteProduct = async (id) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const confirmed = await confirmToast({
       title: "Delete product?",
       message: "This product will be removed from inventory.",
@@ -166,8 +191,12 @@ export default function InventoryTab() {
   };
 
   /* ================= UPDATE CATEGORY ================= */
+<<<<<<< HEAD
     /** Changes the selected product's category through the inventory API. */
     const updateCategory = async (id, category) => {
+=======
+  const updateCategory = async (id, category) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       await api.put(`/products/${id}`, { category });
       loadProducts();
@@ -176,8 +205,12 @@ export default function InventoryTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Changes the selected product's subcategory through the inventory API. */
     const updateSub = async (id, subcategory) => {
+=======
+  const updateSub = async (id, subcategory) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       await api.put(`/products/${id}`, { subcategory });
       loadProducts();
@@ -186,8 +219,12 @@ export default function InventoryTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Copies the selected product fields into the inline inventory editor. */
     const startEdit = (product) => {
+=======
+  const startEdit = (product) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setEditingId(product._id);
     setDraft({
       name: product.name || "",
@@ -197,14 +234,22 @@ export default function InventoryTab() {
     });
   };
 
+<<<<<<< HEAD
     /** Discards the unsaved inventory edits and exits edit mode. */
     const cancelEdit = () => {
+=======
+  const cancelEdit = () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setEditingId(null);
     setDraft({ name: "", price: "", stock: "", image: null });
   };
 
+<<<<<<< HEAD
     /** Validates and saves the inventory row currently being edited. */
     const saveEdit = async (id) => {
+=======
+  const saveEdit = async (id) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const trimmedName = String(draft.name || "").trim();
     const price = Number(draft.price);
     const stock = Number(draft.stock);
@@ -247,8 +292,12 @@ export default function InventoryTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Switches the inventory list between all products and its stock filter. */
     const toggleStockFilter = (status) => {
+=======
+  const toggleStockFilter = (status) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setSelectedStockStatus((currentStatus) => (currentStatus === status ? "" : status));
   };
 

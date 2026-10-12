@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Public contact us screen; supports an account or customer-facing flow before entering the protected application areas. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -29,7 +32,10 @@ const contactHighlights = [
   }
 ];
 
+<<<<<<< HEAD
 /** Renders the contact us interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function ContactUs() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -40,16 +46,24 @@ export default function ContactUs() {
     message: ""
   });
 
+<<<<<<< HEAD
     /** Updates the form state when the user edits an input. */
     const handleChange = (field) => (event) => {
+=======
+  const handleChange = (field) => (event) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setFormData((current) => ({
       ...current,
       [field]: event.target.value
     }));
   };
 
+<<<<<<< HEAD
     /** Validates the form, sends its data to the API, and presents success or error feedback. */
     const handleSubmit = async (event) => {
+=======
+  const handleSubmit = async (event) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     event.preventDefault();
 
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {

@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Express API endpoints for contact routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const router = express.Router();
 
@@ -7,7 +10,10 @@ const ContactMessage = require("../models/ContactMessage");
 const { notifyAdmins } = require("../utils/notificationService");
 const { sendNotificationEmail } = require("../utils/mailer");
 
+<<<<<<< HEAD
 // POST /: Validates and saves a customer message from the public contact form.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/", async (req, res) => {
   try {
     const name = String(req.body?.name || "").trim();

@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 # JensnMart frontend
 
 This React application contains the public, vendor, and admin screens for JensnMart. The full architecture and presentation guide is in [`PROJECT_WALKTHROUGH.md`](../PROJECT_WALKTHROUGH.md).
+=======
+# Getting Started with Create React App
+
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 
 ## Available Scripts
 

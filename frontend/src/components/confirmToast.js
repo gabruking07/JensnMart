@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Reusable confirm toast UI component; packages interface behavior used by one or more application screens. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import toast from "react-hot-toast";
 
 const baseButtonStyle = {
@@ -12,7 +15,10 @@ const baseButtonStyle = {
   padding: "0 14px",
 };
 
+<<<<<<< HEAD
 /** Shows a reusable confirmation dialog and resolves with whether the user confirmed or cancelled. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export function confirmToast({
   title,
   message,
@@ -21,7 +27,10 @@ export function confirmToast({
   tone = "danger",
 }) {
   return new Promise((resolve) => {
+<<<<<<< HEAD
     /** Dismisses the confirmation toast and resolves the waiting confirmation result. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const close = (toastId, result) => {
       toast.dismiss(toastId);
       resolve(result);

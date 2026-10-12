@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Express API endpoints for admin routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
@@ -13,7 +16,10 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleOnly = require("../middleware/adminOnly");
 const { notifyVendor } = require("../utils/notificationService");
 
+<<<<<<< HEAD
 /** Removes private account fields before vendor information is included in an admin response. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const sanitizeVendor = (vendorDoc) => {
   if (!vendorDoc) return null;
   const vendor =
@@ -35,13 +41,19 @@ const sanitizeVendor = (vendorDoc) => {
 };
 
 /* GET ALL VENDORS (ADMIN ONLY) */
+<<<<<<< HEAD
 // GET /vendors: Lists vendor accounts for the admin vendor management screen.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/vendors", authMiddleware, roleOnly("admin", "manager"), async (req, res) => {
   const vendors = await Vendor.find().sort({ createdAt: -1 });
   res.json(vendors.map(sanitizeVendor));
 });
 
+<<<<<<< HEAD
 // GET /contact-messages: Lists customer contact form submissions for admin review.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get(
   "/contact-messages",
   authMiddleware,
@@ -60,7 +72,10 @@ router.get(
 /* =====================================================
    CREATE NEW VENDOR (ADMIN ONLY)
 ===================================================== */
+<<<<<<< HEAD
 // POST /create-vendor: Creates a vendor account from the admin screen.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post(
   "/create-vendor",
   authMiddleware,
@@ -100,7 +115,10 @@ router.post(
 /* =====================================================
    UPDATE VENDOR
 ===================================================== */
+<<<<<<< HEAD
 // PUT /vendor/:id: Updates the selected vendor account details.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/vendor/:id",
   authMiddleware,
@@ -123,7 +141,10 @@ router.put(
 );
 
 /* APPROVE VENDOR (ADMIN ONLY) */
+<<<<<<< HEAD
 // PUT /approve/:id: Approves a vendor account and sends an approval notification when needed.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/approve/:id",
   authMiddleware,
@@ -161,7 +182,10 @@ router.put(
 );
 
 /* REJECT VENDOR (ADMIN ONLY) */
+<<<<<<< HEAD
 // DELETE /reject-vendor/:id: Rejects and removes the selected vendor account.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.delete(
   "/reject-vendor/:id",
   authMiddleware,
@@ -180,7 +204,10 @@ router.delete(
    ADMIN / MANAGER 
 ===================================================== */
 // GET ALL ADMINS
+<<<<<<< HEAD
 // GET /all-admins: Lists administrator and manager accounts for account management.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/all-admins", authMiddleware, roleOnly("admin"), async (req, res) => {
   const admins = await Admin.find({
     role: { $in: ["admin", "manager"] }
@@ -189,7 +216,10 @@ router.get("/all-admins", authMiddleware, roleOnly("admin"), async (req, res) =>
 });
 
 // ================= CREATE ADMIN =================
+<<<<<<< HEAD
 // POST /create-admin: Creates a pending administrator or manager account.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post(
   "/create-admin",
   authMiddleware,
@@ -252,7 +282,10 @@ router.post(
 );
 
 /* ================= GET PROFILE ================= */
+<<<<<<< HEAD
 // GET /profile: Reads or updates the signed-in administrator profile.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/profile", authMiddleware, async (req, res) => {
   if (!["admin", "manager"].includes(req.user.role)) {
     return res.status(403).json({ message: "Access denied" });
@@ -263,7 +296,10 @@ router.get("/profile", authMiddleware, async (req, res) => {
 });
 
 /* ================= UPDATE PROFILE ================= */
+<<<<<<< HEAD
 // PUT /profile: Reads or updates the signed-in administrator profile.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put("/profile", authMiddleware, async (req, res) => {
   if (!["admin", "manager"].includes(req.user.role)) {
     return res.status(403).json({ message: "Access denied" });
@@ -287,7 +323,10 @@ router.put("/profile", authMiddleware, async (req, res) => {
 });
 
 /* GET PENDING ADMINS & MANAGERS (ADMIN ONLY) */
+<<<<<<< HEAD
 // GET /pending-admins: Lists administrator and manager accounts awaiting approval.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get(
   "/pending-admins",
   authMiddleware,
@@ -307,7 +346,10 @@ router.get(
 );
 
 /* APPROVE ADMIN / MANAGER (ADMIN ONLY) */
+<<<<<<< HEAD
 // PUT /approve-admin/:id: Approves a pending admin or manager account.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/approve-admin/:id",
   authMiddleware,
@@ -335,7 +377,10 @@ router.put(
 
 /* REJECT ADMIN / MANAGER (ADMIN ONLY) */
 /* ================= DELETE ADMIN ================= */
+<<<<<<< HEAD
 // DELETE /remove-admin/:id: Removes an administrator account while preventing self-deletion.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.delete(
   "/remove-admin/:id",
   authMiddleware,
@@ -364,7 +409,10 @@ router.delete(
 
 /* UPDATE PRODUCT STOCK (ADMIN + MANAGER) */
 /* ================= UPDATE STOCK ================= */
+<<<<<<< HEAD
 // PUT /update-product-name/:id: Changes a product name from the admin inventory tools.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/update-product-name/:id",
   authMiddleware,
@@ -396,7 +444,10 @@ router.put(
 );
 
 /* ================= UPDATE PRICE ================= */
+<<<<<<< HEAD
 // PUT /update-price/:id: Changes a product price from the admin inventory tools.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/update-price/:id",
   authMiddleware,
@@ -429,7 +480,10 @@ router.put(
 
 /* ================= UPDATE PRODUCT CATEGORY ================= */
 /* ADMIN + MANAGER */
+<<<<<<< HEAD
 // PUT /update-product-category/:id: Moves a product into a different category.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/update-product-category/:id",
   authMiddleware,
@@ -460,7 +514,10 @@ router.put(
 );
 
 /* ================= GET LOGGED IN ADMIN PROFILE ================= */
+<<<<<<< HEAD
 // GET /me: Returns the signed-in administrator account for session/profile use.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get(
   "/me",
   authMiddleware,

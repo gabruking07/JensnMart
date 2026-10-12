@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Public forgot password screen; supports an account or customer-facing flow before entering the protected application areas. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
@@ -10,7 +13,10 @@ import logo from "../assets/logo.png";
 import bg from "../assets/bg.png";
 import "./ForgotPassword.css";
 
+<<<<<<< HEAD
 /** Renders the forgot password interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function ForgotPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -28,8 +34,12 @@ export default function ForgotPassword() {
   const basePath = useMemo(() => (role === "admin" ? "/admin" : "/vendor"), [role]);
   const otpVerified = Boolean(resetToken);
 
+<<<<<<< HEAD
     /** Requests a password-recovery code for the selected account role. */
     const sendOtp = async () => {
+=======
+  const sendOtp = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const normalizedIdentifier =
       contactType === "phone" ? identifier.replace(/\D/g, "") : identifier.trim().toLowerCase();
 
@@ -59,7 +69,10 @@ export default function ForgotPassword() {
     }
   };
 
+<<<<<<< HEAD
   /** Checks the recovery code with the backend before enabling password reset. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const verifyOtp = async () => {
     const normalizedIdentifier =
       contactType === "phone" ? identifier.replace(/\D/g, "") : identifier.trim().toLowerCase();
@@ -86,8 +99,12 @@ export default function ForgotPassword() {
     }
   };
 
+<<<<<<< HEAD
     /** Sends the new password after OTP verification and completes account recovery. */
     const resetPassword = async () => {
+=======
+  const resetPassword = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!otpVerified) {
       return toast.error("Please verify OTP first");
     }
@@ -117,8 +134,12 @@ export default function ForgotPassword() {
     }
   };
 
+<<<<<<< HEAD
     /** Resets role-specific recovery state when the user switches account type. */
     const onRoleChange = (nextRole) => {
+=======
+  const onRoleChange = (nextRole) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setRole(nextRole);
     setContactType("email");
     setIdentifier("");

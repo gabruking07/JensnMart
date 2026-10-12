@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 /** Shared backend helpers for mailer; keeps reusable service behavior outside the route handlers. */
 
 const fs = require("fs");
 
 /** Creates the configured email transport used by the outbound mail helpers. */
+=======
+const fs = require("fs");
+
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const createTransporter = () => {
   let nodemailer;
   try {
@@ -45,7 +50,10 @@ const createTransporter = () => {
   });
 };
 
+<<<<<<< HEAD
 /** Emails a one-time password to the account owner during password recovery. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const sendOtpEmail = async ({ to, name, otp }) => {
   const transporter = createTransporter();
   if (!transporter) {
@@ -76,7 +84,10 @@ const sendOtpEmail = async ({ to, name, otp }) => {
   return { delivered: true, mode: "smtp" };
 };
 
+<<<<<<< HEAD
 /** Sends the recovery code by SMS when SMS delivery is configured. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const sendOtpSms = async ({ to, name, otp }) => {
   const normalizedPhone = String(to || "").replace(/\D/g, "");
 
@@ -88,7 +99,10 @@ const sendOtpSms = async ({ to, name, otp }) => {
   return { delivered: false, mode: "dev_console_sms" };
 };
 
+<<<<<<< HEAD
 /** Sends a marketplace notification through the configured email provider. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const sendNotificationEmail = async ({
   to,
   subject,

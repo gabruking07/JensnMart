@@ -1,11 +1,17 @@
+<<<<<<< HEAD
 /** Shared backend helpers for notification service; keeps reusable service behavior outside the route handlers. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const Notification = require("../models/Notification");
 const Admin = require("../models/Admin");
 const Vendor = require("../models/Vendor");
 const { sendNotificationEmail } = require("./mailer");
 
+<<<<<<< HEAD
 /** Stores an in-app notification addressed to one admin or vendor. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const createNotification = async ({
   recipientModel,
   recipient,
@@ -26,7 +32,10 @@ const createNotification = async ({
   });
 };
 
+<<<<<<< HEAD
 /** Creates a vendor notification and optionally emails the vendor about the same event. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const notifyVendor = async ({ vendorId, type, title, message, meta = {}, sendEmail = true }) => {
   if (!vendorId) return;
 
@@ -56,7 +65,10 @@ const notifyVendor = async ({ vendorId, type, title, message, meta = {}, sendEma
   }
 };
 
+<<<<<<< HEAD
 /** Creates a notification for approved administrators and optionally emails them. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const notifyAdmins = async ({ type, title, message, meta = {}, sendEmail = false }) => {
   const admins = await Admin.find({
     role: { $in: ["admin", "manager"] },

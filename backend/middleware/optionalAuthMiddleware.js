@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 /** Express middleware for optional auth middleware; checks a request condition before protected route handlers continue. */
 
 const jwt = require("jsonwebtoken");
 
 // Reads a bearer JWT when present, but lets public routes continue without a signed-in user.
+=======
+const jwt = require("jsonwebtoken");
+
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 module.exports = (req, _res, next) => {
   try {
     const authHeader = req.headers.authorization;

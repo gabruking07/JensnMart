@@ -1,12 +1,18 @@
+<<<<<<< HEAD
 /** Administrator vendors tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
 import { confirmToast } from "../../components/confirmToast";
 
+<<<<<<< HEAD
 /** Renders the vendors tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function VendorsTab() {
   const [vendors, setVendors] = useState([]);
   const [email, setEmail] = useState("");
@@ -14,8 +20,12 @@ export default function VendorsTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
+<<<<<<< HEAD
     /** Fetches vendor records for the admin vendor-management screen. */
     const loadVendors = async () => {
+=======
+  const loadVendors = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/admin/vendors");
       setVendors(res.data);
@@ -45,8 +55,12 @@ export default function VendorsTab() {
   }, [itemsPerPage]);
 
   /* ================= CREATE ================= */
+<<<<<<< HEAD
     /** Submits a vendor account from the admin screen and reloads the vendor list. */
     const createVendor = async () => {
+=======
+  const createVendor = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!email || !password) return toast.error("Fill fields");
 
     try {
@@ -61,8 +75,12 @@ export default function VendorsTab() {
   };
 
   /* ================= APPROVE ================= */
+<<<<<<< HEAD
     /** Approves the selected vendor so vendor-only workflows can be used. */
     const approveVendor = async (id) => {
+=======
+  const approveVendor = async (id) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       await api.put(`/admin/approve/${id}`);
       toast.success("Vendor approved");
@@ -73,8 +91,12 @@ export default function VendorsTab() {
   };
 
   /* ================= REJECT ================= */
+<<<<<<< HEAD
     /** Removes or rejects the selected vendor according to the admin workflow. */
     const rejectVendor = async (id) => {
+=======
+  const rejectVendor = async (id) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const confirmed = await confirmToast({
       title: "Remove vendor?",
       message: "This vendor account will be deleted from the admin panel.",

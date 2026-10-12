@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /* Styles for the vendor profile feature; controls layout, visual states, and responsive presentation without changing application data. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 .profile-page-root {
   min-height: 100vh;
   display: flex;

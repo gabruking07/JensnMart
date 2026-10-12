@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 /** Reusable footer UI component; packages interface behavior used by one or more application screens. */
 
 import { Link, useLocation } from "react-router-dom";
 
 /** Renders the footer interface and coordinates the state and actions for this screen or reusable component. */
+=======
+import { Link, useLocation } from "react-router-dom";
+
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function Footer() {
   const { pathname } = useLocation();
   const useLightBackgroundVariant = pathname.startsWith("/vendor") || pathname === "/cart";

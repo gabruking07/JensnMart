@@ -1,11 +1,17 @@
+<<<<<<< HEAD
 /** Administrator contact messages tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../services/api";
 import "../admin.css";
 
+<<<<<<< HEAD
 /** Converts a date into the date-and-time format used in this screen. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const formatDateTime = (value) => {
   if (!value) return "N/A";
   const date = new Date(value);
@@ -13,7 +19,10 @@ const formatDateTime = (value) => {
   return date.toLocaleString();
 };
 
+<<<<<<< HEAD
 /** Renders the contact messages tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function ContactMessagesTab() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,8 +31,12 @@ export default function ContactMessagesTab() {
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
   useEffect(() => {
+<<<<<<< HEAD
         /** Fetches public contact form submissions for admin review. */
         const loadMessages = async () => {
+=======
+    const loadMessages = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
       try {
         const { data } = await api.get("/admin/contact-messages");
         setMessages(data || []);

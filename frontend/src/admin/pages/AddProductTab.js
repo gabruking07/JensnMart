@@ -1,11 +1,17 @@
+<<<<<<< HEAD
 /** Administrator add product tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
 
+<<<<<<< HEAD
 /** Renders the add product tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function AddProductTab() {
     const [form, setForm] = useState({
         name: "",
@@ -22,8 +28,12 @@ export default function AddProductTab() {
     const [isImporting, setIsImporting] = useState(false);
 
     /* ================= LOAD ================= */
+<<<<<<< HEAD
         /** Fetches categories used to populate the screen and its selection controls. */
         const loadCategories = async () => {
+=======
+    const loadCategories = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
         try {
             const res = await api.get("/categories");
             setCategories(res.data);
@@ -32,8 +42,12 @@ export default function AddProductTab() {
         }
     };
 
+<<<<<<< HEAD
         /** Fetches subcategories used by the category or product form. */
         const loadSub = async () => {
+=======
+    const loadSub = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
         try {
             const res = await api.get("/subcategories");
             setSubcategories(res.data);
@@ -54,7 +68,10 @@ export default function AddProductTab() {
     const completedFields = [form.name, form.price, form.stock, form.category].filter(Boolean).length;
 
     /* ================= SUBMIT ================= */
+<<<<<<< HEAD
     /** Validates and submits a new product form, including its uploaded image. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const publish = async (e) => {
         e?.preventDefault();
 
@@ -87,7 +104,10 @@ export default function AddProductTab() {
         }
     };
 
+<<<<<<< HEAD
     /** Uploads a CSV or Excel file to create products in bulk and reports the import result. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const importProducts = async () => {
         if (!importFile) {
             toast.error("Choose a CSV or Excel file first");

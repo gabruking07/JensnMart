@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Frontend entry point; mounts the React application into the HTML document and loads global styles. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

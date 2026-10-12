@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Backend entry point; loads configuration, middleware, API routers, the MongoDB connection, and the HTTP listener. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -44,14 +47,20 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/contact", contactRoutes);
 
 /* ================= DB ================= */
+<<<<<<< HEAD
 // Starts the MongoDB connection; API route handlers use the registered Mongoose models.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.error("Mongo error:", err));
 
 /* ================= SERVER ================= */
+<<<<<<< HEAD
 // Starts the Express listener after route and middleware registration is complete.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });

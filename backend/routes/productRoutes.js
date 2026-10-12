@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Express API endpoints for product routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const router = express.Router();
 const path = require("path");
@@ -34,20 +37,29 @@ const importUpload = multer({
   },
 });
 
+<<<<<<< HEAD
 /** Builds a public URL for a product image so email and browser views can display it. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getProductImageUrl = (imageName) => {
   if (!imageName) return "";
   const baseUrl = process.env.PUBLIC_BACKEND_URL || "http://localhost:5000";
   return `${baseUrl.replace(/\/$/, "")}/uploads/${imageName}`;
 };
 
+<<<<<<< HEAD
 /** Finds the uploaded image on disk so server-side email attachments can read it. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getProductImagePath = (imageName) => {
   if (!imageName) return "";
   return path.join(__dirname, "..", "uploads", imageName);
 };
 
+<<<<<<< HEAD
 /** Notifies vendors waiting on an out-of-stock product, then marks their requests fulfilled. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const notifyRestockSubscribers = async (product) => {
   const subscriptions = await RestockSubscription.find({
     product: product._id,
@@ -115,13 +127,19 @@ const notifyRestockSubscribers = async (product) => {
   );
 };
 
+<<<<<<< HEAD
 /** Converts value into a consistent value for the rest of the module. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const normalizeValue = (value) =>
   String(value ?? "")
     .trim()
     .toLowerCase();
 
+<<<<<<< HEAD
 /** Finds a spreadsheet cell by any accepted column heading, allowing imports with different header names. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getRowValue = (row, candidateKeys) => {
   const entries = Object.entries(row || {});
   for (const [key, value] of entries) {
@@ -133,7 +151,10 @@ const getRowValue = (row, candidateKeys) => {
   return "";
 };
 
+<<<<<<< HEAD
 /** Reads the first worksheet from an uploaded CSV or Excel file and returns its rows as objects. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const parseImportRows = (buffer, filename = "") => {
   const workbook = XLSX.read(buffer, { type: "buffer" });
   const firstSheetName = workbook.SheetNames[0];
@@ -146,7 +167,10 @@ const parseImportRows = (buffer, filename = "") => {
   });
 };
 
+<<<<<<< HEAD
 /** Indexes categories by both database ID and normalized name for fast spreadsheet import matching. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const buildCategoryLookup = (categories = []) => {
   const map = new Map();
   categories.forEach((category) => {
@@ -156,7 +180,10 @@ const buildCategoryLookup = (categories = []) => {
   return map;
 };
 
+<<<<<<< HEAD
 /** Indexes subcategories by ID and by normalized name plus category to avoid duplicate imports. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const buildSubcategoryLookup = (subcategories = []) => {
   const map = new Map();
   subcategories.forEach((subcategory) => {
@@ -169,7 +196,10 @@ const buildSubcategoryLookup = (subcategories = []) => {
   return map;
 };
 
+<<<<<<< HEAD
 /** Reuses a matching category or creates it when importing a product that names a new category. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const ensureCategoryDocument = async (categoryValue, categoryLookup) => {
   const directMatch =
     categoryLookup.get(categoryValue) || categoryLookup.get(normalizeValue(categoryValue));
@@ -181,7 +211,10 @@ const ensureCategoryDocument = async (categoryValue, categoryLookup) => {
   return { categoryDoc, created: true };
 };
 
+<<<<<<< HEAD
 /** Reuses or creates a subcategory under the selected category during product import. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const ensureSubcategoryDocument = async (
   subcategoryValue,
   categoryDoc,
@@ -212,7 +245,10 @@ const ensureSubcategoryDocument = async (
 /* =====================================================
    ADD PRODUCT (ADMIN + MANAGER)
 ===================================================== */
+<<<<<<< HEAD
 // POST /: Creates a product and saves its uploaded image and category references.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post(
   "/",
   authMiddleware,
@@ -252,7 +288,10 @@ router.post(
 /* =====================================================
    IMPORT PRODUCTS (CSV / EXCEL)
 ===================================================== */
+<<<<<<< HEAD
 // POST /import: Imports product records from an uploaded CSV or Excel spreadsheet.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post(
   "/import",
   authMiddleware,
@@ -379,7 +418,10 @@ router.post(
 /* =====================================================
    GET ALL PRODUCTS
 ===================================================== */
+<<<<<<< HEAD
 // GET /: Lists products and applies the catalog search and filter options.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/", async (req, res) => {
   try {
     const { category, subcategory, sort } = req.query;
@@ -412,7 +454,10 @@ router.get("/", async (req, res) => {
 /* =====================================================
    UPDATE PRODUCT
 ===================================================== */
+<<<<<<< HEAD
 // PUT /:id: Updates the selected product fields and optional uploaded image.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/:id",
   authMiddleware,
@@ -503,7 +548,10 @@ router.put(
 /* =====================================================
    DELETE PRODUCT
 ===================================================== */
+<<<<<<< HEAD
 // DELETE /:id: Deletes the selected product from the catalog.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.delete(
   "/:id",
   authMiddleware,

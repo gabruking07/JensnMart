@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Express API endpoints for payment routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const router = express.Router();
 const Razorpay = require("razorpay");
@@ -22,7 +25,10 @@ const razorpay = new Razorpay({
 });
 
 /* ================= ADMIN VIEW PAYMENTS ================= */
+<<<<<<< HEAD
 // GET /: Lists payment records for the admin payments screen.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/", authMiddleware, roleOnly("admin"), async (req, res) => {
   const payments = await Payment.find()
     .sort({ createdAt: -1 })
@@ -33,7 +39,10 @@ router.get("/", authMiddleware, roleOnly("admin"), async (req, res) => {
 });
 
 /* ================= VENDOR VIEW OWN TRANSACTIONS ================= */
+<<<<<<< HEAD
 // GET /vendor: Lists payments belonging to the signed-in vendor.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/vendor", authMiddleware, async (req, res) => {
   if (req.user.role !== "vendor") {
     return res.status(403).json({ message: "Access denied" });
@@ -48,7 +57,10 @@ router.get("/vendor", authMiddleware, async (req, res) => {
 
 
 /* ================= CREATE RAZORPAY ORDER ================= */
+<<<<<<< HEAD
 // POST /create-order: Creates a Razorpay order for checkout when provider credentials are configured.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/create-order", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -103,7 +115,10 @@ router.post("/create-order", authMiddleware, async (req, res) => {
 
 
 /* ================= VERIFY PAYMENT ================= */
+<<<<<<< HEAD
 // POST /verify: Verifies Razorpay payment details before marking payment complete.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/verify", authMiddleware, async (req, res) => {
   if (req.user.role !== "vendor") {
     return res.status(403).json({ message: "Access denied" });
@@ -230,7 +245,10 @@ router.post("/verify", authMiddleware, async (req, res) => {
 
 
 /* ================= ADMIN UPDATE PAYMENT ================= */
+<<<<<<< HEAD
 // PUT /:id: Updates the selected payment status from the admin payments screen.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put("/:id", authMiddleware, roleOnly("admin"), async (req, res) => {
   const { status } = req.body;
   const allowedStatuses = ["Pending", "Paid", "Failed"];
@@ -284,7 +302,10 @@ router.put("/:id", authMiddleware, roleOnly("admin"), async (req, res) => {
   res.json({ message: "Payment updated", payment, order });
 });
 
+<<<<<<< HEAD
 // POST /:id/notify-vendor: Sends the selected vendor a notification about a payment.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/:id/notify-vendor", authMiddleware, roleOnly("admin"), async (req, res) => {
   try {
     const payment = await Payment.findById(req.params.id)

@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Administrator orders tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { Fragment, useEffect, useMemo, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -9,6 +12,7 @@ import toast from "react-hot-toast";
 import OrderTimeline from "../../components/OrderTimeline";
 import "../admin.css";
 
+<<<<<<< HEAD
 /** Formats a numeric amount as Indian rupees for consistent display in the user interface. */
 const formatCurrency = (amount) => `Rs ${Number(amount || 0).toLocaleString("en-IN")}`;
 
@@ -17,13 +21,23 @@ const formatDateTime = (value) =>
   value ? new Date(value).toLocaleString("en-IN") : "Not available";
 
 /** Calculates how long an order has been open so the admin screen can flag delays. */
+=======
+const formatCurrency = (amount) => `Rs ${Number(amount || 0).toLocaleString("en-IN")}`;
+
+const formatDateTime = (value) =>
+  value ? new Date(value).toLocaleString("en-IN") : "Not available";
+
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getOrderAgeHours = (value) => {
   const createdAt = new Date(value || 0).getTime();
   if (Number.isNaN(createdAt) || createdAt <= 0) return 0;
   return Math.max(0, (Date.now() - createdAt) / (1000 * 60 * 60));
 };
 
+<<<<<<< HEAD
 /** Assigns an attention level to an order based on its status and age. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getOrderRisk = (order) => {
   const ageHours = getOrderAgeHours(order.createdAt);
   const total = Number(order.total || 0);
@@ -85,7 +99,10 @@ const getOrderRisk = (order) => {
   };
 };
 
+<<<<<<< HEAD
 /** Renders the orders tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function OrdersTab() {
   const [orders, setOrders] = useState([]);
   const [commission, setCommission] = useState(0);
@@ -105,8 +122,12 @@ export default function OrdersTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
+<<<<<<< HEAD
     /** Fetches order records for the current admin view. */
     const loadOrders = async () => {
+=======
+  const loadOrders = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/orders/admin");
       setOrders(res.data || []);
@@ -115,8 +136,12 @@ export default function OrdersTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Fetches order commission totals for the admin order/report view. */
     const loadCommission = async () => {
+=======
+  const loadCommission = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/orders/commission");
       setCommission(res.data?.total || 0);
@@ -128,8 +153,12 @@ export default function OrdersTab() {
     loadCommission();
   }, []);
 
+<<<<<<< HEAD
     /** Sends a status change to the backend and refreshes the affected record list. */
     const updateStatus = async (id, status) => {
+=======
+  const updateStatus = async (id, status) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       await api.put(`/orders/status/${id}`, { status });
       toast.success("Status updated");
@@ -326,15 +355,22 @@ export default function OrdersTab() {
     };
   }, [orders]);
 
+<<<<<<< HEAD
     /** Expands or collapses the product details for an order row. */
     const toggleOrderProducts = (orderId) => {
+=======
+  const toggleOrderProducts = (orderId) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setExpandedOrders((prev) => ({
       ...prev,
       [orderId]: !prev[orderId],
     }));
   };
 
+<<<<<<< HEAD
   /** Checks whether an order date belongs to the selected receipt export range. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const isWithinReceiptDateRange = (order) => {
     if (!receiptDateFrom && !receiptDateTo) return true;
 
@@ -354,8 +390,12 @@ export default function OrdersTab() {
     return true;
   };
 
+<<<<<<< HEAD
     /** Collects order fields into the receipt data structure used by the PDF renderer. */
     const buildReceiptDetails = (order) => {
+=======
+  const buildReceiptDetails = (order) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const products = Array.isArray(order.products) ? order.products : [];
     const vendorName =
       order.vendor?.name ||
@@ -402,8 +442,12 @@ export default function OrdersTab() {
     };
   };
 
+<<<<<<< HEAD
     /** Draws one order receipt into the PDF document using the prepared receipt details. */
     const renderReceiptPage = (doc, order, receiptIndex, receiptCount) => {
+=======
+  const renderReceiptPage = (doc, order, receiptIndex, receiptCount) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const pageWidth = doc.internal.pageSize.getWidth();
     const details = buildReceiptDetails(order);
 
@@ -497,8 +541,12 @@ export default function OrdersTab() {
     );
   };
 
+<<<<<<< HEAD
     /** Draws multiple selected orders into one receipt PDF for batch export. */
     const renderCombinedReceipt = (doc, selectedOrders) => {
+=======
+  const renderCombinedReceipt = (doc, selectedOrders) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const generatedAt = formatDateTime(new Date());
@@ -534,8 +582,12 @@ export default function OrdersTab() {
       .map((order) => `#${order.orderNumber}`)
       .join(", ")}`;
     const orderNumberLines = doc.splitTextToSize(orderNumbersText, pageWidth - 28);
+<<<<<<< HEAD
         /** Finds the next vertical position in the PDF so receipt sections do not overlap. */
         const getSectionStartY = (preferredY, requiredHeight) => {
+=======
+    const getSectionStartY = (preferredY, requiredHeight) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
       const currentY = doc.lastAutoTable?.finalY || 0;
       if (currentY + requiredHeight > pageHeight - 18) {
         doc.addPage();
@@ -662,15 +714,22 @@ export default function OrdersTab() {
     });
   };
 
+<<<<<<< HEAD
   /** Performs the toggle order selection step used by this module's workflow. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const toggleOrderSelection = (orderId) => {
     setSelectedOrderIds((prev) =>
       prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId]
     );
   };
 
+<<<<<<< HEAD
     /** Selects the currently listed orders for a bulk PDF export. */
     const selectReceiptOrders = () => {
+=======
+  const selectReceiptOrders = () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const receiptEligibleOrders = filtered.filter(isWithinReceiptDateRange);
     const limit =
       receiptSelectionCount === "all"
@@ -688,8 +747,12 @@ export default function OrdersTab() {
     toast.success(`${nextSelection.length} order(s) selected for receipt download`);
   };
 
+<<<<<<< HEAD
     /** Selects orders inside the chosen date range for PDF export. */
     const selectReceiptOrdersByDate = () => {
+=======
+  const selectReceiptOrdersByDate = () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!receiptDateFrom && !receiptDateTo) {
       toast.error("Choose a from or to date first");
       return;
@@ -711,8 +774,12 @@ export default function OrdersTab() {
     toast.success(`${matchedOrders.length} order(s) selected from the chosen dates`);
   };
 
+<<<<<<< HEAD
     /** Exports the selected order details as a downloadable receipt. */
     const downloadReceipt = (order) => {
+=======
+  const downloadReceipt = (order) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       setDownloadingOrderId(order._id);
       const doc = new jsPDF();
@@ -727,8 +794,12 @@ export default function OrdersTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Creates one PDF containing the receipts for all selected orders. */
     const downloadSelectedReceipts = () => {
+=======
+  const downloadSelectedReceipts = () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const selectedOrders = filtered.filter(
       (order) => selectedOrderIds.includes(order._id) && isWithinReceiptDateRange(order)
     );

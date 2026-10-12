@@ -1,11 +1,17 @@
+<<<<<<< HEAD
 /** Administrator payments tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "../admin.css";
 
+<<<<<<< HEAD
 /** Renders the payments tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function PaymentsTab() {
   const [payments, setPayments] = useState([]);
   const [notifyingId, setNotifyingId] = useState("");
@@ -14,8 +20,12 @@ export default function PaymentsTab() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
 
+<<<<<<< HEAD
     /** Fetches payment records for the administrator table. */
     const loadPayments = async () => {
+=======
+  const loadPayments = async () => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const { data } = await api.get("/payments");
       setPayments(data);
@@ -67,8 +77,12 @@ export default function PaymentsTab() {
   const start = (safePage - 1) * pageSize;
   const pagedPayments = filteredPayments.slice(start, start + pageSize);
 
+<<<<<<< HEAD
     /** Sends a status change to the backend and refreshes the affected record list. */
     const updateStatus = async (id, status) => {
+=======
+  const updateStatus = async (id, status) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       await api.put(`/payments/${id}`, { status });
       toast.success("Payment updated");
@@ -78,8 +92,12 @@ export default function PaymentsTab() {
     }
   };
 
+<<<<<<< HEAD
     /** Asks the backend to notify a vendor about a pending payment. */
     const notifyVendorForPending = async (payment) => {
+=======
+  const notifyVendorForPending = async (payment) => {
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       setNotifyingId(payment._id);
       const { data } = await api.post(`/payments/${payment._id}/notify-vendor`);

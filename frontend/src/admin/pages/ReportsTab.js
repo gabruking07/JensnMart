@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Administrator reports tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -41,7 +44,10 @@ const BAR_COLORS = [
   "#ffe731"
 ];
 
+<<<<<<< HEAD
 /** Renders the reports tab interface and coordinates the state and actions for this screen or reusable component. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function ReportsTab() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);

@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /** Express API endpoints for order routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const router = express.Router();
 
@@ -14,14 +17,20 @@ const authMiddleware = require("../middleware/authMiddleware");
 const approvedVendorOnly = require("../middleware/approveVendorOnly");
 const roleOnly = require("../middleware/adminOnly");
 
+<<<<<<< HEAD
 /** Reads the configured Razorpay key values so order flows can use the payment provider when enabled. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getRazorpayCredentials = () => {
   const keyId = (process.env.RAZORPAY_KEY_ID || "").trim();
   const keySecret = ((process.env.RAZORPAY_SECRET || process.env.RAZORPAY_KEY_SECRET) || "").trim();
   return { keyId, keySecret };
 };
 
+<<<<<<< HEAD
 /** Adds each order's related payment record to the order data returned by the API. */
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const attachPaymentDetails = async (orders) => {
   if (!Array.isArray(orders) || orders.length === 0) {
     return [];
@@ -54,7 +63,10 @@ const attachPaymentDetails = async (orders) => {
 /* =====================================================
    PLACE SINGLE PRODUCT ORDER (VENDOR)
 ===================================================== */
+<<<<<<< HEAD
 // POST /buy/:productId: Creates an order for one product using the submitted quantity and delivery details.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/buy/:productId", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -128,7 +140,10 @@ router.post("/buy/:productId", authMiddleware, async (req, res) => {
 /* =====================================================
    GET VENDOR ORDERS
 ===================================================== */
+<<<<<<< HEAD
 // GET /vendor/orders: Lists orders belonging to the signed-in vendor.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/vendor/orders", authMiddleware, async (req, res) => {
   if (req.user.role !== "vendor") {
     return res.status(403).json({ message: "Access denied" });
@@ -147,11 +162,17 @@ router.get("/vendor/orders", authMiddleware, async (req, res) => {
 /* =====================================================
    CART CHECKOUT 
 ===================================================== */
+<<<<<<< HEAD
 // POST /checkout: Validates cart and stock, then creates the order and payment records for checkout.
 router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) => {
   try {
     const { address, paymentMethod } = req.body;
     /** Converts submitted delivery-address fields into one consistent shape for order records. */
+=======
+router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) => {
+  try {
+    const { address, paymentMethod } = req.body;
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const normalizeAddress = (raw) => {
       if (!raw) return "";
       if (typeof raw === "string") return raw.trim();
@@ -322,7 +343,10 @@ router.post("/checkout", authMiddleware, approvedVendorOnly, async (req, res) =>
 /* =====================================================
    ADMIN VIEW ORDERS
 ===================================================== */
+<<<<<<< HEAD
 // GET /admin: Lists orders for the admin order-management screen.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/admin", authMiddleware, async (req, res) => {
   if (!["admin", "manager"].includes(req.user.role)) {
     return res.status(403).json({ message: "Access denied" });
@@ -346,7 +370,10 @@ router.get("/admin", authMiddleware, async (req, res) => {
 /* =====================================================
    UPDATE ORDER STATUS
 ===================================================== */
+<<<<<<< HEAD
 // PUT /status/:id: Changes an order status and records the status history.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put("/status/:id", authMiddleware, async (req, res) => {
   if (!["admin", "manager"].includes(req.user.role)) {
     return res.status(403).json({ message: "Access denied" });
@@ -423,7 +450,10 @@ router.put("/status/:id", authMiddleware, async (req, res) => {
 /* =====================================================
    ADMIN COMMISSION
 ===================================================== */
+<<<<<<< HEAD
 // GET /commission: Calculates order commission totals for admin reporting.
+=======
+>>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/commission", authMiddleware, roleOnly("admin"), async (req, res) => {
   const orders = await Order.find();
   const total = orders.reduce((sum, o) => sum + o.adminCommission, 0);
