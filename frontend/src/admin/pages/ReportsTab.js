@@ -33,14 +33,6 @@ const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6"];
 const REVENUE_STATUSES = new Set(["Delivered", "Completed"]);
 const PENDING_TRANSACTION_STATUSES = new Set(["Placed", "Processing", "Shipped"]);
 
-const BAR_COLORS = [
-  "#3b82f6",
-  "#22c55e",
-  "#f59e0b",
-  "#8b5cf6",
-  "#ffe731"
-];
-
 /** Renders the reports tab interface and coordinates the state and actions for this screen or reusable component. */
 export default function ReportsTab() {
   const [orders, setOrders] = useState([]);

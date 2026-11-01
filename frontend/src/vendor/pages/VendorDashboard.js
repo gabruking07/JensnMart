@@ -17,13 +17,6 @@ const SEARCH_ALIASES = {
   latest: ["new", "latest", "recent", "fresh"]
 };
 
-const INTENT_PRIMARY = {
-  cheap: "cheapest",
-  premium: "premium",
-  popular: "best",
-  latest: "latest"
-};
-
 /** Lowercases a search phrase, removes punctuation, and collapses spaces so matching is consistent. */
 const normalizeText = (value) =>
   String(value || "")
@@ -37,14 +30,6 @@ const tokenize = (value) => normalizeText(value).split(" ").filter(Boolean);
 
 /** Combines the search synonyms into one list so the matcher can distinguish intent words from product terms. */
 const flattenAliases = () => Object.values(SEARCH_ALIASES).flat();
-
-/** Accepts a close prefix or substring match to make small typing variations less disruptive. */
-const isNearMatch = (needle, hayWord) => {
-  if (!needle || !hayWord) return false;
-  if (hayWord.includes(needle) || needle.includes(hayWord)) return true;
-  if (needle.length < 4 || hayWord.length < 4) return false;
-  return hayWord.startsWith(needle.slice(0, Math.max(needle.length - 1, 3)));
-};
 
 /** Calculates edit distance between two words; the search scorer uses it to tolerate spelling mistakes. */
 const levenshtein = (a, b) => {
@@ -371,7 +356,7 @@ export default function VendorDashboard() {
     };
 
     init();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     /** Loads category subgroups used by the dashboard filters. */
@@ -528,7 +513,7 @@ export default function VendorDashboard() {
 
   useEffect(() => {
     fetchProducts(sortBy);
-  }, [location.key]);
+  }, [location.key, sortBy]);
 
   useEffect(() => {
         /** Reloads product data after the dashboard needs fresh catalog results. */

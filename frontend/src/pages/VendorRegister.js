@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import toast from "react-hot-toast";
-import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Login.css";
 

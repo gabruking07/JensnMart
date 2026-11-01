@@ -711,8 +711,7 @@ export default function OrdersTab() {
     toast.success(`${matchedOrders.length} order(s) selected from the chosen dates`);
   };
 
-    /** Exports the selected order details as a downloadable receipt. */
-    const downloadReceipt = (order) => {
+  const downloadReceipt = (order) => {
     try {
       setDownloadingOrderId(order._id);
       const doc = new jsPDF();
@@ -1261,6 +1260,14 @@ export default function OrdersTab() {
                         <div className="timeline-box-dark">
                           <OrderTimeline status={displayStatus} />
                           <div className="order-address-mini">Address: {order.deliveryAddress}</div>
+                          <button
+                            type="button"
+                            className="orders-bulk-btn"
+                            onClick={() => downloadReceipt(order)}
+                            disabled={downloadingOrderId === order._id}
+                          >
+                            {downloadingOrderId === order._id ? "Preparing receipt..." : "Download Receipt"}
+                          </button>
                         </div>
                       </div>
                     </div>
