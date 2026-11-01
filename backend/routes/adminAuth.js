@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 /** Express API endpoints for admin auth; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -12,10 +9,7 @@ const { sendOtpEmail, sendOtpSms } = require("../utils/mailer");
 const router = express.Router();
 
 /* ================= REGISTER ADMIN / MANAGER ================= */
-<<<<<<< HEAD
 // POST /register: Creates a pending admin or manager account after validating the registration fields.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/register", async (req, res) => {
   try {
     const { name, password, phone, role } = req.body;
@@ -55,10 +49,7 @@ router.post("/register", async (req, res) => {
 });
 
 /* ================= LOGIN ADMIN / MANAGER ================= */
-<<<<<<< HEAD
 // POST /login: Checks admin credentials and returns a signed JWT and role for an approved account.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/login", async (req, res) => {
   try {
     const email = String(req.body.email || "").toLowerCase().trim();
@@ -96,10 +87,7 @@ router.post("/login", async (req, res) => {
 });
 
 /* ================= FORGOT PASSWORD (ADMIN/MANAGER) ================= */
-<<<<<<< HEAD
 // POST /forgot-password/request-otp: Creates and sends a one-time password reset code to an admin account.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/forgot-password/request-otp", async (req, res) => {
   try {
     const contactType = req.body.contactType === "phone" ? "phone" : "email";
@@ -156,10 +144,7 @@ router.post("/forgot-password/request-otp", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // POST /forgot-password/verify-otp: Checks the submitted reset code before allowing a password reset.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/forgot-password/verify-otp", async (req, res) => {
   try {
     const contactType = req.body.contactType === "phone" ? "phone" : "email";
@@ -217,10 +202,7 @@ router.post("/forgot-password/verify-otp", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // POST /forgot-password/reset: Changes an admin password after the reset code has been verified.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/forgot-password/reset", async (req, res) => {
   try {
     const contactType = req.body.contactType === "phone" ? "phone" : "email";

@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 /** Express API endpoints for cart routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
@@ -14,10 +11,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const approvedVendorOnly = require("../middleware/approveVendorOnly");
 
 /* ================= ADD TO CART ================= */
-<<<<<<< HEAD
 // POST /add: Adds a product quantity to the signed-in vendor active cart.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post(
   "/add",
   authMiddleware,
@@ -68,10 +62,7 @@ router.post(
 );
 
 /* ================= GET CART ================= */
-<<<<<<< HEAD
 // GET /: Returns the signed-in vendor active cart with product details populated.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get(
   "/",
   authMiddleware,
@@ -97,10 +88,7 @@ router.get(
 );
 
 /* ================= REMOVE ITEM ================= */
-<<<<<<< HEAD
 // DELETE /remove/:productId: Removes one product from the signed-in vendor active cart.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.delete(
   "/remove/:productId",
   authMiddleware,
@@ -126,10 +114,7 @@ router.delete(
 
 /* ================= QUANTITY CHANGE ================= */
 
-<<<<<<< HEAD
 // PUT /update/:productId: Changes the quantity of one product already in the active cart.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put(
   "/update/:productId",
   authMiddleware,

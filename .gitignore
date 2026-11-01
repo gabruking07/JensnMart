@@ -2,3 +2,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Local project guides and interview notes
+/PROJECT_WALKTHROUGH.md
+/JensnMart_Interview_Read_Through.txt

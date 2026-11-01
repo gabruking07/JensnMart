@@ -1,20 +1,14 @@
-<<<<<<< HEAD
 /** Vendor cart screen; presents the vendor workflow and uses the shared API client for persisted data. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../services/api";
+import api, { getUploadUrl } from "../../services/api";
 import toast from "react-hot-toast";
 import "./VendorCart.css";
 import Footer from "../../components/Footer";
 import VendorLayout from "./VendorLayout";
 
-<<<<<<< HEAD
 /** Renders the vendor cart interface and coordinates the state and actions for this screen or reusable component. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function VendorCart() {
   const navigate = useNavigate();
 
@@ -25,12 +19,8 @@ export default function VendorCart() {
     fetchCart();
   }, []);
 
-<<<<<<< HEAD
     /** Loads the signed-in vendor's current cart from the API. */
     const fetchCart = async () => {
-=======
-  const fetchCart = async () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/cart");
       setCartItems(res.data.items || []);
@@ -42,20 +32,14 @@ export default function VendorCart() {
     }
   };
 
-<<<<<<< HEAD
   /** Removes a product from the cart through the API and refreshes the cart state. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const removeItem = async (productId) => {
     await api.delete(`/cart/remove/${productId}`);
     window.dispatchEvent(new Event("cart-updated"));
     fetchCart();
   };
 
-<<<<<<< HEAD
   /** Validates and saves a cart item quantity, then keeps the local cart view in sync. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const updateQty = async (productId, qty) => {
     const item = cartItems.find((i) => i.product._id === productId);
     if (!item) return;
@@ -83,10 +67,7 @@ export default function VendorCart() {
   const totalUnits = cartItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const inStockItems = cartItems.filter((item) => Number(item.product?.stock || 0) > 0).length;
 
-<<<<<<< HEAD
   /** Chooses the vendor delivery address that should be submitted for checkout. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const getCheckoutAddress = async () => {
     try {
       const res = await api.get("/vendor/addresses");
@@ -118,12 +99,8 @@ export default function VendorCart() {
     return null;
   };
 
-<<<<<<< HEAD
     /** Submits the checkout details and starts the appropriate payment flow. */
     const placeOrder = async () => {
-=======
-  const placeOrder = async () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!cartItems.length) return;
 
     const address = await getCheckoutAddress();
@@ -153,12 +130,8 @@ export default function VendorCart() {
     }
   };
 
-<<<<<<< HEAD
     /** Opens the Razorpay checkout dialog and sends its result to backend verification. */
     const openRazorpay = (razorpayOrder, order, razorpayKeyId) => {
-=======
-  const openRazorpay = (razorpayOrder, order, razorpayKeyId) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!window.Razorpay) {
       toast.error("Razorpay SDK failed to load. Please refresh and try again.");
       return;
@@ -255,7 +228,7 @@ export default function VendorCart() {
                   .map((item) => (
                     <div className="admin-card cart-item-card" key={item.product._id}>
                       <img
-                        src={`/uploads/${item.product.image}`}
+                        src={getUploadUrl(item.product.image)}
                         alt=""
                         className="cart-item-img"
                       />

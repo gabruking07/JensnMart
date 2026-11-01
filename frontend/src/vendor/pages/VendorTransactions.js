@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 /** Vendor transactions screen; presents the vendor workflow and uses the shared API client for persisted data. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
@@ -11,10 +8,7 @@ import Footer from "../../components/Footer";
 import VendorLayout from "./VendorLayout";
 import "./VendorTransactions.css";
 
-<<<<<<< HEAD
 /** Renders the vendor transactions interface and coordinates the state and actions for this screen or reusable component. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function VendorTransactions() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -36,12 +30,8 @@ export default function VendorTransactions() {
     }
   }, [selectedOrderNumber]);
 
-<<<<<<< HEAD
     /** Fetches payment transactions belonging to the signed-in vendor. */
     const loadTransactions = async () => {
-=======
-  const loadTransactions = async () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/payments/vendor");
       setTransactions(res.data || []);

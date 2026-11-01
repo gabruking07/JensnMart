@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 /** Administrator reports tab screen; loads and updates the corresponding marketplace records through the shared API client. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -29,7 +26,7 @@ import {
   Users
 } from "lucide-react";
 
-import api from "../../services/api";
+import api, { getUploadUrl } from "../../services/api";
 import "../admin.css";
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6"];
@@ -44,10 +41,7 @@ const BAR_COLORS = [
   "#ffe731"
 ];
 
-<<<<<<< HEAD
 /** Renders the reports tab interface and coordinates the state and actions for this screen or reusable component. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function ReportsTab() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
@@ -472,7 +466,7 @@ export default function ReportsTab() {
                   <tr key={`${product.name}-${index}`}>
                     <td>
                       <img
-                        src={`/uploads/${product.image}`}
+                        src={getUploadUrl(product.image)}
                         alt=""
                       />
                     </td>

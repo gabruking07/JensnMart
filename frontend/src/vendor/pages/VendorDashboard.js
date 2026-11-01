@@ -1,13 +1,10 @@
-<<<<<<< HEAD
 /** Vendor dashboard screen; presents the vendor workflow and uses the shared API client for persisted data. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useRef, useState } from "react";
 import { BellOff, BellRing } from "lucide-react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import api from "../../services/api";
+import api, { getUploadUrl } from "../../services/api";
 import toast from "react-hot-toast";
 import Footer from "../../components/Footer";
 import "./VendorDashboard.css";
@@ -27,10 +24,7 @@ const INTENT_PRIMARY = {
   latest: "latest"
 };
 
-<<<<<<< HEAD
 /** Lowercases a search phrase, removes punctuation, and collapses spaces so matching is consistent. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const normalizeText = (value) =>
   String(value || "")
     .toLowerCase()
@@ -38,7 +32,6 @@ const normalizeText = (value) =>
     .replace(/\s+/g, " ")
     .trim();
 
-<<<<<<< HEAD
 /** Splits normalized text into the individual search words used by fuzzy matching. */
 const tokenize = (value) => normalizeText(value).split(" ").filter(Boolean);
 
@@ -46,12 +39,6 @@ const tokenize = (value) => normalizeText(value).split(" ").filter(Boolean);
 const flattenAliases = () => Object.values(SEARCH_ALIASES).flat();
 
 /** Accepts a close prefix or substring match to make small typing variations less disruptive. */
-=======
-const tokenize = (value) => normalizeText(value).split(" ").filter(Boolean);
-
-const flattenAliases = () => Object.values(SEARCH_ALIASES).flat();
-
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const isNearMatch = (needle, hayWord) => {
   if (!needle || !hayWord) return false;
   if (hayWord.includes(needle) || needle.includes(hayWord)) return true;
@@ -59,10 +46,7 @@ const isNearMatch = (needle, hayWord) => {
   return hayWord.startsWith(needle.slice(0, Math.max(needle.length - 1, 3)));
 };
 
-<<<<<<< HEAD
 /** Calculates edit distance between two words; the search scorer uses it to tolerate spelling mistakes. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const levenshtein = (a, b) => {
   const s = String(a || "");
   const t = String(b || "");
@@ -85,10 +69,7 @@ const levenshtein = (a, b) => {
   return dp[s.length][t.length];
 };
 
-<<<<<<< HEAD
 /** Checks whether search tokens express a known intent such as cheap, premium, popular, or latest. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const hasIntent = (tokens, aliases) => {
   return tokens.some((token) =>
     aliases.some((alias) =>
@@ -97,10 +78,7 @@ const hasIntent = (tokens, aliases) => {
   );
 };
 
-<<<<<<< HEAD
 /** Chooses the closest known alias when a search word is within the allowed edit distance. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getClosestWord = (word, dictionary) => {
   if (!word) return word;
   let bestWord = word;
@@ -118,10 +96,7 @@ const getClosestWord = (word, dictionary) => {
   return word;
 };
 
-<<<<<<< HEAD
 /** Scores how closely a search token matches a product word, including partial and typo matches. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const tokenMatchStrength = (token, words = []) => {
   if (!token || !words.length) return 0;
 
@@ -143,10 +118,7 @@ const tokenMatchStrength = (token, words = []) => {
   return best;
 };
 
-<<<<<<< HEAD
 /** Summarizes which shopping intents are present so product scoring can apply the right ranking signals. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getIntentFlags = (tokens) => ({
   hasCheapIntent: hasIntent(tokens, SEARCH_ALIASES.cheap),
   hasPremiumIntent: hasIntent(tokens, SEARCH_ALIASES.premium),
@@ -154,10 +126,7 @@ const getIntentFlags = (tokens) => ({
   hasLatestIntent: hasIntent(tokens, SEARCH_ALIASES.latest),
 });
 
-<<<<<<< HEAD
 /** Ranks a product against query terms, intent words, and the requested price range for dashboard search. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const getAiScore = (product, searchTerm, lowPrice, highPrice) => {
   const query = normalizeText(searchTerm);
   if (!query) return 0;
@@ -219,10 +188,7 @@ const getAiScore = (product, searchTerm, lowPrice, highPrice) => {
   return score;
 };
 
-<<<<<<< HEAD
 /** Formats a date for compact display in the product comparison view. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const formatDateLabel = (value) => {
   if (!value) return "N/A";
   const date = new Date(value);
@@ -230,10 +196,7 @@ const formatDateLabel = (value) => {
   return date.toLocaleDateString();
 };
 
-<<<<<<< HEAD
 /** Compares selected products across supported attributes and records a winner for each attribute. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const buildComparisonInsights = (leftProduct, rightProduct) => {
   if (!leftProduct || !rightProduct) return [];
 
@@ -279,10 +242,7 @@ const buildComparisonInsights = (leftProduct, rightProduct) => {
   });
 };
 
-<<<<<<< HEAD
 /** Summarizes the comparison by counting attribute wins and producing a short result. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const buildComparisonSummary = (leftProduct, rightProduct, insights) => {
   if (!leftProduct || !rightProduct || insights.length === 0) return "";
 
@@ -310,10 +270,7 @@ const buildComparisonSummary = (leftProduct, rightProduct, insights) => {
   return `${winner.name} comes out ahead overall. Choose ${winner.name} for the stronger mix of price, availability, and freshness. Pick ${runnerUp.name} if its specific category fit matters more than the headline metrics.`;
 };
 
-<<<<<<< HEAD
 /** Renders the vendor dashboard interface and coordinates the state and actions for this screen or reusable component. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function VendorDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -340,12 +297,8 @@ export default function VendorDashboard() {
   const subcategoryScrollerRef = useRef(null);
   const subcategoryRowRef = useRef(null);
 
-<<<<<<< HEAD
     /** Scrolls the horizontal category-chip row to reveal more filter options. */
     const scrollChipRow = (ref, direction) => {
-=======
-  const scrollChipRow = (ref, direction) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     if (!ref.current) return;
 
     ref.current.scrollBy({
@@ -364,10 +317,7 @@ export default function VendorDashboard() {
       const row = ref.rowRef.current;
       if (!scroller || !row) return null;
 
-<<<<<<< HEAD
       /** Translates a mouse-wheel gesture into horizontal scrolling for the chip row. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
       const onWheel = (event) => {
         const delta = event.deltaY || event.deltaX;
         if (!delta) return;
@@ -397,10 +347,7 @@ export default function VendorDashboard() {
   }, [searchParams]);
 
   useEffect(() => {
-<<<<<<< HEAD
     /** Checks the vendor session and loads the profile, product catalog, and categories needed to open the dashboard. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const init = async () => {
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("role");
@@ -427,10 +374,7 @@ export default function VendorDashboard() {
   }, []);
 
   useEffect(() => {
-<<<<<<< HEAD
     /** Loads category subgroups used by the dashboard filters. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const fetchSubcategories = async () => {
       try {
         const res = await api.get("/subcategories");
@@ -443,10 +387,7 @@ export default function VendorDashboard() {
     fetchSubcategories();
   }, []);
 
-<<<<<<< HEAD
   /** Loads products from the catalog API using the current sort and filter settings. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const fetchProducts = async (sort = "") => {
     const res = await api.get("/products", {
       params: {
@@ -457,10 +398,7 @@ export default function VendorDashboard() {
     setProducts(res.data || []);
   };
 
-<<<<<<< HEAD
   /** Loads the category list used by product browsing and filtering. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const fetchCategories = async () => {
     const res = await api.get("/categories");
     setCategories(res.data || []);
@@ -574,22 +512,14 @@ export default function VendorDashboard() {
     }
   }, [currentPage, totalPages]);
 
-<<<<<<< HEAD
     /** Changes the catalog sort mode and resets pagination so results start at the first page. */
     const handleSortChange = (value) => {
-=======
-  const handleSortChange = (value) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setSortBy(value);
     fetchProducts(value);
   };
 
-<<<<<<< HEAD
     /** Changes the page size and returns the catalog view to its first page. */
     const handleItemsPerPageChange = (event) => {
-=======
-  const handleItemsPerPageChange = (event) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const nextSize = Number.parseInt(event.target.value, 10);
     const safeSize = [6, 12, 18, 24].includes(nextSize) ? nextSize : 12;
     setItemsPerPage(safeSize);
@@ -601,12 +531,8 @@ export default function VendorDashboard() {
   }, [location.key]);
 
   useEffect(() => {
-<<<<<<< HEAD
         /** Reloads product data after the dashboard needs fresh catalog results. */
         const refreshProducts = async () => {
-=======
-    const refreshProducts = async () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
       try {
         await fetchProducts(sortBy);
       } catch (err) {
@@ -616,7 +542,6 @@ export default function VendorDashboard() {
 
     const intervalId = setInterval(refreshProducts, 5000);
 
-<<<<<<< HEAD
         /** Refreshes the relevant screen data when the browser window regains focus. */
         const onFocus = () => {
       refreshProducts();
@@ -624,13 +549,6 @@ export default function VendorDashboard() {
 
         /** Refreshes dashboard data after the browser tab becomes visible again. */
         const onVisibilityChange = () => {
-=======
-    const onFocus = () => {
-      refreshProducts();
-    };
-
-    const onVisibilityChange = () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
       if (!document.hidden) {
         refreshProducts();
       }
@@ -646,7 +564,6 @@ export default function VendorDashboard() {
     };
   }, [sortBy]);
 
-<<<<<<< HEAD
     /** Increments the selected product quantity used by the add-to-cart action. */
     const increaseQty = (id) => {
     setCartQty((prev) => ({ ...prev, [id]: (prev[id] || 1) + 1 }));
@@ -659,17 +576,6 @@ export default function VendorDashboard() {
 
     /** Sends the chosen product and quantity to the cart API, then refreshes cart feedback. */
     const addToCart = async (productId) => {
-=======
-  const increaseQty = (id) => {
-    setCartQty((prev) => ({ ...prev, [id]: (prev[id] || 1) + 1 }));
-  };
-
-  const decreaseQty = (id) => {
-    setCartQty((prev) => ({ ...prev, [id]: Math.max(1, (prev[id] || 1) - 1) }));
-  };
-
-  const addToCart = async (productId) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const qty = cartQty[productId] || 1;
       await api.post("/cart/add", { productId, quantity: qty });
@@ -681,12 +587,8 @@ export default function VendorDashboard() {
     }
   };
 
-<<<<<<< HEAD
     /** Subscribes the vendor to an alert when this unavailable product is restocked. */
     const requestRestockAlert = async (product) => {
-=======
-  const requestRestockAlert = async (product) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const productId = product?._id;
     if (!productId) return;
 
@@ -715,12 +617,8 @@ export default function VendorDashboard() {
     }
   };
 
-<<<<<<< HEAD
     /** Cancels the vendor's pending restock alert for this product. */
     const cancelRestockAlert = async (product) => {
-=======
-  const cancelRestockAlert = async (product) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const productId = product?._id;
     if (!productId || restockRequests[productId] !== "subscribed") return;
 
@@ -742,12 +640,8 @@ export default function VendorDashboard() {
     }
   };
 
-<<<<<<< HEAD
     /** Adds or removes a product from the dashboard comparison selection. */
     const toggleCompareProduct = (productId) => {
-=======
-  const toggleCompareProduct = (productId) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setCompareIds((prev) => {
       if (prev.includes(productId)) {
         return prev.filter((id) => id !== productId);
@@ -762,12 +656,8 @@ export default function VendorDashboard() {
     });
   };
 
-<<<<<<< HEAD
     /** Clears all selected products from the comparison view. */
     const clearComparison = () => {
-=======
-  const clearComparison = () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setCompareIds([]);
   };
 
@@ -800,11 +690,11 @@ export default function VendorDashboard() {
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
                 >
-                  <option value="">Default ??</option>
-                  <option value="bestsell">Most Sold ??</option>
-                  <option value="priceHigh">Price High to Low ??</option>
-                  <option value="priceLow">Price Low to High ??</option>
-                  <option value="new">New Arrivals ?</option>
+                  <option value="">Default ⚙️</option>
+                  <option value="bestsell">Most Sold 🔥</option>
+                  <option value="priceHigh">Price High to Low 📈</option>
+                  <option value="priceLow">Price Low to High 📉</option>
+                  <option value="new">New Arrivals ✨</option>
                 </select>
               </div>
             </div>
@@ -968,7 +858,7 @@ export default function VendorDashboard() {
           {paginatedProducts.map(p => (
             <div className="vendor-product-card" key={p._id}>
               <div className="v-card-img">
-                <img src={`/uploads/${p.image}`} alt={p.name} />
+                <img src={getUploadUrl(p.image)} alt={p.name} />
                 <span className={`stock-label ${Number(p.stock || 0) === 0 ? "out" : ""}`}>
                   {Number(p.stock || 0) === 0 ? "Sold out" : `${p.stock} in stock`}
                 </span>
@@ -1138,7 +1028,7 @@ export default function VendorDashboard() {
               {compareProducts.map((product) => (
                 <article key={product._id} className="vendor-compare-card">
                   <div className="vendor-compare-card-top">
-                    <img src={`/uploads/${product.image}`} alt={product.name} />
+                    <img src={getUploadUrl(product.image)} alt={product.name} />
                     <div>
                       <h4>{product.name}</h4>
                       <span>{product.category?.name || "Uncategorized"}</span>

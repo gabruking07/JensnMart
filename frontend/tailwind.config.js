@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 /** Tailwind CSS configuration; sets content scanning and extends the shared visual theme. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],

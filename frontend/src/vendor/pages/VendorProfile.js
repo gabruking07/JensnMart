@@ -1,19 +1,13 @@
-<<<<<<< HEAD
 /** Vendor profile screen; presents the vendor workflow and uses the shared API client for persisted data. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useRef, useState } from "react";
-import api from "../../services/api";
+import api, { getUploadUrl } from "../../services/api";
 import toast from "react-hot-toast";
 import Footer from "../../components/Footer";
 import "./VendorProfile.css";
 import VendorLayout from "./VendorLayout";
 
-<<<<<<< HEAD
 /** Renders the vendor profile interface and coordinates the state and actions for this screen or reusable component. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function VendorProfile() {
   const [vendor, setVendor] = useState(null);
   const [name, setName] = useState("");
@@ -30,28 +24,17 @@ export default function VendorProfile() {
   const [profileImage, setProfileImage] = useState(null);
 
   const fileInputRef = useRef(null);
-  const uploadsBaseUrl = `${api.defaults.baseURL.replace(/\/api\/?$/, "")}/uploads`;
-
   useEffect(() => {
     loadProfile();
   }, []);
 
-<<<<<<< HEAD
   /** Converts the saved image path into the URL shown on the profile screen. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const getProfileImageUrl = (filename) => {
-    if (!filename) return "";
-    if (filename.startsWith("http")) return filename;
-    return `${uploadsBaseUrl}/${filename}`;
+    return getUploadUrl(filename);
   };
 
-<<<<<<< HEAD
     /** Fetches the signed-in vendor profile to populate the form. */
     const loadProfile = async () => {
-=======
-  const loadProfile = async () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/vendor/profile");
       const v = res.data;
@@ -75,12 +58,8 @@ export default function VendorProfile() {
     }
   };
 
-<<<<<<< HEAD
     /** Submits edited profile fields and an optional image, then refreshes profile state. */
     const updateProfile = async () => {
-=======
-  const updateProfile = async () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     setIsUpdating(true);
     try {
       if (phone && !/^\d{10}$/.test(phone)) {
@@ -124,12 +103,8 @@ export default function VendorProfile() {
     }
   };
 
-<<<<<<< HEAD
     /** Updates the postal code and checks the related address entry. */
     const handlePincodeChange = (value) => {
-=======
-  const handlePincodeChange = (value) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const digits = value.replace(/\D/g, "").slice(0, 6);
     setPincode(digits);
 
@@ -141,12 +116,8 @@ export default function VendorProfile() {
     setPincodeError("Pincode must be 6 digits");
   };
 
-<<<<<<< HEAD
     /** Stores the selected profile image and prepares its preview for the form. */
     const onProfileImageChange = async (e) => {
-=======
-  const onProfileImageChange = async (e) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const file = e.target.files?.[0];
     if (!file) return;
 

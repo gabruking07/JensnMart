@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 /** Reusable order timeline UI component; packages interface behavior used by one or more application screens. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { Check, Package, Truck, Home } from "lucide-react";
 import "./timeline.css";
 
@@ -13,10 +10,7 @@ const STEPS = [
     { key: "Delivered", label: "Delivered", icon: Home }
 ];
 
-<<<<<<< HEAD
 /** Renders the order timeline interface and coordinates the state and actions for this screen or reusable component. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function OrderTimeline({ status }) {
     const statusLabel = String(status || "")
         .replace(/([a-z])([A-Z])/g, "$1 $2")

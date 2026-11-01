@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 /** admin layout source module for the JensnMart application. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
@@ -24,10 +21,7 @@ import {
 import logo from "../assets/logo.png";
 import "./AdminLayout.css";
 
-<<<<<<< HEAD
 /** Renders the admin layout interface and coordinates the state and actions for this screen or reusable component. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function AdminLayout() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -104,10 +98,7 @@ export default function AdminLayout() {
         },
     ];
 
-<<<<<<< HEAD
     /** Clears the saved login token and role, then returns the user to the sign-in screen. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     const logout = () => {
         localStorage.clear();
         navigate("/");

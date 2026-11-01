@@ -1,28 +1,20 @@
-<<<<<<< HEAD
 /** Vendor orders screen; presents the vendor workflow and uses the shared API client for persisted data. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import api from "../../services/api";
+import api, { getUploadUrl } from "../../services/api";
 import toast from "react-hot-toast";
 import Footer from "../../components/Footer";
 import OrderTimeline from "../../components/OrderTimeline";
 import "./VendorOrders.css";
 import VendorLayout from "./VendorLayout";
 
-<<<<<<< HEAD
 /** Formats a numeric amount as Indian rupees for consistent display in the user interface. */
 const formatCurrency = (amount) => `Rs ${Number(amount || 0).toLocaleString("en-IN")}`;
 
 /** Renders the vendor orders interface and coordinates the state and actions for this screen or reusable component. */
-=======
-const formatCurrency = (amount) => `Rs ${Number(amount || 0).toLocaleString("en-IN")}`;
-
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function VendorOrders() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -46,12 +38,8 @@ export default function VendorOrders() {
     }
   }, [selectedOrderNumber]);
 
-<<<<<<< HEAD
     /** Loads the signed-in vendor orders for the order history screen. */
     const fetchOrders = async () => {
-=======
-  const fetchOrders = async () => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       const res = await api.get("/orders/vendor/orders");
       setOrders(res.data || []);
@@ -129,12 +117,8 @@ export default function VendorOrders() {
     }
   }, [currentPage, totalPages]);
 
-<<<<<<< HEAD
     /** Exports the selected order details as a downloadable receipt. */
     const downloadReceipt = (order) => {
-=======
-  const downloadReceipt = (order) => {
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
     try {
       setDownloadingOrderId(order._id);
 
@@ -353,7 +337,7 @@ export default function VendorOrders() {
                         {order.products.map((p, idx) => (
                           <div key={idx} className="order-product-row">
                             <img
-                              src={`/uploads/${p.image}`}
+                              src={getUploadUrl(p.image)}
                               alt={p.name}
                             />
                             <div>

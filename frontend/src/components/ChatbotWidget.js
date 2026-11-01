@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 /** Reusable chatbot widget UI component; packages interface behavior used by one or more application screens. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Bot } from "lucide-react";
@@ -54,15 +51,10 @@ const ROLE_CONTENT = {
   },
 };
 
-<<<<<<< HEAD
 /** Splits assistant text into plain and bold segments so messages render with basic Markdown emphasis. */
 const renderMessageContent = (content) => {
   const parts = String(content || "").split(/(\*\*.*?\*\*)/g);
   /** Normalizes assistant text for readable sentence-style display. */
-=======
-const renderMessageContent = (content) => {
-  const parts = String(content || "").split(/(\*\*.*?\*\*)/g);
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const formatSentenceCase = (value) => {
     const text = String(value || "");
     if (!text.trim()) return text;
@@ -81,10 +73,7 @@ const renderMessageContent = (content) => {
   });
 };
 
-<<<<<<< HEAD
 /** Renders the chatbot widget interface and coordinates the state and actions for this screen or reusable component. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 export default function ChatbotWidget() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -136,10 +125,7 @@ export default function ChatbotWidget() {
     [messages]
   );
 
-<<<<<<< HEAD
   /** Builds the correct product link for a catalog item in the chatbot response. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const getProductHref = (productName) => {
     const search = encodeURIComponent(productName);
 
@@ -154,10 +140,7 @@ export default function ChatbotWidget() {
     return "/";
   };
 
-<<<<<<< HEAD
   /** Sends the current chat prompt to the assistant API and appends its reply to the conversation. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const sendMessage = async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
@@ -171,7 +154,7 @@ export default function ChatbotWidget() {
       const res = await api.post("/ai/chat", {
         message: trimmed,
         history: requestHistory,
-      });
+      }, { timeout: 25000 });
 
       setMessages((prev) => [
         ...prev,
@@ -188,6 +171,9 @@ export default function ChatbotWidget() {
           role: "assistant",
           content:
             err.response?.data?.message ||
+            (err.code === "ECONNABORTED"
+              ? "The AI assistant is taking too long to respond. Please try again."
+              : null) ||
             "Chatbot is unavailable right now. Please try again later.",
         },
       ]);
@@ -196,19 +182,13 @@ export default function ChatbotWidget() {
     }
   };
 
-<<<<<<< HEAD
   /** Handles form submission and prevents the browser default while the component processes the input. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const onSubmit = (e) => {
     e.preventDefault();
     sendMessage();
   };
 
-<<<<<<< HEAD
   /** Copies a suggested chat prompt into the input and submits it through the normal chat flow. */
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
   const applyPrompt = (prompt) => {
     setInput(prompt);
   };

@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 /** Express API endpoints for vendor routes; handlers connect HTTP requests to authorization, database operations, and JSON responses. */
 
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 const router = require("express").Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const Vendor = require("../models/Vendor");
@@ -15,10 +12,7 @@ const { sendOtpEmail, sendOtpSms } = require("../utils/mailer");
 /* =====================================================
    REGISTER VENDOR
 ===================================================== */
-<<<<<<< HEAD
 // POST /register: Creates a vendor account and stores an optional profile image; new accounts await admin approval.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/register", upload.single("profileImage"), async (req, res) => {
   try {
     const {
@@ -96,10 +90,7 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
 /* =====================================================
    LOGIN VENDOR
 ===================================================== */
-<<<<<<< HEAD
 // POST /login: Checks vendor credentials and returns a signed JWT for an approved vendor.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -139,10 +130,7 @@ router.post("/login", async (req, res) => {
 /* =====================================================
    FORGOT PASSWORD (VENDOR)
 ===================================================== */
-<<<<<<< HEAD
 // POST /forgot-password/request-otp: Creates and sends a one-time password reset code to a vendor.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/forgot-password/request-otp", async (req, res) => {
   try {
     const contactType = req.body.contactType === "phone" ? "phone" : "email";
@@ -199,10 +187,7 @@ router.post("/forgot-password/request-otp", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // POST /forgot-password/verify-otp: Checks the vendor reset code before password reset is allowed.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/forgot-password/verify-otp", async (req, res) => {
   try {
     const contactType = req.body.contactType === "phone" ? "phone" : "email";
@@ -260,10 +245,7 @@ router.post("/forgot-password/verify-otp", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // POST /forgot-password/reset: Changes the vendor password after reset-code verification.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/forgot-password/reset", async (req, res) => {
   try {
     const contactType = req.body.contactType === "phone" ? "phone" : "email";
@@ -322,10 +304,7 @@ router.post("/forgot-password/reset", async (req, res) => {
 /* =====================================================
    GET VENDOR PROFILE
 ===================================================== */
-<<<<<<< HEAD
 // GET /profile: Returns the signed-in vendor profile without exposing the password.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/profile", auth, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -359,10 +338,7 @@ router.get("/profile", auth, async (req, res) => {
 /* =====================================================
    UPDATE VENDOR PROFILE
 ===================================================== */
-<<<<<<< HEAD
 // PUT /profile: Updates the signed-in vendor profile and optional profile image.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put("/profile", auth, upload.single("profileImage"), async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -445,10 +421,7 @@ router.put("/profile", auth, upload.single("profileImage"), async (req, res) => 
    BASE: /api/vendor
 ===================================================== */
 
-<<<<<<< HEAD
 // GET /addresses: Lists saved delivery addresses for the signed-in vendor.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.get("/addresses", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -465,10 +438,7 @@ router.get("/addresses", authMiddleware, async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // POST /addresses: Adds a delivery address to the signed-in vendor account.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.post("/addresses", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -499,10 +469,7 @@ router.post("/addresses", authMiddleware, async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // PUT /addresses/:index: Updates one saved delivery address by its array position.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.put("/addresses/:index", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
@@ -539,10 +506,7 @@ router.put("/addresses/:index", authMiddleware, async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // DELETE /addresses/:index: Removes one saved delivery address by its array position.
-=======
->>>>>>> 01538e8b0c137147cf885390b770f7b7e80d10f5
 router.delete("/addresses/:index", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "vendor") {
