@@ -49,7 +49,12 @@ export default function Login() {
         navigate("/vendor");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      const message = err.response?.data?.message || (
+        err.response
+          ? "Login failed. Check the email, password, account approval, and backend logs."
+          : "Cannot reach the API. Set REACT_APP_API_BASE_URL in Vercel to your Render backend URL ending in /api, then redeploy."
+      );
+      toast.error(message);
     } finally {
       setLoading(false);
     }

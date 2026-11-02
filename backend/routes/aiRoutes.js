@@ -138,6 +138,23 @@ const buildCatalogFallbackReply = (message, suggestedProducts) => {
   return "Here are in-stock products matching your request.";
 };
 
+/** Provides basic guest account guidance when the Gemini key is not configured. */
+const buildGuestFallbackReply = (message) => {
+  const question = normalizeText(message);
+
+  if (/forgot|reset|password/.test(question)) {
+    return "On the login page, choose Forgot Password, select your account type, and request a reset code by email. Check that your email service is configured on the backend.";
+  }
+  if (/register|sign up|create account/.test(question)) {
+    return "Choose Admin Reg. or Vendor Reg. from the login page and submit the registration form. New admin and vendor accounts need approval before they can sign in.";
+  }
+  if (/login|sign in|account|access/.test(question)) {
+    return "Use the email and password for your approved admin, manager, or vendor account. If sign in fails, confirm the backend is connected to MongoDB and the account has been approved.";
+  }
+
+  return "I can help with login, account registration, and password recovery. Try asking how to register, sign in, or reset your password.";
+};
+
 /** Requests a response with a short deadline so the chat can retry or return an error promptly. */
 const requestGemini = (model, prompt) =>
   fetch(
@@ -193,8 +210,10 @@ router.post("/chat", optionalAuth, async (req, res) => {
 
     if (!process.env.GEMINI_API_KEY) {
       if (viewerRole !== "guest") return sendCatalogFallback();
-      return res.status(503).json({
-        message: "AI chatbot is not configured. Add GEMINI_API_KEY to backend/.env.",
+      return res.json({
+        reply: buildGuestFallbackReply(message),
+        suggestedProducts: [],
+        viewerRole,
       });
     }
 
