@@ -52,7 +52,7 @@ export default function Login() {
       const message = err.response?.data?.message || (
         err.response
           ? "Login failed. Check the email, password, account approval, and backend logs."
-          : "Cannot reach the API. Set REACT_APP_API_BASE_URL in Vercel to your Render backend URL ending in /api, then redeploy."
+          : "Can't connect to the backend. Check that Vercel's REACT_APP_API_BASE_URL points to your Render URL ending in /api, that the latest deployment includes the variable, and that the Render service is running."
       );
       toast.error(message);
     } finally {
