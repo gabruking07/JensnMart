@@ -95,6 +95,24 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.demo-credentials {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: -6px 0 18px;
+  padding: 10px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.demo-credentials strong {
+  margin-bottom: 2px;
+}
+
 /* INPUTS */
 .form-group {
   margin-bottom: 15px;

@@ -65,6 +65,10 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    if (user.role !== "manager") {
+      return res.status(403).json({ message: "Admin sign-in is disabled" });
+    }
+
     if (!user.approved) {
       return res.status(403).json({ message: "Account pending approval" });
     }

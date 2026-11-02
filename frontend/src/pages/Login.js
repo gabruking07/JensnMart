@@ -16,7 +16,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("manager");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const url = role === "admin" ? "/admin/login" : "/vendor/login";
+      const url = role === "manager" ? "/admin/login" : "/vendor/login";
       const res = await api.post(url, { email, password });
 
       localStorage.setItem("token", res.data.token);
@@ -77,10 +77,10 @@ export default function Login() {
               <label className="input-label">Login As:</label>
               <div className="role-buttons">
                 <button
-                  className={role === "admin" ? "active" : ""}
-                  onClick={() => setRole("admin")}
+                  className={role === "manager" ? "active" : ""}
+                  onClick={() => setRole("manager")}
                 >
-                  Admin / Manager
+                  Manager
                 </button>
                 <button
                   className={role === "vendor" ? "active" : ""}
@@ -90,8 +90,14 @@ export default function Login() {
                 </button>
               </div>
 
+              <div className="demo-credentials" aria-live="polite">
+                <strong>Demo credentials</strong>
+                <span>Username: {role === "vendor" ? "vendor@gmail.com" : "man@gmail.com"}</span>
+                <span>Password: 123456</span>
+              </div>
+
               <div className="form-group">
-                <label className="input-label">Email Address</label>
+                <label className="input-label">Email / Username</label>
                 <input
                   type="email" 
                   className="auth-input"
