@@ -21,10 +21,21 @@ const contactRoutes = require("./routes/contactRoutes");
 const app = express();
 
 /* ================= MIDDLEWARE ================= */
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(",").map((origin) => origin.trim())
-  : true;
-app.use(cors({ origin: allowedOrigins }));
+const configuredOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+const allowedOrigins = [/.+\.vercel\.app$/, ...configuredOrigins];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.some((allowed) =>
+      allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    )) {
+      return callback(null, true);
+    }
+    return callback(new Error("Origin is not allowed by CORS"));
+  }
+}));
 app.use(express.json());
 
 /* ================= STATIC ================= */
